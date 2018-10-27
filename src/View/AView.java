@@ -2,10 +2,12 @@ package View;
 
 import Control.AController;
 
+import java.util.Observable;
+
 /**
  * An abstract class representing the View of the application
  */
-public abstract class AView {
+public abstract class AView extends Observable {
     /**
      * The controller of the application
      */
@@ -23,5 +25,6 @@ public abstract class AView {
      */
     public void setController(AController controller) {
         this.controller = controller;
+        this.addObserver(controller);
     }
 }

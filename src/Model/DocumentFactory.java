@@ -5,7 +5,7 @@ package Model;
  */
 public class DocumentFactory implements IDocumentFactory {
     @Override
-    public Document Create(String doc) {
+    public Document CreateDocument(String doc) {
         return null;
     }
 }

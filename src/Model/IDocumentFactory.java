@@ -8,5 +8,5 @@ public interface IDocumentFactory {
      * @param doc - the document before parsing
      * @return a parsed Document
      */
-    Document Create(String doc);
+    Document CreateDocument(String doc);
 }
