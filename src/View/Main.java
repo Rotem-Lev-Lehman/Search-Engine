@@ -10,6 +10,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * The main class of the application
+ */
 public class Main extends Application {
 
     @Override
@@ -30,6 +33,9 @@ public class Main extends Application {
     }
 
 
+    /** The main function of the application. runs the entire application
+     * @param args - arguments for running the application with
+     */
     public static void main(String[] args) {
         launch(args);
     }
