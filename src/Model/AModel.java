@@ -20,6 +20,7 @@ public abstract class AModel {
      */
     public void GetAllDocuments(String path){
         documents = readFile.ReadFile(path);
+        System.out.println(documents.size());
     }
 
     /** Gets the Document at the given index

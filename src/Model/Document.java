@@ -1,6 +1,6 @@
 package Model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  * A class that represents a Document
@@ -13,7 +13,7 @@ public class Document {
     /**
      * DATE1 - The date that the Document was published
      */
-    private Date DATE1;
+    private LocalDate DATE1;
     /**
      * TI - The headline of the Document
      */
@@ -40,7 +40,7 @@ public class Document {
      * @param TI - The headline of the Document
      * @param TEXT - The content of the Document
      */
-    public Document(String DOCNO, Date DATE1, String TI, String TEXT) {
+    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT) {
         this.DOCNO = DOCNO;
         this.DATE1 = DATE1;
         this.TI = TI;
@@ -64,14 +64,14 @@ public class Document {
     /** A getter for the DATE1
      * @return The Document's DATE1
      */
-    public Date getDATE1() {
+    public LocalDate getDATE1() {
         return DATE1;
     }
 
     /** A setter for the DATE1
      * @param DATE1 - The date that the Document was published
      */
-    public void setDATE1(Date DATE1) {
+    public void setDATE1(LocalDate DATE1) {
         this.DATE1 = DATE1;
     }
 
