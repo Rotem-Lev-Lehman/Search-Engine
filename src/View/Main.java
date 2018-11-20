@@ -29,7 +29,6 @@ public class Main extends Application {
         primaryStage.show();
 
         ((AView) fxmlLoader.getController()).setController(controller);
-
     }
 
 

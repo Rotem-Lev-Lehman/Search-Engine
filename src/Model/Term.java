@@ -10,12 +10,28 @@ public class Term {
      * The value of the term
      */
     private String value;
+    private int numOfTokensParsed;
+    private boolean endedWithHyphen;
 
     /** Constructor
      * @param value - The value of the term
      */
     public Term(String value) {
         this.value = value;
+        this.numOfTokensParsed = 1;
+        this.endedWithHyphen = false;
+    }
+
+    public Term(String value, int numOfTokensParsed){
+        this.value = value;
+        this.numOfTokensParsed = numOfTokensParsed;
+        this.endedWithHyphen = false;
+    }
+
+    public Term(String value, int numOfTokensParsed, boolean endedWithHyphen){
+        this.value = value;
+        this.numOfTokensParsed = numOfTokensParsed;
+        this.endedWithHyphen = endedWithHyphen;
     }
 
     /** Gets the value of the term
@@ -30,6 +46,22 @@ public class Term {
      */
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public int getNumOfTokensParsed() {
+        return numOfTokensParsed;
+    }
+
+    public void setNumOfTokensParsed(int numOfTokensParsed) {
+        this.numOfTokensParsed = numOfTokensParsed;
+    }
+
+    public boolean isEndedWithHyphen() {
+        return endedWithHyphen;
+    }
+
+    public void setEndedWithHyphen(boolean endedWithHyphen) {
+        this.endedWithHyphen = endedWithHyphen;
     }
 
     @Override
