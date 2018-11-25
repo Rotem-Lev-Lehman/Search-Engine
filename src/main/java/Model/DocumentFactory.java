@@ -12,8 +12,10 @@ public class DocumentFactory implements IDocumentFactory {
         String DocNo = FindTextBetweenTags(doc, "DOCNO");
 
         //<DATE1> </DATE1>
-        String Date1 = FindTextBetweenTags(doc, "DATE1");
-        LocalDate date1 = LocalDate.parse(Date1);
+        //String Date1 = FindTextBetweenTags(doc, "DATE1");
+        //LocalDate date1 = null;
+        //if(!Date1.equals(""))
+        //     date1 = LocalDate.parse(Date1);
 
         //<TI> </TI>
         String TI = FindTextBetweenTags(doc, "TI");
@@ -22,11 +24,17 @@ public class DocumentFactory implements IDocumentFactory {
         String Text = FindTextBetweenTags(doc, "TEXT");
 
         //Create the new Document
-        Document document = new Document(DocNo, date1, TI, Text);
+        Document document = new Document(DocNo, null, TI, Text);
         return document;
     }
 
     private String FindTextBetweenTags(String doc,String tagName) {
-        return doc.split("<" + tagName + ">")[1].split("</" + tagName + ">")[0];
+        try {
+            return doc.split("<" + tagName + ">")[1].split("</" + tagName + ">")[0];
+        }
+        catch (Exception e){ //change to jsoup
+            //System.out.println("HERE");
+        }
+        return "";
     }
 }

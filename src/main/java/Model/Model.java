@@ -9,5 +9,6 @@ public class Model extends AModel {
      */
     public Model(){
         readFile = new ReadFile(new DocumentFactory());
+        parser = new Parse();
     }
 }

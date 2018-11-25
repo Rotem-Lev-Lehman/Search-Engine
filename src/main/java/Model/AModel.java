@@ -1,5 +1,6 @@
 package Model;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -10,6 +11,7 @@ public abstract class AModel {
      * The ReadFile class that can return a list of all the Documents in the path given
      */
     protected IReadFile readFile;
+    protected IParse parser;
     /**
      * The Documents of the model
      */
@@ -19,8 +21,12 @@ public abstract class AModel {
      * @param path - The path where all of the Documents are in
      */
     public void GetAllDocuments(String path){
-        documents = readFile.ReadFile(path);
+        documents = readFile.ReadFile(path,parser);
         System.out.println(documents.size());
+    }
+
+    public void SetStopWords(File file){
+        parser.CreateStopWords(file);
     }
 
     /** Gets the Document at the given index

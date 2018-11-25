@@ -1,5 +1,11 @@
 package Model;
 
+import org.tartarus.snowball.SnowballStemmer;
+import org.tartarus.snowball.ext.porterStemmer;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -15,11 +21,49 @@ public class Parse implements IParse {
     private List<String> months;
     private Dictionary<String, String> monthNumber;
     private List<Character> possibleChars;
+    private SnowballStemmer stemmer;
 
-    public Parse(HashSet stopWords) {
-        this.stopWords = stopWords;
+    public Parse() {
+        stemmer = new porterStemmer();
         initializePossibleChars();
         initializeMonth();
+    }
+
+    @Override
+    public void CreateStopWords(File file) {
+        String content = ReadAGivenFile(file);
+        stopWords = new HashSet();
+        String[] words = content.split("\n");
+        List<String> w = Arrays.asList(words);
+
+        stopWords.addAll(w);
+    }
+
+    /** Reads a given file
+     * @param file - The file that needs to be read
+     * @return The file's content
+     */
+    private String ReadAGivenFile(File file){
+        String content = null;
+        FileReader reader = null;
+        try {
+            reader = new FileReader(file);
+            char[] chars = new char[(int) file.length()];
+            reader.read(chars);
+            content = new String(chars);
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return content;
     }
 
     private void initializePossibleChars() {
@@ -365,9 +409,11 @@ public class Parse implements IParse {
                 }
                 phrase += "-";
             }
-            phrase = phrase.substring(0, phrase.length() - 1);
-            saveCompleteTerm(phrase);
-            return true;
+            if(phrase.length() > 0) {
+                phrase = phrase.substring(0, phrase.length() - 1);
+                saveCompleteTerm(phrase);
+                return true;
+            }
         }
         //until here its all good
         //need to handle number-number, number-word
@@ -429,7 +475,7 @@ public class Parse implements IParse {
         if (isNumber(tokens[i])) {
             //Check if a solo number
             if (i + 1 < tokens.length) {
-                if(tokens[i+1].contains("-")){
+                if(tokens[i+1].contains("-") && tokens[i+1].replace("-","").length()!=0){
                     String next = tokens[i+1].split("-")[0]; //we care about only the first one...
                     if(isFraction(next)){
                         //number fraction-
@@ -449,7 +495,7 @@ public class Parse implements IParse {
                     //So far its a Num Fraction
                     //currentIndex++;
                     if (i + 2 < tokens.length) {
-                        if(tokens[i+2].contains("-")) {
+                        if(tokens[i+2].contains("-") && tokens[i+2].replace("-","").length()!=0) {
                             String next = tokens[i+2].split("-")[0]; //we care about only the first one...
                             String kmbt = getKMBT(next);
                             if (kmbt != null) {
@@ -485,7 +531,7 @@ public class Parse implements IParse {
         if (isDecimalNumber(tokens[i])) {
             //Check if a solo number
             if (i + 1 < tokens.length) {
-                if(tokens[i+1].contains("-")){
+                if(tokens[i+1].contains("-") && tokens[i+1].replace("-","").length()!=0){
                     String next = tokens[i+1].split("-")[0]; //we care about only the first one...
                     String kmbt = getKMBT(next);
                     if (kmbt != null) {
@@ -509,6 +555,7 @@ public class Parse implements IParse {
         }
         if(isFraction(tokens[i])){
             //So its a Fraction
+            String fraction = tokens[i].replace(",","");
             return new Term(tokens[i], 1);
         }
         return null;
@@ -517,6 +564,7 @@ public class Parse implements IParse {
     private String multiply(String number, String fraction, String kmbt) {
         long num = Long.parseLong(number.replace(",", ""));
         long KMBT = Long.parseLong(kmbt);
+        String frac = fraction.replace(",","");
 
         // Apply all of the rules to negative numbers too
         int flag = 1;
@@ -529,7 +577,7 @@ public class Parse implements IParse {
 
         if (0 <= num_kmbt && num_kmbt < 1000) {
             //kmbt must be 1
-            return number + " " + fraction;
+            return num + " " + frac;
         }
         if (1000 <= num_kmbt && num_kmbt < 1000000) {
             double n = num_kmbt / 1000.0;
@@ -549,7 +597,7 @@ public class Parse implements IParse {
                 return ((long) n * flag) + "B";
             return n * flag + "B";
         }
-        return number + " " + fraction; //will not reach here anyway, so why not?
+        return num + " " + frac; //will not reach here anyway, so why not?
     }
 
     private String multiplyDecimal(String decimalNumber, String kmbt) {
@@ -558,7 +606,7 @@ public class Parse implements IParse {
 
         // Apply all of the rules to negative numbers too
         int flag = 1;
-        if(num < 0) {
+        if (num < 0) {
             num *= -1;
             flag = -1;
         }
@@ -588,7 +636,7 @@ public class Parse implements IParse {
                 return ((long) n * flag) + "B";
             return n * flag + "B";
         }
-        return decimalNumber; //will not reach here anyway, so why not?
+        return num + ""; //will not reach here anyway, so why not?
     }
 
     private String getKMBT(String token) {
@@ -604,7 +652,12 @@ public class Parse implements IParse {
     }
 
     private void saveRegularTerm(String token) {
-        String stemmed = stemmer.stem(token.toLowerCase());
+        stemmer.setCurrent(token.toLowerCase());
+        String stemmed;
+        if (stemmer.stem())
+            stemmed = stemmer.getCurrent();
+        else
+            stemmed = token;
         if(Character.isUpperCase(token.charAt(0)))
             stemmed = stemmed.toUpperCase();
         saveCompleteTerm(stemmed);

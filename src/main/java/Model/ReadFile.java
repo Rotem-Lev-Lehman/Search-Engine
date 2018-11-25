@@ -28,15 +28,28 @@ public class ReadFile implements IReadFile {
     }
 
     @Override
-    public List<Document> ReadFile(String path) {
+    public List<Document> ReadFile(String path, IParse parse) {
         List<Document> documents = new ArrayList<Document>();
+        List<Term> terms = new ArrayList<Term>();
         final File folder = new File(path);
         files = new ArrayList<File>();
         listFilesForFolder(folder);
+        int numOfTerms = 0;
 
         for (File file : files) {
-            documents.addAll(GetAllDocuments(file));
+            //documents.addAll(GetAllDocuments(file));
+            for (Document doc: GetAllDocuments(file)) {
+                //terms.addAll(parse.Parse(doc));
+                terms = parse.Parse(doc);
+                //System.out.println(terms);
+                //System.out.print("current file = " + file.getName() + ", ");
+                //System.out.println("current doc = " + doc.getDOCNO());
+                numOfTerms += terms.size();
+
+            }
         }
+        //System.out.println(terms);
+        System.out.println("terms length = " + numOfTerms);
         return documents;
     }
 

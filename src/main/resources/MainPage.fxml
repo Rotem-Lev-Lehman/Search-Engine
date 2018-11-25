@@ -11,8 +11,9 @@
    <children>
       <AnchorPane prefHeight="200.0" prefWidth="200.0">
          <children>
-            <Button fx:id="openAllFilesButton" layoutX="14.0" layoutY="50.0" mnemonicParsing="false" onAction="#OpenAllFiles" text="Open all files and parse them" />
-            <Label fx:id="labelDone" visible="false" layoutX="49.0" layoutY="113.0" text="Finished parsing" textFill="#11ff00" />
+            <Button fx:id="openStopWordsButton" layoutX="46.0" layoutY="41.0" mnemonicParsing="false" onAction="#OpenStopWords" text="Open stop words" />
+            <Button fx:id="openAllFilesButton" layoutX="15.0" layoutY="74.0" mnemonicParsing="false" onAction="#OpenAllFiles" text="Open all files and parse them" />
+            <Label fx:id="labelDone" layoutX="49.0" layoutY="113.0" text="Finished parsing" textFill="#11ff00" visible="false" />
          </children>
       </AnchorPane>
    </children>

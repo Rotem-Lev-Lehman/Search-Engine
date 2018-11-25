@@ -10,5 +10,5 @@ public interface IReadFile {
      * @param path - The path of the root directory of all of the files
      * @return A list of all the Documents in the files
      */
-    List<Document> ReadFile(String path);
+    List<Document> ReadFile(String path, IParse parse);
 }
