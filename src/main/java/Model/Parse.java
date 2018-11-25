@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class Parse implements IParse {
 
-    private HashSet stopWords; // change to hash set
+    private HashSet<String> stopWords;
     private String[] tokens;
     private int currentIndex;
     private int amountOfTokens;
@@ -22,48 +22,17 @@ public class Parse implements IParse {
     private Dictionary<String, String> monthNumber;
     private List<Character> possibleChars;
     private SnowballStemmer stemmer;
+    private String[] removes;
 
     public Parse() {
         stemmer = new porterStemmer();
         initializePossibleChars();
         initializeMonth();
+        initializeRemoves();
     }
 
-    @Override
-    public void CreateStopWords(File file) {
-        String content = ReadAGivenFile(file);
-        stopWords = new HashSet();
-        String[] words = content.split("\n");
-        List<String> w = Arrays.asList(words);
-
-        stopWords.addAll(w);
-    }
-
-    /** Reads a given file
-     * @param file - The file that needs to be read
-     * @return The file's content
-     */
-    private String ReadAGivenFile(File file){
-        String content = null;
-        FileReader reader = null;
-        try {
-            reader = new FileReader(file);
-            char[] chars = new char[(int) file.length()];
-            reader.read(chars);
-            content = new String(chars);
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return content;
+    private void initializeRemoves() {
+        removes = new String[]{"\n","(",")","{","}",",","- ",":","\\","\"","\'","*","!","@","#","^","&","[","]","?","|",";","~","`","\t"," /","/ ", ". ", " .", ".\n", ".\t"};
     }
 
     private void initializePossibleChars() {
@@ -105,8 +74,10 @@ public class Parse implements IParse {
     }
 
     @Override
-    public List<Term> Parse(Document document) {
-        tokens = document.getTEXT().split(" ");
+    public List<Term> Parse(Document document, HashSet<String> stopWords) {
+        this.stopWords = stopWords;
+        String text = clearRemoves(document.getTEXT());
+        tokens = text.split(" ");
         terms = new ArrayList<Term>();
         amountOfTokens = tokens.length;
 
@@ -124,6 +95,13 @@ public class Parse implements IParse {
             getNextTerm();
         }
         return terms;
+    }
+
+    private String clearRemoves(String text){
+        for (String r : removes) {
+            text = text.replace(r,"");
+        }
+        return text;
     }
 
     private void getNextTerm() {
@@ -652,6 +630,7 @@ public class Parse implements IParse {
     }
 
     private void saveRegularTerm(String token) {
+
         stemmer.setCurrent(token.toLowerCase());
         String stemmed;
         if (stemmer.stem())

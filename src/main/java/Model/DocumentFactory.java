@@ -7,7 +7,7 @@ import java.time.LocalDate;
  */
 public class DocumentFactory implements IDocumentFactory {
     @Override
-    public Document CreateDocument(String doc) {
+    public Document CreateDocument(String doc, String filename) {
         //<DOCNO> </DOCNO>
         String DocNo = FindTextBetweenTags(doc, "DOCNO");
 
@@ -24,7 +24,7 @@ public class DocumentFactory implements IDocumentFactory {
         String Text = FindTextBetweenTags(doc, "TEXT");
 
         //Create the new Document
-        Document document = new Document(DocNo, null, TI, Text);
+        Document document = new Document(DocNo, null, TI, Text, filename);
         return document;
     }
 

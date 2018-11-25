@@ -10,6 +10,8 @@ public class Document {
      * DOCNO - The id of the Document
      */
     private String DOCNO;
+
+    private String filename;
     /**
      * DATE1 - The date that the Document was published
      */
@@ -40,12 +42,15 @@ public class Document {
      * @param TI - The headline of the Document
      * @param TEXT - The content of the Document
      */
-    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT) {
+    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT, String filename) {
         this.DOCNO = DOCNO;
         this.DATE1 = DATE1;
         this.TI = TI;
         this.TEXT = TEXT;
+        this.filename = filename;
     }
+
+    public String getFilename(){return filename;}
 
     /** A getter for the DOCNO
      * @return The Document's DOCNO

@@ -1,6 +1,6 @@
 package Model;
 
-import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -11,7 +11,5 @@ public interface IParse {
      * @param document - The document to parse
      * @return A list of all the terms
      */
-    List<Term> Parse(Document document);
-
-    void CreateStopWords(File file);
+    List<Term> Parse(Document document, HashSet<String> stopWords);
 }

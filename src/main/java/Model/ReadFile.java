@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * A concrete class for getting a list of all the Documents in the files
@@ -28,29 +29,29 @@ public class ReadFile implements IReadFile {
     }
 
     @Override
-    public List<Document> ReadFile(String path, IParse parse) {
-        List<Document> documents = new ArrayList<Document>();
-        List<Term> terms = new ArrayList<Term>();
+    public void ReadFile(String path, Queue<Document> documents, Object lock) {
         final File folder = new File(path);
         files = new ArrayList<File>();
         listFilesForFolder(folder);
-        int numOfTerms = 0;
 
         for (File file : files) {
-            //documents.addAll(GetAllDocuments(file));
+            //System.out.println("current file = " + file.getName() + ", ");
             for (Document doc: GetAllDocuments(file)) {
-                //terms.addAll(parse.Parse(doc));
-                terms = parse.Parse(doc);
-                //System.out.println(terms);
-                //System.out.print("current file = " + file.getName() + ", ");
-                //System.out.println("current doc = " + doc.getDOCNO());
-                numOfTerms += terms.size();
-
+                boolean wait = false;
+                synchronized (lock){
+                    documents.add(doc);
+                    if(documents.size() > 700)
+                        wait = true;
+                }
+                if(wait) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
-        //System.out.println(terms);
-        System.out.println("terms length = " + numOfTerms);
-        return documents;
     }
 
     /** Gets all of the Documents from a given file
@@ -63,7 +64,7 @@ public class ReadFile implements IReadFile {
         String[] docs = content.split("<DOC>");
         for (int i = 1; i < docs.length; i++) {
             docs[i] = "<DOC>" + docs[i];
-            documents.add(documentFactory.CreateDocument(docs[i]));
+            documents.add(documentFactory.CreateDocument(docs[i], file.getName()));
         }
         return documents;
     }
