@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-//Ofir try11
 /**
  * A model class that represents the entire model of our Search Engine
  */
