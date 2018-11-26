@@ -23,14 +23,27 @@ public class DocumentFactory implements IDocumentFactory {
         //<TEXT> </TEXT>
         String Text = FindTextBetweenTags(doc, "TEXT");
 
+        //<F P=104> </F>
+        String city = FindTextBetweenTags(doc, "<F P=104>", "</F>");
+
         //Create the new Document
-        Document document = new Document(DocNo, null, TI, Text, filename);
+        Document document = new Document(DocNo, null, TI, Text, filename, city);
         return document;
     }
 
     private String FindTextBetweenTags(String doc,String tagName) {
         try {
             return doc.split("<" + tagName + ">")[1].split("</" + tagName + ">")[0];
+        }
+        catch (Exception e){ //change to jsoup
+            //System.out.println("HERE");
+        }
+        return "";
+    }
+
+    private String FindTextBetweenTags(String doc,String tagBegin, String tagEnd) {
+        try {
+            return doc.split(tagBegin)[1].split(tagEnd)[0];
         }
         catch (Exception e){ //change to jsoup
             //System.out.println("HERE");

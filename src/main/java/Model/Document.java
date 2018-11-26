@@ -11,6 +11,8 @@ public class Document {
      */
     private String DOCNO;
 
+    private String city;
+
     private String filename;
     /**
      * DATE1 - The date that the Document was published
@@ -42,12 +44,13 @@ public class Document {
      * @param TI - The headline of the Document
      * @param TEXT - The content of the Document
      */
-    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT, String filename) {
+    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT, String filename, String city) {
         this.DOCNO = DOCNO;
         this.DATE1 = DATE1;
         this.TI = TI;
         this.TEXT = TEXT;
         this.filename = filename;
+        this.city = city;
     }
 
     public String getFilename(){return filename;}
