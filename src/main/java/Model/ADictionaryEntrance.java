@@ -27,6 +27,10 @@ public abstract class ADictionaryEntrance {
         this.docFreq = docFreq;
     }
 
+    public void addOneToDocFreq(){
+        docFreq++;
+    }
+
     public int getPostingPtr() {
         return postingPtr;
     }

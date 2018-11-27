@@ -1,14 +1,19 @@
 package Model;
-//AEntranceRow
-public abstract class AEntranceRow {
+
+import java.util.List;
+
+//EntranceRow
+public class EntranceRow implements Comparable {
     private String docNo;
     private String fileName;
     private int termFreqInDoc;
+    private List<Integer> positions;
 
-    public AEntranceRow(String docNo ,String fileName ,int termFreqInDoc){
+    public EntranceRow(String docNo , String fileName , int termFreqInDoc, List<Integer> positions){
         this.docNo = docNo;
         this.fileName = fileName;
         this.termFreqInDoc = termFreqInDoc;
+        this.positions = positions;
     }
 
     public String getDocNo() {
@@ -34,5 +39,14 @@ public abstract class AEntranceRow {
     public void setTermFreqInDoc(int termFreqInDoc) {
         this.termFreqInDoc = termFreqInDoc;
     }
+
+    public List<Integer> getPositions() {
+        return positions;
+    }
+
+    public void setPositions(List<Integer> positions) {
+        this.positions = positions;
+    }
+
 
 }

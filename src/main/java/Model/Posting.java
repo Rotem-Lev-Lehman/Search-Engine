@@ -3,11 +3,11 @@ package Model;
 import java.util.ArrayList;
 //Posting
 public class Posting {
-    private ArrayList<APostingRow> PostingList;
-    private APostingRow postingRow;
+    private ArrayList<PostingRow> PostingList;
     private volatile Object lock;
+
     public Posting(){
-        this.PostingList = new ArrayList<APostingRow>();
+        this.PostingList = new ArrayList<PostingRow>();
         lock = new Object();
     }
 
@@ -15,7 +15,7 @@ public class Posting {
      * @param postingRow - the posting row that we wanted to save
      * @return a pointer to the new posting row created
      */
-    public int createNewPostingRow(APostingRow postingRow){
+    public int createNewPostingRow(PostingRow postingRow){
         int ptr;
         synchronized (lock) {
             PostingList.add(postingRow);
@@ -23,14 +23,14 @@ public class Posting {
         }
         return ptr;
     }
-    public APostingRow getPostingRow(int ptr){
-        APostingRow postingRow;
+    public PostingRow getPostingRow(int ptr){
+        PostingRow postingRow;
         synchronized (lock) {
-             postingRow =PostingList.get(ptr);
+             postingRow = PostingList.get(ptr);
         }
         return postingRow;
     }
-    public void updatePostingRow(int ptr, APostingRow newPostingRow){
+    public void updatePostingRow(int ptr, PostingRow newPostingRow){
         synchronized (lock) {
             PostingList.add(ptr,newPostingRow);
         }
