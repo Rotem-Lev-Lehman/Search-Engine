@@ -1,7 +1,7 @@
 package Model;
 
 import java.util.ArrayList;
-
+//Posting
 public class Posting {
     private ArrayList<APostingRow> PostingList;
     private APostingRow postingRow;

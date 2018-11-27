@@ -1,5 +1,5 @@
 package Model;
-
+//AEntranceRow
 public abstract class AEntranceRow {
     private String docNo;
     private String fileName;

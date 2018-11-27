@@ -1,7 +1,7 @@
 package Model;
 
 import java.util.ArrayList;
-
+//APostingRow
 public abstract class APostingRow {
     private ArrayList<AEntranceRow> entranceRows;
 

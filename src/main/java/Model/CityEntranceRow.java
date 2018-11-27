@@ -1,5 +1,5 @@
 package Model;
-
+//Expand to a city Entrance
 public class CityEntranceRow extends AEntranceRow {
     private String countryName;
     private String kindOfCoin;
