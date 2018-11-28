@@ -1,12 +1,14 @@
 package Model;
 
+import java.io.Serializable;
 import java.util.List;
 
 //EntranceRow
-public class EntranceRow implements Comparable {
+public class EntranceRow implements Comparable, Serializable {
     private String docNo;
     private String fileName;
     private int termFreqInDoc;
+    private double normalizedTermFreq;
     private List<Integer> positions;
 
     public EntranceRow(String docNo , String fileName , int termFreqInDoc, List<Integer> positions){
@@ -40,6 +42,14 @@ public class EntranceRow implements Comparable {
         this.termFreqInDoc = termFreqInDoc;
     }
 
+    public double getNormalizedTermFreq() {
+        return normalizedTermFreq;
+    }
+
+    public void setNormalizedTermFreq(double normalizedTermFreq) {
+        this.normalizedTermFreq = normalizedTermFreq;
+    }
+
     public List<Integer> getPositions() {
         return positions;
     }
@@ -49,4 +59,17 @@ public class EntranceRow implements Comparable {
     }
 
 
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof EntranceRow) {
+            EntranceRow other = (EntranceRow) o;
+            if (this.normalizedTermFreq < other.normalizedTermFreq)
+                return -1;
+            if (this.normalizedTermFreq > other.normalizedTermFreq)
+                return 1;
+            //equal
+            return this.docNo.compareTo(other.docNo);
+        }
+        return 0;
+    }
 }

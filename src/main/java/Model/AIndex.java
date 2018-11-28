@@ -2,6 +2,7 @@ package Model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class AIndex {
@@ -13,22 +14,28 @@ public abstract class AIndex {
         posting = new Posting();
     }
 
-    public void addDocumentToIndex(Term[] terms, Document document){
+    public void addDocumentToIndex(List<Term> terms, Document document){
         List<Integer> positions;
-        for (int i = 0; i < terms.length; i++) {
-            if(terms[i] == null)
+        List<EntranceRow> entranceRows = new LinkedList<EntranceRow>();
+        int maxTf = 0;
+        for (int i = 0; i < terms.size(); i++) {
+            if(terms.get(i) == null)
                 continue;
             positions = new ArrayList<>();
             positions.add(i);
-            for (int j = i + 1; j < terms.length; j++){
-                if(terms[i].equals(terms[j])) {
+            for (int j = i + 1; j < terms.size(); j++){
+                if(terms.get(i).equals(terms.get(j))) {
                     positions.add(j);
-                    terms[j] = null;
+                    terms.set(j,null);
                 }
             }
-            EntranceRow entranceRow = new EntranceRow(document.getDOCNO(),document.getFilename(),positions.size(),positions);
+            if(maxTf < positions.size())
+                maxTf = positions.size();
 
-            ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(terms[i]);
+            EntranceRow entranceRow = new EntranceRow(document.getDOCNO(),document.getFilename(),positions.size(),positions);
+            entranceRows.add(entranceRow);
+
+            ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(terms.get(i));
             if(dictionaryEntrance == null){
                 // create a new one
                 //Add to posting
@@ -38,7 +45,7 @@ public abstract class AIndex {
                 int ptr = posting.createNewPostingRow(postingRow);
 
                 //Add to dictionary
-                ADictionaryEntrance dicEntrance = getRightDictionaryEntrance(terms[i], 1, ptr);
+                ADictionaryEntrance dicEntrance = getRightDictionaryEntrance(terms.get(i), 1, ptr);
                 dictionary.addEntrance(dicEntrance);
             }
             else{
@@ -47,10 +54,28 @@ public abstract class AIndex {
                 dictionaryEntrance.addOneToDocFreq(); //df++
                 PostingRow postingRow = posting.getPostingRow(ptr);
                 postingRow.getEntranceRows().add(entranceRow);
-                Collections.sort(postingRow.getEntranceRows()); // maybe sort when saving the posting
             }
+        }
+        for (EntranceRow entrance : entranceRows) {
+            entrance.setNormalizedTermFreq((double)entrance.getTermFreqInDoc()/(double)maxTf); // normalized by max tf in doc
         }
     }
 
     protected abstract ADictionaryEntrance getRightDictionaryEntrance(Term term, int df, int ptr);
+
+    public MyDictionary getDictionary() {
+        return dictionary;
+    }
+
+    public void setDictionary(MyDictionary dictionary) {
+        this.dictionary = dictionary;
+    }
+
+    public Posting getPosting() {
+        return posting;
+    }
+
+    public void setPosting(Posting posting) {
+        this.posting = posting;
+    }
 }

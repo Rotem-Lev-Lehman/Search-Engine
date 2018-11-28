@@ -23,6 +23,11 @@ public abstract class AModel {
     protected volatile boolean finishedRetrivingFiles;
     protected volatile Object lock = new Object();
     protected HashSet<String> stopWords;
+    protected volatile Queue<MyTuple> indexQueue;
+    protected volatile boolean finishedParsing;
+    protected volatile Object indexLock = new Object();
+    protected volatile boolean finishedIndexing;
+    protected AIndex index;
 
     /** Creates all of the Documents in the given path
      * @param path - The path where all of the Documents are in
@@ -30,12 +35,20 @@ public abstract class AModel {
     public void GetAllDocuments(String path){
         StopWatch stopWatch = new StopWatch();
         finishedRetrivingFiles = false;
+        finishedParsing = false;
+        finishedIndexing = false;
         documents = new ArrayDeque<Document>();
+        indexQueue = new ArrayDeque<>();
 
         stopWatch.start();
 
         startReadingFiles(path);
+        startIndexing();
         startParsing();
+
+        while (!finishedIndexing);
+        SaveIndexToDisk saveIndexToDisk = new SaveIndexToDisk();
+        saveIndexToDisk.save(index);
 
         stopWatch.stop();
         double time = stopWatch.getTime() / 60000.0;
@@ -43,6 +56,8 @@ public abstract class AModel {
         System.out.println("Total time = " + (int)time + " minutes and " + (int)(seconds*60) + " seconds");
         //System.out.println(documents.size());
     }
+
+    protected abstract void startIndexing();
 
     protected abstract void startReadingFiles(String path);
 

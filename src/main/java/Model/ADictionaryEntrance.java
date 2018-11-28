@@ -38,4 +38,8 @@ public abstract class ADictionaryEntrance {
     public void setPostingPtr(int postingPtr) {
         this.postingPtr = postingPtr;
     }
+
+    public void addToDocFreq(int df){
+        docFreq+=df;
+    }
 }

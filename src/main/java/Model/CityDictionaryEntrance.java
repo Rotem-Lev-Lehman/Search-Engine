@@ -1,6 +1,8 @@
 package Model;
 
-public class CityDictionaryEntrance extends ADictionaryEntrance {
+import java.io.Serializable;
+
+public class CityDictionaryEntrance extends ADictionaryEntrance implements Serializable {
     private String currency;
     private String populationSize;
 

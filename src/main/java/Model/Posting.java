@@ -35,4 +35,8 @@ public class Posting {
             PostingList.add(ptr,newPostingRow);
         }
     }
+
+    public ArrayList<PostingRow> getPostingList(){
+        return PostingList;
+    }
 }

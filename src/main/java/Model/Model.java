@@ -3,12 +3,11 @@ package Model;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 /**
  * A model class that represents the entire model of our Search Engine
  */
@@ -22,10 +21,35 @@ public class Model extends AModel {
     }
 
     @Override
+    protected void startIndexing() {
+        IndexerThread indexerThread = new IndexerThread();
+        Thread indexer = new Thread(indexerThread);
+        indexer.start();
+    }
+
+    @Override
     protected void startReadingFiles(String path) {
         ReaderThread readerThread = new ReaderThread(path);
         Thread reader = new Thread(readerThread);
         reader.start();
+    }
+
+    private class IndexerThread implements Runnable{
+
+        @Override
+        public void run() {
+            index = new TermsIndex();
+            while (!finishedParsing || indexQueue.size() != 0){
+                MyTuple nextIndex;
+                synchronized (indexLock){
+                    nextIndex = indexQueue.poll();
+                }
+                if(nextIndex == null)
+                    continue;
+                index.addDocumentToIndex(nextIndex.getTerms(),nextIndex.getDocument());
+            }
+            finishedIndexing = true;
+        }
     }
 
     private class ReaderThread implements Runnable{
@@ -83,7 +107,7 @@ public class Model extends AModel {
     @Override
     protected void startParsing() {
         ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        while (!finishedRetrivingFiles){
+        while (!finishedRetrivingFiles || documents.size()!=0){
             Document currentDoc;
             synchronized (lock){
                 currentDoc = documents.poll();
@@ -94,6 +118,13 @@ public class Model extends AModel {
             threadPool.submit(parserThread);
             System.out.println("current file = " + currentDoc.getFilename());
         }
+        threadPool.shutdown();
+        try {
+            threadPool.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        finishedParsing = true;
     }
 
     private class ParserThread implements Runnable{
@@ -107,7 +138,8 @@ public class Model extends AModel {
         @Override
         public void run() {
             Parse parse = new Parse();
-            parse.Parse(document, stopWords);
+            List<Term> terms = parse.Parse(document, stopWords);
+            indexQueue.add(new MyTuple(document,terms));
         }
     }
 }
