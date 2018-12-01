@@ -20,7 +20,7 @@ public abstract class AModel {
     //protected List<Document> documents;
 
     protected volatile Queue<Document> documents;
-    protected volatile boolean finishedRetrivingFiles;
+    protected volatile boolean finishedRetrievingFiles;
     protected volatile Object lock = new Object();
     protected HashSet<String> stopWords;
     protected volatile Queue<MyTuple> smallLetterIndexQueue;
@@ -42,7 +42,7 @@ public abstract class AModel {
      */
     public void GetAllDocuments(String path){
         StopWatch stopWatch = new StopWatch();
-        finishedRetrivingFiles = false;
+        finishedRetrievingFiles = false;
         finishedParsing = false;
         finishedSmallLetterIndexing = false;
         finishedBigLetterIndexing = false;

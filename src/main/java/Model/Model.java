@@ -212,7 +212,7 @@ public class Model extends AModel {
         @Override
         public void run() {
             readFile.ReadFile(path, documents, lock);
-            finishedRetrivingFiles = true;
+            finishedRetrievingFiles = true;
         }
     }
 
@@ -259,7 +259,7 @@ public class Model extends AModel {
     protected void startParsing() {
         ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         int totalDocsWaiting=0;
-        while (!finishedRetrivingFiles || documents.size() != 0) {
+        while (!finishedRetrievingFiles || documents.size() != 0) {
             synchronized (smallLetterIndexLock)
             {
                 totalDocsWaiting += smallLetterIndexQueue.size();
