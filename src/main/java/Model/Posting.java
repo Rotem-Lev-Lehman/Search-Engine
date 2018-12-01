@@ -39,4 +39,12 @@ public class Posting {
     public ArrayList<PostingRow> getPostingList(){
         return PostingList;
     }
+
+    public boolean isEmpty(){
+        boolean ans;
+        synchronized (lock){
+            ans = PostingList.isEmpty();
+        }
+        return ans;
+    }
 }

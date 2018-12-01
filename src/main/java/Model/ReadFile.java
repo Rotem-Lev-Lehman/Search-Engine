@@ -36,16 +36,19 @@ public class ReadFile implements IReadFile {
 
         for (File file : files) {
             //System.out.println("current file = " + file.getName() + ", ");
-            for (Document doc: GetAllDocuments(file)) {
+            List<Document> docs = GetAllDocuments(file);
+            for (int i = 0; i < docs.size(); i++) {
                 boolean wait = false;
                 synchronized (lock){
-                    documents.add(doc);
                     if(documents.size() > 700)
                         wait = true;
+                    else
+                        documents.add(docs.get(i));
                 }
                 if(wait) {
                     try {
-                        Thread.sleep(100);
+                        i--;
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

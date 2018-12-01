@@ -23,11 +23,19 @@ public abstract class AModel {
     protected volatile boolean finishedRetrivingFiles;
     protected volatile Object lock = new Object();
     protected HashSet<String> stopWords;
-    protected volatile Queue<MyTuple> indexQueue;
+    protected volatile Queue<MyTuple> smallLetterIndexQueue;
+    protected volatile Queue<MyTuple> bigLetterIndexQueue;
+    protected volatile Queue<MyTuple> cityIndexQueue;
     protected volatile boolean finishedParsing;
-    protected volatile Object indexLock = new Object();
-    protected volatile boolean finishedIndexing;
-    protected AIndex index;
+    protected volatile Object smallLetterIndexLock = new Object();
+    protected volatile Object bigLetterIndexLock = new Object();
+    protected volatile Object cityIndexLock = new Object();
+    protected volatile boolean finishedSmallLetterIndexing;
+    protected volatile boolean finishedBigLetterIndexing;
+    protected volatile boolean finishedCityIndexing;
+    protected AIndex[] smallLetterIndexers;
+    protected AIndex[] bigLetterIndexers;
+    protected AIndex[] cityIndexers;
 
     /** Creates all of the Documents in the given path
      * @param path - The path where all of the Documents are in
@@ -36,9 +44,13 @@ public abstract class AModel {
         StopWatch stopWatch = new StopWatch();
         finishedRetrivingFiles = false;
         finishedParsing = false;
-        finishedIndexing = false;
+        finishedSmallLetterIndexing = false;
+        finishedBigLetterIndexing = false;
+        finishedCityIndexing = false;
         documents = new ArrayDeque<Document>();
-        indexQueue = new ArrayDeque<>();
+        smallLetterIndexQueue = new ArrayDeque<>();
+        bigLetterIndexQueue = new ArrayDeque<MyTuple>();
+        cityIndexQueue = new ArrayDeque<MyTuple>();
 
         stopWatch.start();
 
@@ -46,9 +58,9 @@ public abstract class AModel {
         startIndexing();
         startParsing();
 
-        while (!finishedIndexing);
-        SaveIndexToDisk saveIndexToDisk = new SaveIndexToDisk();
-        saveIndexToDisk.save(index);
+        while (!finishedSmallLetterIndexing);
+        while (!finishedBigLetterIndexing);
+        //while (!finishedCityIndexing);
 
         stopWatch.stop();
         double time = stopWatch.getTime() / 60000.0;

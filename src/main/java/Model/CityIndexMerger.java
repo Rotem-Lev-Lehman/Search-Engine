@@ -1,10 +1,8 @@
 package Model;
 
-import java.util.List;
-
 public class CityIndexMerger extends AIndexMerger {
-    public CityIndexMerger(AIndex[] indices){
-        super(indices);
-        this.merged = new CityIndex();
+    @Override
+    protected AIndex CreateNewIndex() {
+        return new CityIndex();
     }
 }

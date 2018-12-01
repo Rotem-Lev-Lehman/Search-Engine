@@ -31,4 +31,8 @@ public class MyDictionary {
     public void setMap(Map<String, ADictionaryEntrance> map) {
         this.map = map;
     }
+
+    public boolean isEmpty(){
+        return map.isEmpty();
+    }
 }

@@ -135,7 +135,7 @@ public class Parse implements IParse {
             if (nextIndex < tokens.length) {
                 if (tokens[nextIndex].toUpperCase().equals("PERCENT") || tokens[nextIndex].toUpperCase().equals("PERCENTAGE")) {
                     String token = number.getValue() + "%";
-                    saveCompleteTerm(token);
+                    saveCompleteTerm(token, TypeOfTerm.Percentage);
                     currentIndex = nextIndex;
                     return true;
                 }
@@ -143,7 +143,7 @@ public class Parse implements IParse {
                 if(amountOfDollar > 0) {
                     //There is a dollar
                     String token = ChangeToPriceFormat(number.getValue()) + " Dollars";
-                    saveCompleteTerm(token);
+                    saveCompleteTerm(token, TypeOfTerm.Price);
                     currentIndex = nextIndex + amountOfDollar - 1;
                     return true;
                 }
@@ -155,7 +155,7 @@ public class Parse implements IParse {
         }
         if(tokens[currentIndex].contains("%")){
             //number%
-            saveCompleteTerm(tokens[currentIndex]);
+            saveCompleteTerm(tokens[currentIndex], TypeOfTerm.Percentage);
             return true;
         }
         if(tokens[currentIndex].charAt(0) == '$'){
@@ -171,7 +171,7 @@ public class Parse implements IParse {
                     Term numberOfDollar = getNumber(tempForCheckingNumber, 0);
                     if (numberOfDollar != null) {
                         currentIndex += numberOfDollar.getNumOfTokensParsed() - 1;
-                        saveCompleteTerm("$" + ChangeToPriceFormat(numberOfDollar.getValue()));
+                        saveCompleteTerm("$" + ChangeToPriceFormat(numberOfDollar.getValue()), TypeOfTerm.Price);
                         return true;
                     } else
                         return false;
@@ -179,7 +179,7 @@ public class Parse implements IParse {
                 Term numberOfDollar = getNumber(new String[]{dollarNum}, 0);
                 if (numberOfDollar != null) {
                     currentIndex += numberOfDollar.getNumOfTokensParsed() - 1;
-                    saveCompleteTerm("$" + ChangeToPriceFormat(numberOfDollar.getValue()));
+                    saveCompleteTerm("$" + ChangeToPriceFormat(numberOfDollar.getValue()), TypeOfTerm.Price);
                     return true;
                 }
             }
@@ -254,13 +254,13 @@ public class Parse implements IParse {
                 if (isDayOfMonth(tokens[currentIndex + 1])) {
                     //Month DD
                     String token = monthNumber.get(tokens[currentIndex].toUpperCase()) + "-" + tokens[currentIndex + 1];
-                    saveCompleteTerm(token);
+                    saveCompleteTerm(token, TypeOfTerm.Date);
                     return true;
                 }
                 if (isYear(tokens[currentIndex + 1])) {
                     //Month Year
                     String token = tokens[currentIndex + 1] + "-" + monthNumber.get(tokens[currentIndex].toUpperCase());
-                    saveCompleteTerm(token);
+                    saveCompleteTerm(token, TypeOfTerm.Date);
                     return true;
                 }
             }
@@ -270,7 +270,7 @@ public class Parse implements IParse {
                 if (months.contains(tokens[currentIndex + 1].toUpperCase())) {
                     //DD Month
                     String token = monthNumber.get(tokens[currentIndex + 1].toUpperCase()) + "-" + tokens[currentIndex];
-                    saveCompleteTerm(token);
+                    saveCompleteTerm(token, TypeOfTerm.Date);
                     return true;
                 }
             }
@@ -319,7 +319,7 @@ public class Parse implements IParse {
                                 Term num2 = getNumber(tokens,andIndex + 1);
                                 if (num2 != null) {
                                     saveTerm(num2);
-                                    saveCompleteTerm(num.getValue() + "-" + num2.getValue());
+                                    saveCompleteTerm(num.getValue() + "-" + num2.getValue(), TypeOfTerm.RangeOrPhrase);
                                     currentIndex = andIndex + num2.getNumOfTokensParsed();
                                     return true;
                                 }
@@ -374,12 +374,12 @@ public class Parse implements IParse {
                             currentIndex += number.getNumOfTokensParsed() - 1;
                             saveTerm(number);
                             phrase += number.getValue();
-                            saveCompleteTerm(phrase);
+                            saveCompleteTerm(phrase, TypeOfTerm.RangeOrPhrase);
                             return true;
                         }
                         saveTerm(num);
                         phrase += num.getValue();
-                        saveCompleteTerm(phrase);
+                        saveCompleteTerm(phrase, TypeOfTerm.RangeOrPhrase);
                         return true;
                     }
                     saveTerm(num);
@@ -389,7 +389,7 @@ public class Parse implements IParse {
             }
             if(phrase.length() > 0) {
                 phrase = phrase.substring(0, phrase.length() - 1);
-                saveCompleteTerm(phrase);
+                saveCompleteTerm(phrase, TypeOfTerm.RangeOrPhrase);
                 return true;
             }
         }
@@ -418,11 +418,11 @@ public class Parse implements IParse {
 
                     if(number2!= null){
                         saveTerm(number2);
-                        saveCompleteTerm(number.getValue() + "-" + number2.getValue());
+                        saveCompleteTerm(number.getValue() + "-" + number2.getValue(), TypeOfTerm.RangeOrPhrase);
                         currentIndex += splitIndex +number2.getNumOfTokensParsed() - 1;
                         return true;
                     }
-                    saveCompleteTerm(number.getValue() + "-" + split[1]);
+                    saveCompleteTerm(number.getValue() + "-" + split[1], TypeOfTerm.RangeOrPhrase);
                     currentIndex += splitIndex;
                     return true;
                 }
@@ -430,11 +430,11 @@ public class Parse implements IParse {
 
                 if(number2 != null){
                     saveTerm(number2);
-                    saveCompleteTerm(number.getValue() + "-" + number2.getValue());
+                    saveCompleteTerm(number.getValue() + "-" + number2.getValue(), TypeOfTerm.RangeOrPhrase);
                     currentIndex += splitIndex + number2.getNumOfTokensParsed() - 1;
                     return true;
                 }
-                saveCompleteTerm(number.getValue() + "-" + split[1]);
+                saveCompleteTerm(number.getValue() + "-" + split[1], TypeOfTerm.RangeOrPhrase);
                 currentIndex += splitIndex;
                 return true;
             }
@@ -458,16 +458,16 @@ public class Parse implements IParse {
                     if(isFraction(next)){
                         //number fraction-
                         String totalNumber = multiply(tokens[i], next, "1");
-                        return new Term(totalNumber, 2, true);
+                        return new Term(totalNumber, TypeOfTerm.Number, 2, true);
                     }
                     String kmbt = getKMBT(next);
                     if (kmbt != null) {
                         //Num KMBT-
                         String totalNumber = multiply(tokens[i], "", kmbt);
-                        return new Term(totalNumber, 2, true);
+                        return new Term(totalNumber, TypeOfTerm.Number, 2, true);
                     }
                     String totalNumber = multiply(tokens[i], "", "1");
-                    return new Term(totalNumber, 1);
+                    return new Term(totalNumber, TypeOfTerm.Number, 1);
                 }
                 if (isFraction(tokens[i + 1])) {
                     //So far its a Num Fraction
@@ -479,32 +479,32 @@ public class Parse implements IParse {
                             if (kmbt != null) {
                                 //Num fraction KMBT-
                                 String totalNumber = multiply(tokens[i], tokens[i + 1], kmbt);
-                                return new Term(totalNumber, 3, true);
+                                return new Term(totalNumber, TypeOfTerm.Number, 3, true);
                             }
                             String totalNumber = multiply(tokens[i], tokens[i + 1], "1");
-                            return new Term(totalNumber, 2);
+                            return new Term(totalNumber, TypeOfTerm.Number, 2);
                         }
                         String kmbt = getKMBT(tokens[i + 2]);
                         if (kmbt != null) {
                             //Num Fraction KMBT
                             String totalNumber = multiply(tokens[i], tokens[i + 1], kmbt);
-                            return new Term(totalNumber, 3);
+                            return new Term(totalNumber, TypeOfTerm.Number, 3);
                         }
                     }
                     //Num Fraction
                     String totalNumber = multiply(tokens[i], tokens[i + 1], "1");
-                    return new Term(totalNumber, 2);
+                    return new Term(totalNumber, TypeOfTerm.Number, 2);
                 }
                 String kmbt = getKMBT(tokens[i + 1]);
                 if (kmbt != null) {
                     //Num KMBT
                     String totalNumber = multiply(tokens[i], "", kmbt);
-                    return new Term(totalNumber, 2);
+                    return new Term(totalNumber, TypeOfTerm.Number, 2);
                 }
             }
             //Only num
             String totalNumber = multiply(tokens[i], "", "1");
-            return new Term(totalNumber, 1);
+            return new Term(totalNumber, TypeOfTerm.Number, 1);
         }
         if (isDecimalNumber(tokens[i])) {
             //Check if a solo number
@@ -515,26 +515,26 @@ public class Parse implements IParse {
                     if (kmbt != null) {
                         //Num KMBT-
                         String totalNumber = multiplyDecimal(tokens[i], kmbt);
-                        return new Term(totalNumber, 2, true);
+                        return new Term(totalNumber, TypeOfTerm.Number, 2, true);
                     }
                     String totalNumber = multiplyDecimal(tokens[i], "1");
-                    return new Term(totalNumber, 1);
+                    return new Term(totalNumber, TypeOfTerm.Number, 1);
                 }
                 String kmbt = getKMBT(tokens[i + 1]);
                 if (kmbt != null) {
                     //Num KMBT
                     String totalNumber = multiplyDecimal(tokens[i], kmbt);
-                    return new Term(totalNumber, 2);
+                    return new Term(totalNumber, TypeOfTerm.Number, 2);
                 }
             }
             //Only num
             String totalNumber = multiplyDecimal(tokens[i], "1");
-            return new Term(totalNumber, 1);
+            return new Term(totalNumber, TypeOfTerm.Number, 1);
         }
         if(isFraction(tokens[i])){
             //So its a Fraction
             String fraction = tokens[i].replace(",","");
-            return new Term(tokens[i], 1);
+            return new Term(tokens[i], TypeOfTerm.Number, 1);
         }
         return null;
     }
@@ -630,20 +630,22 @@ public class Parse implements IParse {
     }
 
     private void saveRegularTerm(String token) {
-
+        TypeOfTerm type = TypeOfTerm.SmallLetters;
         stemmer.setCurrent(token.toLowerCase());
         String stemmed;
         if (stemmer.stem())
             stemmed = stemmer.getCurrent();
         else
             stemmed = token;
-        if(Character.isUpperCase(token.charAt(0)))
+        if(Character.isUpperCase(token.charAt(0))) {
             stemmed = stemmed.toUpperCase();
-        saveCompleteTerm(stemmed);
+            type = TypeOfTerm.BigLetters;
+        }
+        saveCompleteTerm(stemmed, type);
     }
 
-    private void saveCompleteTerm(String token) {
-        terms.add(new Term(token));
+    private void saveCompleteTerm(String token, TypeOfTerm type) {
+        terms.add(new Term(token, type));
     }
 
     private void saveTerm(Term term) {

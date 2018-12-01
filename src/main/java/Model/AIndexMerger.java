@@ -3,14 +3,10 @@ package Model;
 import java.util.*;
 
 public abstract class AIndexMerger {
-    protected AIndex merged;
-    private AIndex[] indices;
 
-    public AIndexMerger(AIndex[] indices){
-         this.indices = indices;
-    }
+    public AIndex Merge(AIndex[] indices){
+        AIndex merged = CreateNewIndex();
 
-    public AIndex Merge(){
         for(int i = 0; i<indices.length;i++) {
             for (Map.Entry<String, ADictionaryEntrance> pair : indices[i].getDictionary().getMap().entrySet()){
                 PostingRow row = indices[i].getPosting().getPostingRow(pair.getValue().getPostingPtr());
@@ -36,4 +32,6 @@ public abstract class AIndexMerger {
         }
         return merged;
     }
+
+    protected abstract AIndex CreateNewIndex();
 }
