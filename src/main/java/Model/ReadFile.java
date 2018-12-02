@@ -28,6 +28,12 @@ public class ReadFile implements IReadFile {
         this.documentFactory = documentFactory;
     }
 
+    /**
+     * @param path      - The path of the root directory of all of the files
+     * @param documents
+     * @param lock
+     * Read the file from the path and add all the documents from it to documents list.
+     */
     @Override
     public void ReadFile(String path, Queue<Document> documents, Object lock) {
         final File folder = new File(path);
