@@ -2,8 +2,7 @@ package View;
 
 import Control.AController;
 import Control.Controller;
-import Model.AModel;
-import Model.Model;
+import Model.*;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,7 +16,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        AModel model = new Model();
+        AModel2 model = new Model2();
         AController controller = new Controller();
         controller.setModel(model);
 

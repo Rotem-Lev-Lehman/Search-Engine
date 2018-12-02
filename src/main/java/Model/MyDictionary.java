@@ -8,8 +8,8 @@ public class MyDictionary {
     private Map<String, ADictionaryEntrance> map;
 
     public MyDictionary(){
-        //map = new HashMap<String, ADictionaryEntrance>();
-        map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
+        map = new HashMap<String, ADictionaryEntrance>();
+        //map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
     }
 
     public void addEntrance(ADictionaryEntrance dictionaryEntrance){

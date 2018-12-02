@@ -25,50 +25,49 @@ public abstract class AIndex {
         }
     }
 
-    public void addDocumentToIndex(List<Term> terms, Document document){
-        synchronized (lock) {
-            List<Integer> positions;
-            List<EntranceRow> entranceRows = new LinkedList<EntranceRow>();
-            int maxTf = 0;
-            for (int i = 0; i < terms.size(); i++) {
-                if (terms.get(i) == null)
-                    continue;
-                positions = new ArrayList<>();
-                positions.add(i);
-                for (int j = i + 1; j < terms.size(); j++) {
-                    if (terms.get(i).equals(terms.get(j))) {
-                        positions.add(j);
-                        terms.set(j, null);
-                    }
+    public void addDocumentToIndex(List<Term> terms, String DocNo, String Filename) {
+        List<Integer> positions;
+        List<TupleEntranceRowAndTerm> entranceRows = new LinkedList<TupleEntranceRowAndTerm>();
+        int maxTf = 0;
+        for (int i = 0; i < terms.size(); i++) {
+            if (terms.get(i) == null)
+                continue;
+            positions = new ArrayList<>();
+            positions.add(i);
+            for (int j = i + 1; j < terms.size(); j++) {
+                if (terms.get(i).equals(terms.get(j))) {
+                    positions.add(j);
+                    terms.set(j, null);
                 }
-                if (maxTf < positions.size())
-                    maxTf = positions.size();
+            }
+            if (maxTf < positions.size())
+                maxTf = positions.size();
 
-                EntranceRow entranceRow = new EntranceRow(document.getDOCNO(), document.getFilename(), positions.size(), positions);
-                entranceRows.add(entranceRow);
-
-                ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(terms.get(i));
+            EntranceRow entranceRow = new EntranceRow(DocNo, Filename, positions.size(), positions);
+            entranceRows.add(new TupleEntranceRowAndTerm(entranceRow, terms.get(i)));
+        }
+        synchronized (lock) {
+            for (TupleEntranceRowAndTerm tuple : entranceRows) {
+                tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
+                ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(tuple.getTerm());
                 if (dictionaryEntrance == null) {
                     // create a new one
                     //Add to posting
                     ArrayList<EntranceRow> arrayList = new ArrayList<EntranceRow>();
-                    arrayList.add(entranceRow);
+                    arrayList.add(tuple.getEntranceRow());
                     PostingRow postingRow = new PostingRow(arrayList);
                     int ptr = posting.createNewPostingRow(postingRow);
 
                     //Add to dictionary
-                    ADictionaryEntrance dicEntrance = getRightDictionaryEntrance(terms.get(i), 1, ptr);
+                    ADictionaryEntrance dicEntrance = getRightDictionaryEntrance(tuple.getTerm(), 1, ptr);
                     dictionary.addEntrance(dicEntrance);
                 } else {
                     // add to an existing one
                     int ptr = dictionaryEntrance.getPostingPtr();
                     dictionaryEntrance.addOneToDocFreq(); //df++
                     PostingRow postingRow = posting.getPostingRow(ptr);
-                    postingRow.getEntranceRows().add(entranceRow);
+                    postingRow.getEntranceRows().add(tuple.getEntranceRow());
                 }
-            }
-            for (EntranceRow entrance : entranceRows) {
-                entrance.setNormalizedTermFreq((double) entrance.getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
             }
         }
     }

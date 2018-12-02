@@ -43,10 +43,11 @@ public class ReadFile implements IReadFile {
         for (File file : files) {
             //System.out.println("current file = " + file.getName() + ", ");
             List<Document> docs = GetAllDocuments(file);
+            int bias = 700;
             for (int i = 0; i < docs.size(); i++) {
                 boolean wait = false;
                 synchronized (lock){
-                    if(documents.size() > 700)
+                    if(documents.size() > bias)
                         wait = true;
                     else
                         documents.add(docs.get(i));
@@ -54,11 +55,17 @@ public class ReadFile implements IReadFile {
                 if(wait) {
                     try {
                         i--;
-                        Thread.sleep(10);
+                        Thread.sleep(50);
+                        bias /= 2;
+                        if(bias < 100)
+                            bias = 700;
+                        continue;
+                        //Thread.sleep(1);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+                bias = 700;
             }
         }
     }

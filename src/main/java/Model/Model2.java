@@ -8,87 +8,62 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * A model class that represents the entire model of our Search Engine
- */
-public class Model extends AModel {
-    /**
-     * An empty constructor for the model
-     */
-    public Model() {
+public class Model2 extends AModel2 {
+
+    public Model2(){
         readFile = new ReadFile(new DocumentFactory());
-        parser = new Parse();
-    }
 
-    private void initializeAllSmallLetterIndexers() {
-        for (int i = 0; i < smallLetterIndexers.length; i++) {
-            smallLetterIndexers[i] = new TermsIndex();
-        }
-    }
-
-    private void initializeAllBigLetterIndexers() {
-        for (int i = 0; i < bigLetterIndexers.length; i++) {
-            bigLetterIndexers[i] = new TermsIndex();
-        }
-    }
-
-    private void initializeAllCityIndexers() {
-        for (int i = 0; i < cityIndexers.length; i++) {
-            cityIndexers[i] = new TermsIndex();
-        }
+        smallLetterIndexer = new TermsIndex();
+        smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+        bigLetterIndexer = new TermsIndex();
+        bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+        cityIndexer = new CityIndex();
+        cityIndexer.setType(TypeOfIndex.City);
     }
 
     @Override
     protected void startIndexing() {
-        smallLetterIndexers = new AIndex[Runtime.getRuntime().availableProcessors()];
-        bigLetterIndexers = new AIndex[Runtime.getRuntime().availableProcessors()];
-        //cityIndexers = new AIndex[Runtime.getRuntime().availableProcessors()];
+        smallLetterIndexer = new TermsIndex();
+        smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+        bigLetterIndexer = new TermsIndex();
+        bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+        cityIndexer = new CityIndex();
+        cityIndexer.setType(TypeOfIndex.City);
 
-        initializeAllSmallLetterIndexers();
-        initializeAllBigLetterIndexers();
-        //initializeAllCityIndexers();
-
-        AIndexMerger smallLetterIndexMerger = new TermsIndexMerger();
-        AIndexMerger bigLetterIndexMerger = new TermsIndexMerger();
-        //AIndexMerger cityIndexMerger = new CityIndexMerger();
-
-        IndexStarter smallLetterIndexStarter = new IndexStarter(smallLetterIndexers, smallLetterIndexQueue, smallLetterIndexLock, smallLetterIndexMerger, TypeOfIndex.SmallLetters);
+        IndexStarter smallLetterIndexStarter = new IndexStarter(smallLetterIndexer, smallLetterIndexQueue, smallLetterIndexLock, TypeOfIndex.SmallLetters);
         Thread smallLetterThread = new Thread(smallLetterIndexStarter);
         smallLetterThread.start();
 
-        IndexStarter bigLetterIndexStarter = new IndexStarter(bigLetterIndexers, bigLetterIndexQueue, bigLetterIndexLock, bigLetterIndexMerger, TypeOfIndex.BigLetters);
+        IndexStarter bigLetterIndexStarter = new IndexStarter(bigLetterIndexer, bigLetterIndexQueue, bigLetterIndexLock, TypeOfIndex.BigLetters);
         Thread bigLetterThread = new Thread(bigLetterIndexStarter);
         bigLetterThread.start();
 
-        //IndexStarter cityIndexStarter = new IndexStarter(cityIndexers, cityIndexQueue, cityIndexLock, cityIndexMerger, TypeOfIndex.City);
+        //Model.Model2.IndexStarter cityIndexStarter = new Model.Model2.IndexStarter(cityIndexers, cityIndexQueue, cityIndexLock, TypeOfIndex.City);
         //Thread cityThread = new Thread(cityIndexStarter);
         //cityThread.start();
     }
 
     private class IndexStarter implements Runnable{
-        private AIndex[] indices;
-        private Queue<MyTuple> indicesQueue;
-        private Object indicesLock;
-        private AIndexMerger merger;
+        private AIndex index;
+        private Queue<MyTuple> indexQueue;
+        private Object indexLock;
         private TypeOfIndex typeOfIndex;
 
-        public IndexStarter(AIndex[] indices, Queue<MyTuple> indicesQueue, Object indicesLock, AIndexMerger merger, TypeOfIndex typeOfIndex){
-            this.indices = indices;
-            this.indicesLock = indicesLock;
-            this.indicesQueue = indicesQueue;
-            this.merger = merger;
+        public IndexStarter(AIndex index, Queue<MyTuple> indexQueue, Object indexLock, TypeOfIndex typeOfIndex){
+            this.index = index;
+            this.indexLock = indexLock;
+            this.indexQueue = indexQueue;
             this.typeOfIndex = typeOfIndex;
         }
 
         @Override
         public void run() {
             int amountOfDocs = 0;
-            int currentIndex = 0;
-            ExecutorService threadPool = Executors.newFixedThreadPool(indices.length);
-            while (!finishedParsing || indicesQueue.size() != 0) {
+            ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            while (!finishedParsing || indexQueue.size() != 0) {
                 MyTuple tuple;
-                synchronized (indicesLock) {
-                    tuple = indicesQueue.poll();
+                synchronized (indexLock) {
+                    tuple = indexQueue.poll();
                 }
                 if (tuple == null) {
                     try {
@@ -98,16 +73,17 @@ public class Model extends AModel {
                     }
                     continue;
                 }
-                IndexerThread indexerThread = new IndexerThread(tuple, indices[currentIndex]);
-                currentIndex = (currentIndex + 1) % indices.length; // the next index to use
+                IndexerThread indexerThread = new IndexerThread(tuple, index);
+                //index.addDocumentToIndex(tuple.getTerms(), tuple.getDocument());
                 amountOfDocs++;
+                System.out.println("current file = " + tuple.getFilename());
                 threadPool.submit(indexerThread);
-                //System.out.println("current file = " + tuple.getDocument().getFilename());
 
-                if (amountOfDocs > 3500) { //approximately 10 MB
+                if (amountOfDocs > 5000) { //approximately 10 MB
                     //start counting again
                     amountOfDocs = 0;
-                    //wait for all threads to finish indexing
+
+                    //wait for the indexing to finish
                     threadPool.shutdown();
                     try {
                         boolean done = false;
@@ -117,24 +93,23 @@ public class Model extends AModel {
                         e.printStackTrace();
                     }
 
-                    //merge the indices
-                    AIndex merged = merger.Merge(indices);
-                    merged.setType(typeOfIndex);
-
-                    //save the merged index
-                    ThreadIndexSaver threadIndexSaver = new ThreadIndexSaver(merged);
+                    //save the index
+                    ThreadIndexSaver threadIndexSaver = new ThreadIndexSaver(index);
                     Thread indexSaver = new Thread(threadIndexSaver);
                     indexSaver.start();
 
                     //create the new indices
-                    for (AIndex index : indices) {
-                        index.ClearIndex();
-                    }
+                    if(typeOfIndex == TypeOfIndex.City)
+                        index = new CityIndex();
+                    else
+                        index = new TermsIndex();
+                    index.setType(typeOfIndex);
 
-                    //start again
-                    threadPool = Executors.newFixedThreadPool(indices.length);
+                    //restart
+                    threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
                 }
             }
+            //wait for the indexing to finish
             threadPool.shutdown();
             try {
                 boolean done = false;
@@ -144,13 +119,9 @@ public class Model extends AModel {
                 e.printStackTrace();
             }
 
-            //merge the indices
-            AIndex merged = merger.Merge(indices);
-            merged.setType(typeOfIndex);
-
-            if(!merged.isEmpty()) {
-                //save the merged index
-                ThreadIndexSaver threadIndexSaver = new ThreadIndexSaver(merged);
+            if(!index.isEmpty()){
+                //save the index
+                ThreadIndexSaver threadIndexSaver = new ThreadIndexSaver(index);
                 Thread indexSaver = new Thread(threadIndexSaver);
                 indexSaver.start();
             }
@@ -161,6 +132,22 @@ public class Model extends AModel {
                 finishedBigLetterIndexing = true;
             else
                 finishedCityIndexing = true;
+        }
+    }
+
+    private class IndexerThread implements Runnable {
+
+        private MyTuple tuple;
+        private AIndex index;
+
+        public IndexerThread(MyTuple tuple, AIndex index){
+            this.tuple = tuple;
+            this.index = index;
+        }
+
+        @Override
+        public void run() {
+            index.addDocumentToIndex(tuple.getTerms(), tuple.getDocNo(), tuple.getFilename());
         }
     }
 
@@ -183,22 +170,6 @@ public class Model extends AModel {
         ReaderThread readerThread = new ReaderThread(path);
         Thread reader = new Thread(readerThread);
         reader.start();
-    }
-
-    private class IndexerThread implements Runnable {
-
-        private MyTuple tuple;
-        private AIndex index;
-
-        public IndexerThread(MyTuple tuple, AIndex index){
-            this.tuple = tuple;
-            this.index = index;
-        }
-
-        @Override
-        public void run() {
-            //index.addDocumentToIndex(tuple.getTerms(), tuple.getDocument());
-        }
     }
 
     private class ReaderThread implements Runnable {
@@ -257,9 +228,12 @@ public class Model extends AModel {
 
     @Override
     protected void startParsing() {
-        ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        int totalDocsWaiting=0;
+        ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-2);
+        //int bias = 500;
+        int amountOfDocs = 0;
         while (!finishedRetrievingFiles || documents.size() != 0) {
+            /*
+            int totalDocsWaiting=0;
             synchronized (smallLetterIndexLock)
             {
                 totalDocsWaiting += smallLetterIndexQueue.size();
@@ -270,13 +244,20 @@ public class Model extends AModel {
             synchronized (cityIndexLock){
                 totalDocsWaiting += cityIndexQueue.size();
             }
-            if(totalDocsWaiting > 100) {
+            if(totalDocsWaiting > bias) {
                 try {
-                    Thread.sleep(10); // give the Indexers a chance to control the situation
+                    Thread.sleep(50); // give the Indexer a chance to control the situation
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                bias /= 2;
+                if(bias < 100)
+                    bias = 500;
+                continue;
             }
+            bias = 500;
+            */
+
 
             Document currentDoc;
             synchronized (lock) {
@@ -293,7 +274,47 @@ public class Model extends AModel {
             ParserThread parserThread = new ParserThread(currentDoc);
             threadPool.submit(parserThread);
 
-            //System.out.println("current file = " + currentDoc.getFilename());
+            amountOfDocs++;
+
+            if (amountOfDocs > 5000) { //approximately 10 MB
+                //start counting again
+                amountOfDocs = 0;
+
+                //wait for the indexing to finish
+                threadPool.shutdown();
+                try {
+                    boolean done = false;
+                    while (!done)
+                        done = threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                //save the index
+                ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
+                Thread indexSaver = new Thread(smallLetterIndex);
+                indexSaver.start();
+
+                ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
+                Thread bigSaver = new Thread(bigLetterIndex);
+                bigSaver.start();
+
+                /*
+                ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
+                Thread citySaver = new Thread(cityIndex);
+                citySaver.start();
+                */
+
+                //create the new indices
+                smallLetterIndexer = new TermsIndex();
+                bigLetterIndexer = new TermsIndex();
+                cityIndexer = new CityIndex();
+
+                //restart
+                threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            }
+
+            System.out.println("current file = " + currentDoc.getFilename());
         }
         threadPool.shutdown();
         try {
@@ -336,6 +357,15 @@ public class Model extends AModel {
                 smallLetterTerms.add(term);
         }
         //Index
+        if(smallLetterTerms.size() > 0)
+            smallLetterIndexer.addDocumentToIndex(smallLetterTerms,document.getDOCNO(),document.getFilename());
+        if(bigLetterTerms.size() > 0)
+            bigLetterIndexer.addDocumentToIndex(bigLetterTerms,document.getDOCNO(),document.getFilename());
+        //if(cityTerms.size() > 0)
+            //cityIndexer.addDocumentToIndex(cityTerms,document.getDOCNO(),document.getFilename());
+
+
+        /* old
         synchronized (smallLetterIndexLock){
             smallLetterIndexQueue.add(new MyTuple(document,smallLetterTerms));
         }
@@ -345,5 +375,6 @@ public class Model extends AModel {
         synchronized (cityIndexLock){
             //cityIndexQueue.add(new MyTuple(document,cityTerms));
         }
+        */
     }
 }
