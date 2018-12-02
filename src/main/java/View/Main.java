@@ -23,8 +23,8 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader();
         Parent root = fxmlLoader.load(getClass().getResource("/MainPage.fxml").openStream());
 
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setTitle("Search Engine");
+        primaryStage.setScene(new Scene(root, 913, 640));
         primaryStage.show();
 
         ((AView) fxmlLoader.getController()).setController(controller);

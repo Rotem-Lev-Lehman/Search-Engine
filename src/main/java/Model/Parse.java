@@ -85,11 +85,14 @@ public class Parse implements IParse {
             if(tokens[currentIndex].equals(""))
                 continue;
             if (!tokens[currentIndex].toUpperCase().equals("BETWEEN")) {
-                if (stopWords.contains(tokens[currentIndex].toLowerCase()))
-                    continue;
-                if (isRegularTerm(tokens[currentIndex])) {
-                    saveRegularTerm(tokens[currentIndex]);
-                    continue;
+                if(!months.contains(tokens[currentIndex].toUpperCase())) {
+                    if (stopWords.contains(tokens[currentIndex].toLowerCase()))
+                        continue;
+
+                    if (isRegularTerm(tokens[currentIndex])) {
+                        saveRegularTerm(tokens[currentIndex]);
+                        continue;
+                    }
                 }
             }
             getNextTerm();
@@ -104,7 +107,26 @@ public class Parse implements IParse {
         return text;
     }
 
+    private boolean newRule(){
+        if (tokens[currentIndex].toUpperCase()=="ONE"){saveCompleteTerm("1",TypeOfTerm.Number); return true;}
+        if (tokens[currentIndex].toUpperCase()=="TWO"){saveCompleteTerm("2",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="THREE"){saveCompleteTerm("3",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="FOUR"){saveCompleteTerm("4",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="FIVE"){saveCompleteTerm("5",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="SIX"){saveCompleteTerm("6",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="SEVEN"){saveCompleteTerm("7",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="EIGHT"){saveCompleteTerm("8",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="NINE"){saveCompleteTerm("9",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="TEN"){saveCompleteTerm("10",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="TWENTY"){saveCompleteTerm("20",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="FIFTY"){saveCompleteTerm("50",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase()=="HUNDRED"){saveCompleteTerm("100",TypeOfTerm.Number);return true;}
+        return false;
+    }
     private void getNextTerm() {
+
+        if (newRule())
+            return;
 
         //Check between
         if (parseBetween())

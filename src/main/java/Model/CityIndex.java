@@ -3,7 +3,7 @@ package Model;
 public class CityIndex extends AIndex {
     @Override
     /**
-     *
+     * constructor for the CityIndex - make new CityDictionaryEntrance.
      */
     protected ADictionaryEntrance getRightDictionaryEntrance(Term term, int df, int ptr) {
         //get currency and populationSize from the API of cities.

@@ -7,6 +7,9 @@ import java.time.LocalDate;
  */
 public class DocumentFactory implements IDocumentFactory {
     @Override
+    /**
+     * constructor for Documents
+     */
     public Document CreateDocument(String doc, String filename) {
         //<DOCNO> </DOCNO>
         String DocNo = FindTextBetweenTags(doc, "DOCNO");
@@ -31,6 +34,12 @@ public class DocumentFactory implements IDocumentFactory {
         return document;
     }
 
+
+    /**
+     * @param doc
+     * @param tagName
+     * @return String - text between Tags
+     */
     private String FindTextBetweenTags(String doc,String tagName) {
         try {
             return doc.split("<" + tagName + ">")[1].split("</" + tagName + ">")[0];
@@ -41,6 +50,13 @@ public class DocumentFactory implements IDocumentFactory {
         return "";
     }
 
+
+    /**
+     * @param doc
+     * @param tagBegin
+     * @param tagEnd
+     * @return String between tagBegin and tagEnd
+     */
     private String FindTextBetweenTags(String doc,String tagBegin, String tagEnd) {
         try {
             return doc.split(tagBegin)[1].split(tagEnd)[0];
