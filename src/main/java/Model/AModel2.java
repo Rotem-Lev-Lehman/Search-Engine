@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
+import java.util.concurrent.Semaphore;
 
 public abstract class AModel2 {
     /**
@@ -34,6 +35,8 @@ public abstract class AModel2 {
     protected AIndex smallLetterIndexer;
     protected AIndex bigLetterIndexer;
     protected AIndex cityIndexer;
+    protected Semaphore empty;
+    protected Semaphore full;
 
     /** Creates all of the Documents in the given path
      * @param path - The path where all of the Documents are in

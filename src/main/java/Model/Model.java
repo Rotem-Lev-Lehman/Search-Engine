@@ -211,7 +211,7 @@ public class Model extends AModel {
 
         @Override
         public void run() {
-            readFile.ReadFile(path, documents, lock);
+            //readFile.ReadFile(path, documents, lock);
             finishedRetrievingFiles = true;
         }
     }

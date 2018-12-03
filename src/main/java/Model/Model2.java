@@ -6,13 +6,15 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class Model2 extends AModel2 {
 
     public Model2(){
         readFile = new ReadFile(new DocumentFactory());
-
+        empty = new Semaphore(0, true);
+        full = new Semaphore(200, true);
         smallLetterIndexer = new TermsIndex();
         smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
         bigLetterIndexer = new TermsIndex();
@@ -182,7 +184,7 @@ public class Model2 extends AModel2 {
 
         @Override
         public void run() {
-            readFile.ReadFile(path, documents, lock);
+            readFile.ReadFile(path, documents, lock, empty, full);
             finishedRetrievingFiles = true;
         }
     }
@@ -260,9 +262,16 @@ public class Model2 extends AModel2 {
 
 
             Document currentDoc;
+            try {
+                empty.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             synchronized (lock) {
                 currentDoc = documents.poll();
             }
+            full.release();
+            /*
             if (currentDoc == null) {
                 try {
                     Thread.sleep(10); // give a chance to the reader thread
@@ -271,12 +280,13 @@ public class Model2 extends AModel2 {
                 }
                 continue;
             }
+            */
             ParserThread parserThread = new ParserThread(currentDoc);
             threadPool.submit(parserThread);
 
             amountOfDocs++;
 
-            if (amountOfDocs > 5000) { //approximately 10 MB
+            if (amountOfDocs > 5000) { //approximately 10 MB (17000)
                 //start counting again
                 amountOfDocs = 0;
 
@@ -307,14 +317,19 @@ public class Model2 extends AModel2 {
 
                 //create the new indices
                 smallLetterIndexer = new TermsIndex();
+                smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
                 bigLetterIndexer = new TermsIndex();
+                bigLetterIndexer.setType(TypeOfIndex.BigLetters);
                 cityIndexer = new CityIndex();
+                cityIndexer.setType(TypeOfIndex.City);
+
+                System.gc(); // lets try just for fun ;)
 
                 //restart
                 threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             }
 
-            System.out.println("current file = " + currentDoc.getFilename());
+            //System.out.println("current file = " + currentDoc.getFilename());
         }
         threadPool.shutdown();
         try {
