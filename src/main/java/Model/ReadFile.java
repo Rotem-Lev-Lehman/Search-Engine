@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Semaphore;
 
 /**
  * A concrete class for getting a list of all the Documents in the files
@@ -35,7 +36,7 @@ public class ReadFile implements IReadFile {
      * Read the file from the path and add all the documents from it to documents list.
      */
     @Override
-    public void ReadFile(String path, Queue<Document> documents, Object lock) {
+    public void ReadFile(String path, Queue<Document> documents, Object lock, Semaphore empty, Semaphore full) {
         final File folder = new File(path);
         files = new ArrayList<File>();
         listFilesForFolder(folder);
@@ -43,19 +44,26 @@ public class ReadFile implements IReadFile {
         for (File file : files) {
             //System.out.println("current file = " + file.getName() + ", ");
             List<Document> docs = GetAllDocuments(file);
-            int bias = 700;
+            //int bias = 700;
             for (int i = 0; i < docs.size(); i++) {
-                boolean wait = false;
-                synchronized (lock){
-                    if(documents.size() > bias)
-                        wait = true;
-                    else
-                        documents.add(docs.get(i));
+                //boolean wait = false;
+                try {
+                    full.acquire();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+                synchronized (lock){
+                    //if(documents.size() > bias)
+                        //wait = true;
+                    //else
+                    documents.add(docs.get(i));
+                }
+                empty.release();
+                /*
                 if(wait) {
                     try {
                         i--;
-                        Thread.sleep(50);
+                        Thread.sleep(70);
                         bias /= 2;
                         if(bias < 100)
                             bias = 700;
@@ -66,6 +74,7 @@ public class ReadFile implements IReadFile {
                     }
                 }
                 bias = 700;
+                */
             }
         }
     }
