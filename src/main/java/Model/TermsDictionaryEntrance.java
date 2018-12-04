@@ -14,6 +14,10 @@ public class TermsDictionaryEntrance extends ADictionaryEntrance implements Seri
         super(term, docFreq, postingPtr);
     }
 
+    /**
+     * @param dictionaryRow
+     * @return return TermDictionaryEntrance from a string representing the dictionary row entrance.
+     */
     public static ADictionaryEntrance ParseDictionaryRowAsMyKind(String dictionaryRow) {
         //String term, int docFreq, don't need:"int postingPtr"
         String[] split = dictionaryRow.split(";");
