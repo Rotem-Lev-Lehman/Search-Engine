@@ -12,8 +12,8 @@ public class MyDictionary {
      * Constructor for a dictionary , (use of TreeMap<String, ADictionaryEntrance)
      */
     public MyDictionary(){
-        map = new HashMap<String, ADictionaryEntrance>();
-        //map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
+        //map = new HashMap<String, ADictionaryEntrance>();
+        map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
     }
 
     /**
@@ -60,5 +60,14 @@ public class MyDictionary {
      */
     public boolean isEmpty(){
         return map.isEmpty();
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, ADictionaryEntrance> tuple : map.entrySet()) {
+            builder.append(tuple.getValue().toString());
+        }
+        return builder.toString();
     }
 }

@@ -40,6 +40,10 @@ public class Posting {
         return postingRow;
     }
 
+    public void setPostingList(ArrayList<PostingRow> postingList){
+        this.PostingList = postingList;
+    }
+
     /**
      * @param ptr
      * @param newPostingRow
@@ -67,5 +71,14 @@ public class Posting {
             ans = PostingList.isEmpty();
         }
         return ans;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder builder = new StringBuilder();
+        for (PostingRow row : PostingList) {
+            builder.append(row.toString());
+        }
+        return builder.toString();
     }
 }

@@ -3,6 +3,7 @@ package Model;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 
 public class SaveIndexToDisk {
     private static volatile int numOfSmallLettersIndex = 0;
@@ -50,13 +51,14 @@ public class SaveIndexToDisk {
         String dictionaryFileName = totalFolder + "dic" + currentNumOfIndex + ".data";
         String postingFileName = totalFolder + "post" + currentNumOfIndex + ".data";
 
+        index.SortAll();
         try {
-            ObjectOutputStream  dictionaryOutput = new ObjectOutputStream(new FileOutputStream(dictionaryFileName));
-            dictionaryOutput.writeObject(index.getDictionary().getMap());
+            OutputStreamWriter dictionaryOutput = new OutputStreamWriter(new FileOutputStream(dictionaryFileName));
+            dictionaryOutput.write(index.getDictionary().toString());
             dictionaryOutput.close();
 
-            ObjectOutputStream  postingOutput = new ObjectOutputStream(new FileOutputStream(postingFileName));
-            postingOutput.writeObject(index.getPosting().getPostingList());
+            OutputStreamWriter postingOutput = new OutputStreamWriter(new FileOutputStream(postingFileName));
+            postingOutput.write(index.getPosting().toString());
             postingOutput.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -32,7 +32,7 @@ public class Parse implements IParse {
     }
 
     private void initializeRemoves() {
-        removes = new String[]{"\n","(",")","{","}",",","- ",":","\\","\"","\'","*","!","@","#","^","&","[","]","?","|",";","~","`","\t"," /","/ ", ". ", " .", ".\n", ".\t"};
+        removes = new String[]{"\n","(",")","{","}",",","--","- ",":","\\","\"","\'","*","!","@","#","^","&","[","]","?","|",";","~","`","\t"," /","/ ", ". ",".\"","..", " .", ".\n", ".\t"};
     }
 
     private void initializePossibleChars() {

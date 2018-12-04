@@ -1,9 +1,6 @@
 package Model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public abstract class AIndex {
     private MyDictionary dictionary;
@@ -105,5 +102,15 @@ public abstract class AIndex {
 
     public void setType(TypeOfIndex type) {
         this.type = type;
+    }
+
+    public void SortAll(){
+        ArrayList<PostingRow> postingRows = new ArrayList<PostingRow>();
+        for(Map.Entry<String, ADictionaryEntrance> tuple : dictionary.getMap().entrySet()){
+            postingRows.add(posting.getPostingRow(tuple.getValue().getPostingPtr()));
+        }
+        posting.setPostingList(postingRows);
+
+        //dictionary is already sorted :)
     }
 }
