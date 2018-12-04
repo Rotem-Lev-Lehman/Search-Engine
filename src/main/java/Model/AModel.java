@@ -66,7 +66,6 @@ public abstract class AModel {
         double time = stopWatch.getTime() / 60000.0;
         double seconds = time - (int)time;
         System.out.println("Total time = " + (int)time + " minutes and " + (int)(seconds*60) + " seconds");
-        //System.out.println(documents.size());
     }
 
     protected abstract void startIndexing();

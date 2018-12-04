@@ -24,7 +24,7 @@ public class Main extends Application {
         Parent root = fxmlLoader.load(getClass().getResource("/MainPage.fxml").openStream());
 
         primaryStage.setTitle("Search Engine");
-        primaryStage.setScene(new Scene(root, 913, 640));
+        primaryStage.setScene(new Scene(root, 773, 605));
         primaryStage.show();
 
         ((AView) fxmlLoader.getController()).setController(controller);

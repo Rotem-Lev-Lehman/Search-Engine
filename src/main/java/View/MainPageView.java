@@ -2,7 +2,9 @@ package View;
 
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.paint.Paint;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -28,6 +30,18 @@ public class MainPageView extends AView {
      */
     public Button openStopWordsButton;
 
+    public ChoiceBox<String> languagesChoiceBox;
+    public void initialize() {
+        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
+        languagesChoiceBox.getItems().addAll("English" , "Hebrew", "Spanish", "Japanese");
+        languagesChoiceBox.getSelectionModel().select("English");
+    }
+
+    public TextField stopWordPath;
+    public TextField allFilesPath;
+
+
+
     /** An Event handler for when the open all files button is pressed
      * @param actionEvent - The event's argument
      */
@@ -35,6 +49,9 @@ public class MainPageView extends AView {
         setChanged();
         notifyObservers("Open Files");
     }
+
+
+
 
     /**
      * Start the DirectoryChooser which enables picking the wanted Directory
@@ -45,6 +62,7 @@ public class MainPageView extends AView {
 
         Stage currentStage = (Stage) openAllFilesButton.getScene().getWindow();
         File selectedDirectory = chooser.showDialog(currentStage);
+
 
         if(selectedDirectory != null && selectedDirectory.isDirectory()) {
             setChanged();
@@ -61,6 +79,8 @@ public class MainPageView extends AView {
 
         Stage currentStage = (Stage) openStopWordsButton.getScene().getWindow();
         File selectedFile = chooser.showOpenDialog(currentStage);
+        stopWordPath.setText(selectedFile.getAbsolutePath());
+
 
         if(selectedFile != null && selectedFile.isFile()) {
             setChanged();
@@ -72,6 +92,10 @@ public class MainPageView extends AView {
      * Notify the user that the parsing operation was finished
      */
     public void NotifyDone(){
+
+        openAllFilesButton.setTextFill(Paint.valueOf("#11ff00"));
+        //allFilesPath.setText(selectedFile.getAbsolutePath());
+
         labelDone.setVisible(true);
     }
 

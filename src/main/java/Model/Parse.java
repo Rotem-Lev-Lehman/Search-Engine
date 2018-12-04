@@ -73,6 +73,11 @@ public class Parse implements IParse {
         monthNumber.put("DEC", "12");
     }
 
+    /**
+     * @param document  - The document to parse
+     * @param stopWords
+     * @return parse all the tokens by the rules.
+     */
     @Override
     public List<Term> Parse(Document document, HashSet<String> stopWords) {
         this.stopWords = stopWords;
@@ -107,6 +112,9 @@ public class Parse implements IParse {
         return text;
     }
 
+    /**
+     * @return parse by our new rule
+     */
     private boolean newRule(){
         if (tokens[currentIndex].toUpperCase()=="ONE"){saveCompleteTerm("1",TypeOfTerm.Number); return true;}
         if (tokens[currentIndex].toUpperCase()=="TWO"){saveCompleteTerm("2",TypeOfTerm.Number);return true;}
@@ -123,6 +131,10 @@ public class Parse implements IParse {
         if (tokens[currentIndex].toUpperCase()=="HUNDRED"){saveCompleteTerm("100",TypeOfTerm.Number);return true;}
         return false;
     }
+
+    /**
+     * get the next term and parse it
+     */
     private void getNextTerm() {
 
         if (newRule())
@@ -300,6 +312,10 @@ public class Parse implements IParse {
         return false;
     }
 
+    /**
+     * @param token
+     * @return true if token is a year or false if not
+     */
     private boolean isYear(String token) {
         try{
             int year = Integer.parseInt(token);
@@ -310,6 +326,10 @@ public class Parse implements IParse {
         }
     }
 
+    /**
+     * @param token
+     * @return return true if token is a day of a month or false if not
+     */
     private boolean isDayOfMonth(String token){
         try{
             int day = Integer.parseInt(token);
@@ -561,6 +581,12 @@ public class Parse implements IParse {
         return null;
     }
 
+    /**
+     * @param number
+     * @param fraction
+     * @param kmbt
+     * @return change format of a number to what is asked in the rules
+     */
     private String multiply(String number, String fraction, String kmbt) {
         long num = Long.parseLong(number.replace(",", ""));
         long KMBT = Long.parseLong(kmbt);
@@ -600,6 +626,11 @@ public class Parse implements IParse {
         return num + " " + frac; //will not reach here anyway, so why not?
     }
 
+    /**
+     * @param decimalNumber
+     * @param kmbt
+     * @return change format of a decimal number to what is asked in the rules
+     */
     private String multiplyDecimal(String decimalNumber, String kmbt) {
         double num = Double.parseDouble(decimalNumber.replace(",", ""));
         long KMBT = Long.parseLong(kmbt);
@@ -639,6 +670,10 @@ public class Parse implements IParse {
         return num + ""; //will not reach here anyway, so why not?
     }
 
+    /**
+     * @param token
+     * @return change a word to it's actual number (if its KMBT)
+     */
     private String getKMBT(String token) {
         if (token.toUpperCase().equals("THOUSAND"))
             return "1000";
