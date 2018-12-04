@@ -37,6 +37,9 @@ public abstract class AModel2 {
     protected AIndex cityIndexer;
     protected Semaphore empty;
     protected Semaphore full;
+    protected Semaphore tasksLimit;
+    protected String destPathForTotalIndices;
+    protected String destPathForTempIndices;
 
     /** Creates all of the Documents in the given path
      * @param path - The path where all of the Documents are in
@@ -68,7 +71,25 @@ public abstract class AModel2 {
         double seconds = time - (int)time;
         System.out.println("Total time = " + (int)time + " minutes and " + (int)(seconds*60) + " seconds");
         //System.out.println(documents.size());
+        System.out.println("documents = " + documents.size());
+        System.out.println("small letters indexers queue = "+smallLetterIndexQueue.size());
+        System.out.println("big letters indexers queue = "+bigLetterIndexQueue.size());
+        System.out.println("city indexers queue = "+cityIndexQueue.size());
+        System.out.println("small letter index(dic) = " + smallLetterIndexer.getDictionary().getMap().size());
+        System.out.println("small letter index(post) = " + smallLetterIndexer.getPosting().getPostingList().size());
+        System.out.println("big letter index(dic) = " + bigLetterIndexer.getDictionary().getMap().size());
+        System.out.println("big letter index(post) = " + bigLetterIndexer.getPosting().getPostingList().size());
+        System.out.println("city index(dic) = " + cityIndexer.getDictionary().getMap().size());
+        System.out.println("city index(post) = " + cityIndexer.getPosting().getPostingList().size());
     }
+
+    public void SetDestinationPath(String destPath){
+        destPathForTempIndices = destPath + '\\' + "tempIndices";
+        SaveIndexToDisk.setFolder(destPathForTempIndices);
+        destPathForTotalIndices = destPath + '\\' + "indices";
+    }
+
+    protected abstract void MergeAllIndices();
 
     protected abstract void startIndexing();
 

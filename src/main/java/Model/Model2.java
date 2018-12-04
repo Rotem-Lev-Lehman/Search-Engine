@@ -11,19 +11,91 @@ import java.util.concurrent.TimeUnit;
 
 public class Model2 extends AModel2 {
 
-    private int amountOfDocsAllowedInQueue = 70;
-    private int amountOfParsedDocsInRam = 5000; //approximately 10 MB (17000)
+    private int amountOfDocsAllowedInQueue = 300;
+    private int amountOfParsedDocsInRam = 10000; //approximately 10 MB (17000)
+    private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
+    private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool + 4;
 
     public Model2(){
         readFile = new ReadFile(new DocumentFactory());
         empty = new Semaphore(0, true);
         full = new Semaphore(amountOfDocsAllowedInQueue, true); // change permits to be good with Memory space and timing
+        tasksLimit = new Semaphore(amountOfTasksAllowedInThreadPool, true);
         smallLetterIndexer = new TermsIndex();
         smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
         bigLetterIndexer = new TermsIndex();
         bigLetterIndexer.setType(TypeOfIndex.BigLetters);
         cityIndexer = new CityIndex();
         cityIndexer.setType(TypeOfIndex.City);
+    }
+
+    @Override
+    protected void MergeAllIndices() {
+        String smallPath = destPathForTempIndices + "\\smallLetters";
+        String bigPath = destPathForTempIndices + "\\bigLetters";
+        String cityPath = destPathForTempIndices + "\\cities";
+
+        String totalSmallPath = destPathForTotalIndices + "\\smallLetters";
+        String totalBigPath = destPathForTotalIndices + "\\bigLetters";
+        String totalCityPath = destPathForTotalIndices + "\\cities";
+
+        File smallDir = new File(smallPath);
+        File bigDir = new File(bigPath);
+        File cityDir = new File(cityPath);
+
+        File[] smallFiles = smallDir.listFiles();
+        File[] bigFiles = bigDir.listFiles();
+        File[] cityFiles = cityDir.listFiles();
+
+        String[] smallFilenames = new String[smallFiles.length];
+        for (int i = 0; i < smallFiles.length; i++)
+            smallFilenames[i] = smallFiles[i].getAbsolutePath();
+
+        String[] bigFilenames = new String[bigFiles.length];
+        for (int i = 0; i < bigFiles.length; i++)
+            bigFilenames[i] = bigFiles[i].getAbsolutePath();
+
+        String[] cityFilenames = new String[cityFiles.length];
+        for (int i = 0; i < cityFiles.length; i++)
+            cityFilenames[i] = cityFiles[i].getAbsolutePath();
+
+        AMerger smallTermsMerger = new TermsMerger(smallFilenames, totalSmallPath);
+        AMerger bigTermsMerger = new TermsMerger(bigFilenames, totalBigPath);
+        AMerger cityMerger = new CityMerger(cityFilenames, totalCityPath);
+    }
+
+    private class MergerThread implements Runnable{
+
+        private File directory;
+        private String totalPath;
+
+        public MergerThread(File directory, String totalPath){
+            this.directory = directory;
+            this.totalPath = totalPath;
+        }
+
+        @Override
+        public void run() {
+            File[] smallFiles = smallDir.listFiles();
+            File[] bigFiles = bigDir.listFiles();
+            File[] cityFiles = cityDir.listFiles();
+
+            String[] smallFilenames = new String[smallFiles.length];
+            for (int i = 0; i < smallFiles.length; i++)
+                smallFilenames[i] = smallFiles[i].getAbsolutePath();
+
+            String[] bigFilenames = new String[bigFiles.length];
+            for (int i = 0; i < bigFiles.length; i++)
+                bigFilenames[i] = bigFiles[i].getAbsolutePath();
+
+            String[] cityFilenames = new String[cityFiles.length];
+            for (int i = 0; i < cityFiles.length; i++)
+                cityFilenames[i] = cityFiles[i].getAbsolutePath();
+
+            AMerger smallTermsMerger = new TermsMerger(smallFilenames, totalSmallPath);
+            AMerger bigTermsMerger = new TermsMerger(bigFilenames, totalBigPath);
+            AMerger cityMerger = new CityMerger(cityFilenames, totalCityPath);
+        }
     }
 
     @Override
@@ -235,7 +307,7 @@ public class Model2 extends AModel2 {
 
     @Override
     protected void startParsing() {
-        ExecutorService threadPool = Executors.newFixedThreadPool((2*(Runtime.getRuntime().availableProcessors())) - 1);
+        ExecutorService threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
         ExecutorService savers = Executors.newCachedThreadPool();
         //int bias = 500;
         int amountOfDocs = 0;
@@ -266,7 +338,6 @@ public class Model2 extends AModel2 {
             bias = 500;
             */
 
-
             Document currentDoc;
             try {
                 empty.acquire();
@@ -282,6 +353,13 @@ public class Model2 extends AModel2 {
             {
                 //done signal...
                 break;
+            }
+
+            //block until free
+            try {
+                tasksLimit.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             /*
             if (currentDoc == null) {
@@ -334,6 +412,7 @@ public class Model2 extends AModel2 {
                 //Thread citySaver = new Thread(cityIndex);
                 //citySaver.start();
                 */
+                //System.gc();
 
                 System.out.println("Creating new indices");
                 //create the new indices
@@ -348,10 +427,12 @@ public class Model2 extends AModel2 {
 
                 System.out.println("Restarting the pool");
                 //restart
-                threadPool = Executors.newFixedThreadPool((2*(Runtime.getRuntime().availableProcessors())) - 1);
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
             }
 
             System.out.println("current file = " + currentDoc.getFilename());
+            //System.out.println("small letter index(dic) = " + smallLetterIndexer.getDictionary().getMap().size());
+            //System.out.println("small letter index(post) = " + smallLetterIndexer.getPosting().getPostingList().size());
         }
         threadPool.shutdown();
         try {
@@ -405,6 +486,9 @@ public class Model2 extends AModel2 {
             Parse parse = new Parse();
             List<Term> terms = parse.Parse(document, stopWords);
             SplitAndIndex(document, terms);
+
+            //tell the threadPool's controller that it can send in another thread
+            tasksLimit.release();
         }
     }
 

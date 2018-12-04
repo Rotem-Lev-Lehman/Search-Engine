@@ -1,9 +1,6 @@
 package Model;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 
 public class SaveIndexToDisk {
     private static volatile int numOfSmallLettersIndex = 0;
@@ -13,10 +10,32 @@ public class SaveIndexToDisk {
     private static volatile Object bigLettersLock = new Object();
     private static volatile Object cityLock = new Object();
 
-    private String folder;
+    private static String folder = null;
 
-    public SaveIndexToDisk(){
-        this.folder = "C:\\Users\\User\\Desktop\\אחזור מידע\\indices\\";
+    public static void setFolder(String foldername){
+        folder = foldername + '\\';
+
+        String smallFolder = folder + "smallLetters";
+        String bigFolder = folder + "bigLetters";
+        String cityFolder = folder + "cities";
+
+        File directory = new File(folder);
+        File small = new File(smallFolder);
+        File big = new File(bigFolder);
+        File city = new File(cityFolder);
+
+        if (!directory.exists()){
+            directory.mkdirs();
+        }
+        if(!small.exists()){
+            small.mkdir();
+        }
+        if(!big.exists()){
+            big.mkdir();
+        }
+        if(!city.exists()){
+            city.mkdir();
+        }
     }
 
     public void save(AIndex index){
@@ -25,33 +44,38 @@ public class SaveIndexToDisk {
         String subFolder;
 
         if(index.getType() == TypeOfIndex.SmallLetters) {
-            subFolder = "smallLetters\\";
             synchronized (smallLettersLock){
                 currentNumOfIndex = numOfSmallLettersIndex;
                 numOfSmallLettersIndex++;
             }
+            subFolder = "smallLetters\\" + currentNumOfIndex + "\\";
         }
         else if(index.getType() == TypeOfIndex.BigLetters) {
-            subFolder = "bigLetters\\";
             synchronized (bigLettersLock){
                 currentNumOfIndex = numOfBigLettersIndex;
                 numOfBigLettersIndex++;
             }
+            subFolder = "bigLetters\\" + currentNumOfIndex + "\\";
         }
         else { // City
-            subFolder = "cities\\";
             synchronized (cityLock){
                 currentNumOfIndex = numOfCityIndex;
                 numOfCityIndex++;
             }
+            subFolder = "cities\\" + currentNumOfIndex + "\\";
         }
 
         String totalFolder = folder + subFolder;
 
-        String dictionaryFileName = totalFolder + "dic" + currentNumOfIndex + ".data";
-        String postingFileName = totalFolder + "post" + currentNumOfIndex + ".data";
+        File directory = new File(totalFolder);
+        if (!directory.exists()){
+            directory.mkdir();
+        }
 
-        index.SortAll();
+        String dictionaryFileName = totalFolder + "dic.data";
+        String postingFileName = totalFolder + "post.data";
+
+        index.SortAll(); // sort the index's posting so it will fit the dictionary
         try {
             OutputStreamWriter dictionaryOutput = new OutputStreamWriter(new FileOutputStream(dictionaryFileName));
             dictionaryOutput.write(index.getDictionary().toString());
