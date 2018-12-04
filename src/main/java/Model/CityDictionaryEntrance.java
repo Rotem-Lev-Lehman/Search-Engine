@@ -47,4 +47,16 @@ public class CityDictionaryEntrance extends ADictionaryEntrance implements Seria
     public void setPopulationSize(String populationSize) {
         this.populationSize = populationSize;
     }
+
+    public static ADictionaryEntrance ParseDictionaryRowAsMyKind(String dictionaryRow) {
+        //String cityName; String currency; String populationSize; int docFreq\n don't need to save:"int postingPtr"
+        String[] split = dictionaryRow.split(";");
+        return new CityDictionaryEntrance(split[0], split[1], split[2],Integer.parseInt(split[3]),0);
+    }
+
+    @Override
+    public String toString() {
+        //String cityName, String currency, String populationSize, int docFreq, don't need to save:"int postingPtr"
+        return getTerm() + ';' + currency + ';' + populationSize + ';' + getDocFreq() + '\n';
+    }
 }

@@ -6,22 +6,18 @@ import java.util.List;
 public abstract class AMerger {
     protected AIndexFileController[] fileControllers;
     protected List<Integer> notFinishedFiles;
-    protected String[] filesToMerge;
-    protected String saveToFile;
     protected ACompleteIndexFileController completeIndexFileController;
 
-    public AMerger(String[] filesToMerge, String saveToFile) {
-        this.filesToMerge = filesToMerge;
-        this.saveToFile = saveToFile;
+    public AMerger(String[] foldersToMerge, String saveToFolder) {
         notFinishedFiles = new ArrayList<>();
-        fileControllers = new AIndexFileController[filesToMerge.length];
+        fileControllers = new AIndexFileController[foldersToMerge.length];
         initializeFileControllers();
-        for(int i = 0; i < filesToMerge.length; i++){
+        for(int i = 0; i < foldersToMerge.length; i++){
             notFinishedFiles.add(i);
-            fileControllers[i].OpenFile(filesToMerge[i]);
+            fileControllers[i].OpenFile(foldersToMerge[i]);
         }
         initializeCompleteIndexFileController();
-        completeIndexFileController.OpenFile(saveToFile);
+        completeIndexFileController.OpenFile(saveToFolder);
     }
 
     protected abstract void initializeFileControllers();
@@ -58,6 +54,7 @@ public abstract class AMerger {
                 completeIndexFileController.SaveRest(fileControllers[notFinishedFiles.get(0)]);
             }
         }
+        completeIndexFileController.CloseFile();
         //done merging
     }
 

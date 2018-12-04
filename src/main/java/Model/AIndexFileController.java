@@ -2,6 +2,8 @@ package Model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public abstract class AIndexFileController {
@@ -9,11 +11,13 @@ public abstract class AIndexFileController {
     private File postingFile;
     private Scanner dictionaryScanner;
     private Scanner postingScanner;
-    private PostingRow currentPostingRow;
-    private ADictionaryEntrance currentDictionaryEntrance;
+    protected PostingRow currentPostingRow;
+    protected ADictionaryEntrance currentDictionaryEntrance;
     private boolean done;
 
-    public void OpenFile(String dictionaryFilename, String postingFilename){
+    public void OpenFile(String folderName){
+        String dictionaryFilename = folderName + '\\' + "dic.data";
+        String postingFilename = folderName + '\\' + "post.data";
         dictionaryFile = new File(dictionaryFilename);
         postingFile = new File(postingFilename);
         done = false;
@@ -38,11 +42,9 @@ public abstract class AIndexFileController {
                 return;
             }
             parseDictionaryRow(dictionaryRow);
-            parsePostingRow(postingRow);
+            currentPostingRow = PostingRow.ParsePostingRow(postingRow);
         }
     }
-
-    protected abstract void parsePostingRow(String postingRow);
 
     protected abstract void parseDictionaryRow(String dictionaryRow);
 

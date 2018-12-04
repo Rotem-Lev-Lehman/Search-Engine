@@ -20,10 +20,23 @@ public abstract class ACompleteIndexFileController {
         }
     }
 
+    public void CloseFile(){
+        try {
+            dictionaryWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void SaveRow(ADictionaryEntrance entrance, PostingRow row){
-        String dictionaryEntrance = CreateDictionaryEntrance(entrance);
-        String postingRow = CreatePostingRow(row);
-        dictionaryWriter.write(dictionaryEntrance);
+        String dictionaryEntrance = entrance.toString();
+        String postingRow = row.toString();
+        try {
+            dictionaryWriter.write(dictionaryEntrance);
+            postingWriter.write(postingRow);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void SaveRest(AIndexFileController controller){
