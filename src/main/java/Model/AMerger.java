@@ -1,6 +1,7 @@
 package Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AMerger {
@@ -25,6 +26,8 @@ public abstract class AMerger {
     protected abstract void initializeCompleteIndexFileController();
 
     public void MergeAll(){
+        for(int i = 0; i < fileControllers.length; i++)
+            fileControllers[i].getNextRow();
         while (!notFinishedFiles.isEmpty()){
             if(notFinishedFiles.size() > 1) {
                 List<Integer> minIndices = findCurrentMin();

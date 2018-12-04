@@ -45,6 +45,8 @@ public abstract class AModel2 {
      * @param path - The path where all of the Documents are in
      */
     public void GetAllDocuments(String path){
+        SetDestinationPath("C:\\Users\\User\\Desktop\\אחזור מידע\\indices");
+
         StopWatch stopWatch = new StopWatch();
         finishedRetrievingFiles = false;
         finishedParsing = false;
@@ -59,14 +61,10 @@ public abstract class AModel2 {
         stopWatch.start();
 
         startReadingFiles(path);
-        //startIndexing();
         startParsing();
 
-        //while (!finishedSmallLetterIndexing);
-        //while (!finishedBigLetterIndexing);
-        //while (!finishedCityIndexing);
-
         stopWatch.stop();
+        System.out.println("Finished parsing");
         double time = stopWatch.getTime() / 60000.0;
         double seconds = time - (int)time;
         System.out.println("Total time = " + (int)time + " minutes and " + (int)(seconds*60) + " seconds");
@@ -81,12 +79,54 @@ public abstract class AModel2 {
         System.out.println("big letter index(post) = " + bigLetterIndexer.getPosting().getPostingList().size());
         System.out.println("city index(dic) = " + cityIndexer.getDictionary().getMap().size());
         System.out.println("city index(post) = " + cityIndexer.getPosting().getPostingList().size());
+
+        //done parsing and indexing all of the files.
+        //now need to merge the indices:
+        System.out.println();
+        System.out.println();
+        System.out.println("Starting to merge");
+        StopWatch stopWatch1 = new StopWatch();
+        stopWatch1.start();
+
+        MergeAllIndices();
+
+        stopWatch1.stop();
+        System.out.println("Finished merging");
+        double time1 = stopWatch.getTime() / 60000.0;
+        double seconds1 = time1 - (int)time1;
+        System.out.println("Merging time = " + (int)time1 + " minutes and " + (int)(seconds1*60) + " seconds");
+        System.out.println();
+        System.out.println();
+        double totalTime = time+time1;
+        double totalSeconds =  totalTime - (int)totalTime;
+        System.out.println("Total time = " + (int)totalTime + " minutes and " + (int)(totalSeconds*60) + " seconds");
     }
 
     public void SetDestinationPath(String destPath){
         destPathForTempIndices = destPath + '\\' + "tempIndices";
         SaveIndexToDisk.setFolder(destPathForTempIndices);
-        destPathForTotalIndices = destPath + '\\' + "indices";
+        destPathForTotalIndices = destPath + '\\' + "totalIndices";
+        String smallFolder = destPathForTotalIndices + "\\smallLetters";
+        String bigFolder = destPathForTotalIndices + "\\bigLetters";
+        String cityFolder = destPathForTotalIndices + "\\cities";
+
+        File directory = new File(destPathForTotalIndices);
+        File small = new File(smallFolder);
+        File big = new File(bigFolder);
+        File city = new File(cityFolder);
+
+        if (!directory.exists()){
+            directory.mkdirs();
+        }
+        if(!small.exists()){
+            small.mkdir();
+        }
+        if(!big.exists()){
+            big.mkdir();
+        }
+        if(!city.exists()){
+            city.mkdir();
+        }
     }
 
     protected abstract void MergeAllIndices();

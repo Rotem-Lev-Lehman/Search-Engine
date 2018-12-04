@@ -19,7 +19,7 @@ public class SaveIndexToDisk {
         String bigFolder = folder + "bigLetters";
         String cityFolder = folder + "cities";
 
-        File directory = new File(folder);
+        File directory = new File(foldername);
         File small = new File(smallFolder);
         File big = new File(bigFolder);
         File city = new File(cityFolder);

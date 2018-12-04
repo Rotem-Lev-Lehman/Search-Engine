@@ -43,58 +43,51 @@ public class Model2 extends AModel2 {
         File bigDir = new File(bigPath);
         File cityDir = new File(cityPath);
 
-        File[] smallFiles = smallDir.listFiles();
-        File[] bigFiles = bigDir.listFiles();
-        File[] cityFiles = cityDir.listFiles();
+        Thread[] threads = new Thread[2];
+        //Thread[] threads = new Thread[3];
+        threads[0] = new Thread(new MergerThread(smallDir, totalSmallPath, TypeOfIndex.SmallLetters));
+        threads[1] = new Thread(new MergerThread(bigDir, totalBigPath, TypeOfIndex.BigLetters));
+        //threads[2] = new Thread(new MergerThread(cityDir, totalCityPath, TypeOfIndex.City));
 
-        String[] smallFilenames = new String[smallFiles.length];
-        for (int i = 0; i < smallFiles.length; i++)
-            smallFilenames[i] = smallFiles[i].getAbsolutePath();
+        // start merging
+        for (int i = 0; i < threads.length; i++)
+            threads[i].start();
 
-        String[] bigFilenames = new String[bigFiles.length];
-        for (int i = 0; i < bigFiles.length; i++)
-            bigFilenames[i] = bigFiles[i].getAbsolutePath();
-
-        String[] cityFilenames = new String[cityFiles.length];
-        for (int i = 0; i < cityFiles.length; i++)
-            cityFilenames[i] = cityFiles[i].getAbsolutePath();
-
-        AMerger smallTermsMerger = new TermsMerger(smallFilenames, totalSmallPath);
-        AMerger bigTermsMerger = new TermsMerger(bigFilenames, totalBigPath);
-        AMerger cityMerger = new CityMerger(cityFilenames, totalCityPath);
+        //wait for all mergers to finish
+        for (int i = 0; i < threads.length; i++) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private class MergerThread implements Runnable{
-
         private File directory;
         private String totalPath;
+        private TypeOfIndex type;
 
-        public MergerThread(File directory, String totalPath){
+        public MergerThread(File directory, String totalPath, TypeOfIndex type){
             this.directory = directory;
             this.totalPath = totalPath;
+            this.type = type;
         }
 
         @Override
         public void run() {
-            File[] smallFiles = smallDir.listFiles();
-            File[] bigFiles = bigDir.listFiles();
-            File[] cityFiles = cityDir.listFiles();
+            File[] files = directory.listFiles();
 
-            String[] smallFilenames = new String[smallFiles.length];
-            for (int i = 0; i < smallFiles.length; i++)
-                smallFilenames[i] = smallFiles[i].getAbsolutePath();
+            String[] filenames = new String[files.length];
+            for (int i = 0; i < files.length; i++)
+                filenames[i] = files[i].getAbsolutePath();
 
-            String[] bigFilenames = new String[bigFiles.length];
-            for (int i = 0; i < bigFiles.length; i++)
-                bigFilenames[i] = bigFiles[i].getAbsolutePath();
-
-            String[] cityFilenames = new String[cityFiles.length];
-            for (int i = 0; i < cityFiles.length; i++)
-                cityFilenames[i] = cityFiles[i].getAbsolutePath();
-
-            AMerger smallTermsMerger = new TermsMerger(smallFilenames, totalSmallPath);
-            AMerger bigTermsMerger = new TermsMerger(bigFilenames, totalBigPath);
-            AMerger cityMerger = new CityMerger(cityFilenames, totalCityPath);
+            AMerger merger;
+            if(type == TypeOfIndex.City)
+                merger = new CityMerger(filenames, totalPath);
+            else
+                merger = new TermsMerger(filenames, totalPath);
+            merger.MergeAll();
         }
     }
 
@@ -153,7 +146,7 @@ public class Model2 extends AModel2 {
                 IndexerThread indexerThread = new IndexerThread(tuple, index);
                 //index.addDocumentToIndex(tuple.getTerms(), tuple.getDocument());
                 amountOfDocs++;
-                System.out.println("current file = " + tuple.getFilename());
+                //System.out.println("current file = " + tuple.getFilename());
                 threadPool.submit(indexerThread);
 
                 if (amountOfDocs > 5000) { //approximately 10 MB
@@ -377,12 +370,12 @@ public class Model2 extends AModel2 {
             amountOfDocs++;
 
             if (amountOfDocs > amountOfParsedDocsInRam) {
-                System.out.println("Starting to save");
+                //System.out.println("Starting to save");
 
                 //start counting again
                 amountOfDocs = 0;
 
-                System.out.println("Waiting for indexing threads to finish");
+                //System.out.println("Waiting for indexing threads to finish");
                 //wait for the indexing to finish
                 threadPool.shutdown();
                 try {
@@ -393,14 +386,14 @@ public class Model2 extends AModel2 {
                     e.printStackTrace();
                 }
 
-                System.out.println("Saving the total small letters index");
+                //System.out.println("Saving the total small letters index");
                 //save the index
                 ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
                 savers.submit(smallLetterIndex);
                 //Thread indexSaver = new Thread(smallLetterIndex);
                 //indexSaver.start();
 
-                System.out.println("Saving the total big letters index");
+                //System.out.println("Saving the total big letters index");
                 ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
                 savers.submit(bigLetterIndex);
                 //Thread bigSaver = new Thread(bigLetterIndex);
@@ -414,7 +407,7 @@ public class Model2 extends AModel2 {
                 */
                 //System.gc();
 
-                System.out.println("Creating new indices");
+                //System.out.println("Creating new indices");
                 //create the new indices
                 smallLetterIndexer = new TermsIndex();
                 smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
@@ -425,12 +418,12 @@ public class Model2 extends AModel2 {
 
                 //System.gc(); // lets try just for fun ;)
 
-                System.out.println("Restarting the pool");
+                //System.out.println("Restarting the pool");
                 //restart
                 threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
             }
 
-            System.out.println("current file = " + currentDoc.getFilename());
+            //System.out.println("current file = " + currentDoc.getFilename());
             //System.out.println("small letter index(dic) = " + smallLetterIndexer.getDictionary().getMap().size());
             //System.out.println("small letter index(post) = " + smallLetterIndexer.getPosting().getPostingList().size());
         }

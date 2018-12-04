@@ -40,9 +40,9 @@ public class PostingRow implements Serializable {
     }
 
     public static PostingRow ParsePostingRow(String postingRow){
-        //filename(string);docno(string);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)-...
+        //filename(string);docno(string);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)&...
         //first split by -
-        String[] differentEntrances = postingRow.split("-");
+        String[] differentEntrances = postingRow.split("&");
         ArrayList<EntranceRow> entranceRows = new ArrayList<EntranceRow>();
         for(int i = 0; i < differentEntrances.length; i++) {
             String[] firstSplit = differentEntrances[i].split("\\[");
@@ -62,7 +62,7 @@ public class PostingRow implements Serializable {
 
     @Override
     public String toString(){
-        //filename(string);docno(string);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)-...
+        //filename(string);docno(string);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)&...
         StringBuilder builder = new StringBuilder();
         Collections.sort(entranceRows);
         for (int j = 0; j < entranceRows.size(); j++) {
@@ -77,7 +77,7 @@ public class PostingRow implements Serializable {
             }
             builder.append(']');
             if(j < entranceRows.size() - 1)
-                builder.append('-');
+                builder.append('&');
         }
         builder.append('\n');
         return builder.toString();
