@@ -81,7 +81,7 @@ public abstract class AModel2 {
 
         stopWatch1.stop();
         System.out.println("Finished merging");
-        double time1 = stopWatch.getTime() / 60000.0;
+        double time1 = stopWatch1.getTime() / 60000.0;
         double seconds1 = time1 - (int)time1;
         System.out.println("Merging time = " + (int)time1 + " minutes and " + (int)(seconds1*60) + " seconds");
         System.out.println();
