@@ -68,17 +68,6 @@ public abstract class AModel2 {
         double time = stopWatch.getTime() / 60000.0;
         double seconds = time - (int)time;
         System.out.println("Total time = " + (int)time + " minutes and " + (int)(seconds*60) + " seconds");
-        //System.out.println(documents.size());
-        System.out.println("documents = " + documents.size());
-        System.out.println("small letters indexers queue = "+smallLetterIndexQueue.size());
-        System.out.println("big letters indexers queue = "+bigLetterIndexQueue.size());
-        System.out.println("city indexers queue = "+cityIndexQueue.size());
-        System.out.println("small letter index(dic) = " + smallLetterIndexer.getDictionary().getMap().size());
-        System.out.println("small letter index(post) = " + smallLetterIndexer.getPosting().getPostingList().size());
-        System.out.println("big letter index(dic) = " + bigLetterIndexer.getDictionary().getMap().size());
-        System.out.println("big letter index(post) = " + bigLetterIndexer.getPosting().getPostingList().size());
-        System.out.println("city index(dic) = " + cityIndexer.getDictionary().getMap().size());
-        System.out.println("city index(post) = " + cityIndexer.getPosting().getPostingList().size());
 
         //done parsing and indexing all of the files.
         //now need to merge the indices:

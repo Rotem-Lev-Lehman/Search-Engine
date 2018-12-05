@@ -12,21 +12,15 @@ import java.util.concurrent.TimeUnit;
 public class Model2 extends AModel2 {
 
     private int amountOfDocsAllowedInQueue = 300;
-    private int amountOfParsedDocsInRam = 10000; //approximately 10 MB (17000)
+    private int amountOfParsedDocsInRam = 1000; //approximately 10 MB (17000)
     private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
-    private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool + 4;
+    private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
 
     public Model2(){
         readFile = new ReadFile(new DocumentFactory());
         empty = new Semaphore(0, true);
         full = new Semaphore(amountOfDocsAllowedInQueue, true); // change permits to be good with Memory space and timing
         tasksLimit = new Semaphore(amountOfTasksAllowedInThreadPool, true);
-        smallLetterIndexer = new TermsIndex();
-        smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
-        bigLetterIndexer = new TermsIndex();
-        bigLetterIndexer.setType(TypeOfIndex.BigLetters);
-        cityIndexer = new CityIndex();
-        cityIndexer.setType(TypeOfIndex.City);
     }
 
     @Override
@@ -300,37 +294,18 @@ public class Model2 extends AModel2 {
 
     @Override
     protected void startParsing() {
+        smallLetterIndexer = new TermsIndex();
+        smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+        bigLetterIndexer = new TermsIndex();
+        bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+        cityIndexer = new CityIndex();
+        cityIndexer.setType(TypeOfIndex.City);
+
         ExecutorService threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
         ExecutorService savers = Executors.newCachedThreadPool();
         //int bias = 500;
         int amountOfDocs = 0;
         while (!finishedRetrievingFiles || documents.size() != 0) {
-            /*
-            int totalDocsWaiting=0;
-            synchronized (smallLetterIndexLock)
-            {
-                totalDocsWaiting += smallLetterIndexQueue.size();
-            }
-            synchronized (bigLetterIndexLock){
-                totalDocsWaiting += bigLetterIndexQueue.size();
-            }
-            synchronized (cityIndexLock){
-                totalDocsWaiting += cityIndexQueue.size();
-            }
-            if(totalDocsWaiting > bias) {
-                try {
-                    Thread.sleep(50); // give the Indexer a chance to control the situation
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                bias /= 2;
-                if(bias < 100)
-                    bias = 500;
-                continue;
-            }
-            bias = 500;
-            */
-
             Document currentDoc;
             try {
                 empty.acquire();
@@ -354,16 +329,7 @@ public class Model2 extends AModel2 {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            /*
-            if (currentDoc == null) {
-                try {
-                    Thread.sleep(10); // give a chance to the reader thread
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                continue;
-            }
-            */
+
             ParserThread parserThread = new ParserThread(currentDoc);
             threadPool.submit(parserThread);
 
@@ -421,11 +387,10 @@ public class Model2 extends AModel2 {
                 //System.out.println("Restarting the pool");
                 //restart
                 threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+
+                System.out.println("current file = " + currentDoc.getFilename());
             }
 
-            //System.out.println("current file = " + currentDoc.getFilename());
-            //System.out.println("small letter index(dic) = " + smallLetterIndexer.getDictionary().getMap().size());
-            //System.out.println("small letter index(post) = " + smallLetterIndexer.getPosting().getPostingList().size());
         }
         threadPool.shutdown();
         try {
@@ -446,6 +411,10 @@ public class Model2 extends AModel2 {
         savers.submit(bigLetterIndex);
         //Thread bigSaver = new Thread(bigLetterIndex);
         //bigSaver.start();
+
+        smallLetterIndexer = null;
+        bigLetterIndexer = null;
+        cityIndexer = null;
 
         /*
         ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
