@@ -717,7 +717,7 @@ public class Parse implements IParse {
         }
         else
             stemmed = token;
-        
+
         if (Character.isUpperCase(token.charAt(0))) {
             stemmed = stemmed.toUpperCase();
             type = TypeOfTerm.BigLetters;
