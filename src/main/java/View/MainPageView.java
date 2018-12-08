@@ -16,75 +16,42 @@ import java.io.File;
  * The main page view controller
  */
 public class MainPageView extends AView {
-
-    /**
-     * The open all files button
-     */
-    public Button openAllFilesButton;
     /**
      * The label that states we have finished parsing
      */
     public Label labelDone;
-    /**
-     * The open stop words button
-     */
-    public Button openStopWordsButton;
-
+    public Button startButton;
     public ChoiceBox<String> languagesChoiceBox;
-    public void initialize() {
-        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
-        languagesChoiceBox.getItems().addAll("English" , "Hebrew", "Spanish", "Japanese");
-        languagesChoiceBox.getSelectionModel().select("English");
-    }
-
-    public TextField stopWordPath;
-    public TextField allFilesPath;
 
 
-
-    /** An Event handler for when the open all files button is pressed
-     * @param actionEvent - The event's argument
-     */
-    public void OpenAllFiles(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("Open Files");
-    }
-
-
-
+    public TextField DSTPath;
+    public TextField SRCPath;
+    public Button srcPathOfStopWordsAndCorpus;
+    public Button destinationPath;
 
     /**
      * Start the DirectoryChooser which enables picking the wanted Directory
      */
-    public void ChooseDirectory(){
+    public void ChooseDirectory(String pathType){
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Select the wanted Directory");
-
-        Stage currentStage = (Stage) openAllFilesButton.getScene().getWindow();
-        File selectedDirectory = chooser.showDialog(currentStage);
-
-
-        if(selectedDirectory != null && selectedDirectory.isDirectory()) {
-            setChanged();
-            notifyObservers(selectedDirectory);
+        if(pathType=="SRC") {
+            Stage currentStage = (Stage) srcPathOfStopWordsAndCorpus.getScene().getWindow();
+            File selectedDirectory = chooser.showDialog(currentStage);
+            SRCPath.setText(selectedDirectory.getAbsolutePath());
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                setChanged();
+                notifyObservers(selectedDirectory);
+            }
         }
-    }
-
-    /**
-     * Start the DirectoryChooser which enables picking the wanted Directory
-     */
-    public void ChooseFile(){
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select the wanted File");
-
-        Stage currentStage = (Stage) openStopWordsButton.getScene().getWindow();
-        File selectedFile = chooser.showOpenDialog(currentStage);
-        stopWordPath.setText(selectedFile.getAbsolutePath());
-
-
-        if(selectedFile != null && selectedFile.isFile()) {
-            setChanged();
-            notifyObservers(selectedFile);
+        else {
+            Stage currentStage = (Stage) destinationPath.getScene().getWindow();
+            File selectedDirectory = chooser.showDialog(currentStage);
+            DSTPath.setText(selectedDirectory.getAbsolutePath());
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                setChanged();
+                notifyObservers(selectedDirectory);
+            }
         }
     }
 
@@ -92,25 +59,37 @@ public class MainPageView extends AView {
      * Notify the user that the parsing operation was finished
      */
     public void NotifyDone(){
-
-        openAllFilesButton.setTextFill(Paint.valueOf("#11ff00"));
-        //allFilesPath.setText(selectedFile.getAbsolutePath());
-
+        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
         labelDone.setVisible(true);
     }
+
+    public void openSrcPath(ActionEvent actionEvent){
+        setChanged();
+        notifyObservers("Given Source Files");
+    }
+    public void openDstPath(ActionEvent actionEvent){
+        setChanged();
+        notifyObservers("Destination Files");
+    }
+
 
     /**
      * Notify the user that the parsing operation was finished
      */
-    public void NotifyStopWordsLoaded(){
-        openStopWordsButton.setTextFill(Paint.valueOf("#11ff00"));
+    public void NotifySrcLoaded(){
+        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
     }
 
-    /** An Event handler for when the open stop words button is pressed
-     * @param actionEvent - The event's argument
-     */
-    public void OpenStopWords(ActionEvent actionEvent) {
+
+    public void letsStart(ActionEvent actionEvent) {
+
+//        public void initialize() {
+//            languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
+//            languagesChoiceBox.getItems().addAll("English" , "Hebrew", "Spanish", "Japanese");
+//            languagesChoiceBox.getSelectionModel().select("English");
+//        }
         setChanged();
-        notifyObservers("Open Stop words");
+        notifyObservers("start");
+
     }
 }

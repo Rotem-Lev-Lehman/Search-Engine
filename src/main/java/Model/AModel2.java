@@ -31,8 +31,6 @@ public abstract class AModel2 {
      * @param path - The path where all of the Documents are in
      */
     public void GetAllDocuments(String path){
-        SetDestinationPath("C:\\Users\\User\\Desktop\\אחזור מידע\\indices");
-
         StopWatch stopWatch = new StopWatch();
         finishedRetrievingFiles = false;
         documents = new ArrayDeque<Document>();
