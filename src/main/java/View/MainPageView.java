@@ -110,21 +110,20 @@ public class MainPageView extends AView {
                 String thisLine = scanner.nextLine();
                 languages.add(thisLine.substring(1,thisLine.length()-1));
             }
-
         }
         catch (Exception e) {
             e.printStackTrace();
         }
         //languages;
         languagesChoiceBox.getItems().addAll(languages);
-        languageText.setText("Choose Language-Available");
+        //languageText.setText("Choose Language-Available");
         setChanged();
         notifyObservers("start");
     }
 
     public void resetProg(ActionEvent actionEvent) {
         languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
-        languageText.setText("Choose Language-Unavailable");
+        //languageText.setText("Choose Language-Unavailable");
         setChanged();
         notifyObservers("reset");
     }
