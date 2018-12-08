@@ -52,7 +52,7 @@ public class PostingRow implements Serializable {
             for (String num : secondStuff) {
                 places.add(Integer.parseInt(num));
             }
-            double tf = Double.parseDouble(firstStuff[2])/1000.0;
+            double tf = Double.parseDouble(firstStuff[2])/1000000.0;
             EntranceRow entrance = new EntranceRow(firstStuff[0],firstStuff[1],1,places);
             entrance.setNormalizedTermFreq(tf);
             entranceRows.add(entrance);
@@ -67,7 +67,7 @@ public class PostingRow implements Serializable {
         Collections.sort(entranceRows);
         for (int j = 0; j < entranceRows.size(); j++) {
             EntranceRow entrance = entranceRows.get(j);
-            builder.append(entrance.getFileName()).append(";").append(entrance.getDocNo()).append(";").append(Math.round(entrance.getNormalizedTermFreq() * 1000)).append(";");
+            builder.append(entrance.getFileName()).append(";").append(entrance.getDocNo()).append(";").append(Math.round(entrance.getNormalizedTermFreq() * 1000000)).append(";");
             builder.append('[');
             List<Integer> pos = entrance.getPositions();
             for(int i = 0; i < pos.size(); i++){

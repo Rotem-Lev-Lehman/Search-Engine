@@ -19,6 +19,6 @@ public class TermsMerger extends AMerger {
 
     @Override
     protected ADictionaryEntrance CreateNewDictionaryEntrance(ADictionaryEntrance dictionaryEntrance) {
-        return new TermsDictionaryEntrance(dictionaryEntrance.getTerm(),0,0);
+        return new TermsDictionaryEntrance(dictionaryEntrance.getTerm(),0,0,0);
     }
 }

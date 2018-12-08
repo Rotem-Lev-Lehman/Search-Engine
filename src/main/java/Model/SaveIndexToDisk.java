@@ -79,10 +79,12 @@ public class SaveIndexToDisk {
         try {
             OutputStreamWriter dictionaryOutput = new OutputStreamWriter(new FileOutputStream(dictionaryFileName));
             dictionaryOutput.write(index.getDictionary().toString());
+            dictionaryOutput.flush();
             dictionaryOutput.close();
 
             OutputStreamWriter postingOutput = new OutputStreamWriter(new FileOutputStream(postingFileName));
             postingOutput.write(index.getPosting().toString());
+            postingOutput.flush();
             postingOutput.close();
         } catch (IOException e) {
             e.printStackTrace();

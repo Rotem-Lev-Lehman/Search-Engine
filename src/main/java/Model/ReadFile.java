@@ -1,11 +1,11 @@
 package Model;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import org.json.JSONObject;
+
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -17,22 +17,31 @@ public class ReadFile implements IReadFile {
      */
     private IDocumentFactory documentFactory;
 
+    private String url;
+
+    private Parse parser; //only for parsing the number of the population size
+
     /**
      * The files in the given folder
      */
     private List<File> files;
+
+    private Map<String, CityInfo> citiesThatWeSaw;
 
     /** A constructor for the ReadFile class
      * @param documentFactory - The DocumentFactory we will use
      */
     public ReadFile(IDocumentFactory documentFactory) {
         this.documentFactory = documentFactory;
+        citiesThatWeSaw = new HashMap<>();
+        url = "http://getcitydetails.geobytes.com/GetCityDetails?fqcn=";
+        parser = new Parse();
     }
 
     /**
-     * @param path      - The path of the root directory of all of the files
-     * @param documents
-     * @param lock
+     * @param path - The path of the root directory of all of the files
+     * @param documents - the queue to insert to
+     * @param lock - a lock for the queue
      * Read the file from the path and add all the documents from it to documents list.
      */
     @Override
@@ -89,9 +98,54 @@ public class ReadFile implements IReadFile {
         String[] docs = content.split("<DOC>");
         for (int i = 1; i < docs.length; i++) {
             docs[i] = "<DOC>" + docs[i];
-            documents.add(documentFactory.CreateDocument(docs[i], file.getName()));
+            Document document = documentFactory.CreateDocument(docs[i], file.getName());
+            String city = document.getCity();
+            if(city != null && !city.equals("")){
+                //get document's info:
+                CityInfo info = citiesThatWeSaw.get(city);
+                if(info == null){
+                    //we need to get the city from the API
+                    info = getCityInfoFromAPI(city);
+                    citiesThatWeSaw.put(city, info);
+                }
+                document.setCityInfo(info);
+            }
+            documents.add(document);
         }
         return documents;
+    }
+
+    private CityInfo getCityInfoFromAPI(String city) {
+        String countryName = "#";
+        String currencyCode = "#";
+        String populationSize = "#";
+        try {
+            URL u = new URL(url + city);
+            URLConnection connection = u.openConnection();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String result = reader.readLine();
+
+            JSONObject jsonObject = new JSONObject(result);
+            String currency = (String) jsonObject.get("geobytescurrencycode");
+            String country = (String) jsonObject.get("geobytescountry");
+            String population = (String) jsonObject.get("geobytespopulation");
+
+            if (population.length() != 0) {
+                String[] term = new String[1];
+                term[0] = population;
+                Term num = parser.getNumber(term, 0);
+                if (num != null)
+                    populationSize = num.getValue();
+            }
+            if (currency.length() != 0)
+                currencyCode = currency;
+            if (country.length() != 0)
+                countryName = country;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new CityInfo(city, countryName, currencyCode, populationSize);
     }
 
     /** Reads a given file

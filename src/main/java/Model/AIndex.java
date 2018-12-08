@@ -22,30 +22,35 @@ public abstract class AIndex {
         }
     }
 
-    public void addDocumentToIndex(List<Term> terms, String DocNo, String Filename) {
+    public void addDocumentToIndex(List<Term> terms, String DocNo, String Filename, CityInfo info, int length) {
         List<Integer> positions;
         List<TupleEntranceRowAndTerm> entranceRows = new LinkedList<TupleEntranceRowAndTerm>();
-        int maxTf = 0;
+        //int maxTf = 0;
         for (int i = 0; i < terms.size(); i++) {
-            if (terms.get(i) == null)
+            Term current = terms.get(i);
+            if (current == null)
                 continue;
             positions = new ArrayList<>();
-            positions.add(i);
+            positions.add(current.getPosition());
             for (int j = i + 1; j < terms.size(); j++) {
-                if (terms.get(i).equals(terms.get(j))) {
-                    positions.add(j);
+                Term other = terms.get(j);
+                if (current.equals(other)) {
+                    positions.add(other.getPosition());
                     terms.set(j, null);
                 }
             }
-            if (maxTf < positions.size())
-                maxTf = positions.size();
+            //if (maxTf < positions.size())
+            //    maxTf = positions.size();
+
+            Collections.sort(positions); //make sure that the positions are sorted
 
             EntranceRow entranceRow = new EntranceRow(DocNo, Filename, positions.size(), positions);
             entranceRows.add(new TupleEntranceRowAndTerm(entranceRow, terms.get(i)));
         }
         synchronized (lock) {
             for (TupleEntranceRowAndTerm tuple : entranceRows) {
-                tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
+                //tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
+                tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) length); // normalized by length of doc
                 ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(tuple.getTerm());
                 if (dictionaryEntrance == null) {
                     // create a new one
@@ -56,12 +61,14 @@ public abstract class AIndex {
                     int ptr = posting.createNewPostingRow(postingRow);
 
                     //Add to dictionary
-                    ADictionaryEntrance dicEntrance = getRightDictionaryEntrance(tuple.getTerm(), 1, ptr);
+                    ADictionaryEntrance dicEntrance = getRightDictionaryEntrance(tuple.getTerm(), 1, ptr, info, tuple.getEntranceRow().getTermFreqInDoc());
                     dictionary.addEntrance(dicEntrance);
                 } else {
                     // add to an existing one
                     int ptr = dictionaryEntrance.getPostingPtr();
                     dictionaryEntrance.addOneToDocFreq(); //df++
+                    dictionaryEntrance.addToTotalTermFreq(tuple.getEntranceRow().getTermFreqInDoc());
+
                     PostingRow postingRow = posting.getPostingRow(ptr);
                     postingRow.getEntranceRows().add(tuple.getEntranceRow());
                 }
@@ -69,7 +76,7 @@ public abstract class AIndex {
         }
     }
 
-    protected abstract ADictionaryEntrance getRightDictionaryEntrance(Term term, int df, int ptr);
+    protected abstract ADictionaryEntrance getRightDictionaryEntrance(Term term, int df, int ptr, CityInfo info, int tf);
 
     public boolean isEmpty(){
         boolean ans = false;

@@ -13,6 +13,8 @@ public class Document {
 
     private String city;
 
+    private CityInfo cityInfo;
+
     private String filename;
     /**
      * DATE1 - The date that the Document was published
@@ -35,6 +37,8 @@ public class Document {
         this.DATE1 = null;
         this.TI = null;
         this.TEXT = null;
+        this.city = null;
+        this.cityInfo = null;
     }
 
     /**
@@ -51,6 +55,7 @@ public class Document {
         this.TEXT = TEXT;
         this.filename = filename;
         this.city = city;
+        this.cityInfo = null;
     }
 
     public String getFilename(){return filename;}
@@ -109,5 +114,21 @@ public class Document {
      */
     public void setTEXT(String TEXT) {
         this.TEXT = TEXT;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public CityInfo getCityInfo() {
+        return cityInfo;
+    }
+
+    public void setCityInfo(CityInfo cityInfo) {
+        this.cityInfo = cityInfo;
     }
 }

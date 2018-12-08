@@ -5,11 +5,11 @@ public class CityIndex extends AIndex {
     /**
      * constructor for the CityIndex - make new CityDictionaryEntrance.
      */
-    protected ADictionaryEntrance getRightDictionaryEntrance(Term term, int df, int ptr) {
-        //get currency and populationSize from the API of cities.
-        String currency = null;
-        String populationSize = null;
+    protected ADictionaryEntrance getRightDictionaryEntrance(Term term, int df, int ptr, CityInfo info, int tf) {
+        String currency = info.getCurrency();
+        String populationSize = info.getPopulationSize();
+        String country = info.getCountry();
 
-        return new CityDictionaryEntrance(term.getValue(),currency,populationSize,df,ptr);
+        return new CityDictionaryEntrance(term.getValue(), country,currency,populationSize,df, tf,ptr);
     }
 }

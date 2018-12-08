@@ -1,7 +1,6 @@
 package Model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class AMerger {
@@ -26,8 +25,11 @@ public abstract class AMerger {
     protected abstract void initializeCompleteIndexFileController();
 
     public void MergeAll(){
-        for(int i = 0; i < fileControllers.length; i++)
+        for(int i = 0; i < fileControllers.length; i++) {
             fileControllers[i].getNextRow();
+            if (fileControllers[i].done()) //if the file didn't contain any characters - could happen (for example) if there was no city in the 1000 documents that we have sampled
+                notFinishedFiles.remove((Integer) i);
+        }
         while (!notFinishedFiles.isEmpty()){
             if(notFinishedFiles.size() > 1) {
                 List<Integer> minIndices = findCurrentMin();
@@ -36,15 +38,18 @@ public abstract class AMerger {
 
                 PostingRow mergedPostingRow = fileControllers[currentIndex].getPostingRow();
                 int mergedDocFreq = fileControllers[currentIndex].getDocFreq();
+                int mergedTotalTermFreq = fileControllers[currentIndex].getDictionaryEntrance().getTotalTermFreq();
                 ADictionaryEntrance mergedDictionaryEntrance = CreateNewDictionaryEntrance(fileControllers[currentIndex].getDictionaryEntrance());
 
                 for (int i = 1; i < minIndices.size(); i++) {
                     currentIndex = minIndices.get(i);
                     mergedPostingRow.merge(fileControllers[currentIndex].getPostingRow());
                     mergedDocFreq += fileControllers[currentIndex].getDocFreq();
+                    mergedTotalTermFreq += fileControllers[currentIndex].getDictionaryEntrance().getTotalTermFreq();
                 }
 
                 mergedDictionaryEntrance.setDocFreq(mergedDocFreq);
+                mergedDictionaryEntrance.setTotalTermFreq(mergedTotalTermFreq);
 
                 completeIndexFileController.SaveRow(mergedDictionaryEntrance, mergedPostingRow);
                 for (int i : minIndices) {
@@ -55,6 +60,7 @@ public abstract class AMerger {
             }
             else{ // must be size == 1
                 completeIndexFileController.SaveRest(fileControllers[notFinishedFiles.get(0)]);
+                notFinishedFiles.remove(0);
             }
         }
         completeIndexFileController.CloseFile();

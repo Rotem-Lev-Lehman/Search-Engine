@@ -13,32 +13,35 @@ import java.util.*;
  */
 public class Parse implements IParse {
 
-    private HashSet<String> stopWords;
+    //private HashSet<String> stopWords;
     private String[] tokens;
     private int currentIndex;
     private int amountOfTokens;
     private List<Term> terms;
     private List<String> months;
     private Dictionary<String, String> monthNumber;
-    private List<Character> possibleChars;
+    //private List<Character> possibleChars;
     private SnowballStemmer stemmer;
     private String[] removes;
+    private int currentPositionOfTerm;
 
     public Parse() {
         stemmer = new porterStemmer();
-        initializePossibleChars();
+        //initializePossibleChars();
         initializeMonth();
         initializeRemoves();
     }
 
     private void initializeRemoves() {
-        removes = new String[]{"\n","(",")","{","}",",","--","- ",";",":","\\","\"","\'","*","!","@","#","^","&","[","]","?","|",";","~","`","\t"," /","/ ", ". ",".\"","..", " .", ".\n", ".\t"};
+        removes = new String[]{"\n","\r","(",")","{","}",",",";",":","\\","\"","\'","*","!","@","#","^","&","[","]","?","|",";","~","`","\t"," /","/ ", ". ",".\"","\".","..", " .", ".\n", ".\t","--","- "," %","$ "};
     }
 
+    /*
     private void initializePossibleChars() {
         Character[] chars = new Character[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '$', '%', '-'};
         possibleChars = Arrays.asList(chars);
     }
+    */
 
     private void initializeMonth() {
         //create months
@@ -75,26 +78,36 @@ public class Parse implements IParse {
 
     /**
      * @param document  - The document to parse
-     * @param stopWords
+     * @param stopWords - The stop words set
      * @return parse all the tokens by the rules.
      */
     @Override
     public List<Term> Parse(Document document, HashSet<String> stopWords) {
-        this.stopWords = stopWords;
         String text = clearRemoves(document.getTEXT());
         tokens = text.split(" ");
         terms = new ArrayList<Term>();
         amountOfTokens = tokens.length;
+        currentPositionOfTerm = 0;
 
         for (currentIndex = 0; currentIndex < amountOfTokens; currentIndex++) {
-            if(tokens[currentIndex].equals(""))
+            if(tokens[currentIndex].equals("") || tokens[currentIndex].equals(" "))
                 continue;
+
+            if(tokens[currentIndex].equals(document.getCity())) {
+                //a city term
+                saveCompleteTerm(tokens[currentIndex].toUpperCase(), TypeOfTerm.City);
+                continue;
+            }
+
             if (!tokens[currentIndex].toUpperCase().equals("BETWEEN")) {
                 if(!months.contains(tokens[currentIndex].toUpperCase())) {
                     if (stopWords.contains(tokens[currentIndex].toLowerCase()))
                         continue;
 
                     if (isRegularTerm(tokens[currentIndex])) {
+                        if (newRule()) // check the new rule before regular terms
+                            continue;
+
                         saveRegularTerm(tokens[currentIndex]);
                         continue;
                     }
@@ -107,7 +120,7 @@ public class Parse implements IParse {
 
     private String clearRemoves(String text){
         for (String r : removes) {
-            text = text.replace(r,"");
+            text = text.replace(r," ");
         }
         return text;
     }
@@ -116,19 +129,20 @@ public class Parse implements IParse {
      * @return parse by our new rule
      */
     private boolean newRule(){
-        if (tokens[currentIndex].toUpperCase()=="ONE"){saveCompleteTerm("1",TypeOfTerm.Number); return true;}
-        if (tokens[currentIndex].toUpperCase()=="TWO"){saveCompleteTerm("2",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="THREE"){saveCompleteTerm("3",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="FOUR"){saveCompleteTerm("4",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="FIVE"){saveCompleteTerm("5",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="SIX"){saveCompleteTerm("6",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="SEVEN"){saveCompleteTerm("7",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="EIGHT"){saveCompleteTerm("8",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="NINE"){saveCompleteTerm("9",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="TEN"){saveCompleteTerm("10",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="TWENTY"){saveCompleteTerm("20",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="FIFTY"){saveCompleteTerm("50",TypeOfTerm.Number);return true;}
-        if (tokens[currentIndex].toUpperCase()=="HUNDRED"){saveCompleteTerm("100",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("ZERO")){saveCompleteTerm("0",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("ONE")){saveCompleteTerm("1",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("TWO")){saveCompleteTerm("2",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("THREE")){saveCompleteTerm("3",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("FOUR")){saveCompleteTerm("4",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("FIVE")){saveCompleteTerm("5",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("SIX")){saveCompleteTerm("6",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("SEVEN")){saveCompleteTerm("7",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("EIGHT")){saveCompleteTerm("8",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("NINE")){saveCompleteTerm("9",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("TEN")){saveCompleteTerm("10",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("TWENTY")){saveCompleteTerm("20",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("FIFTY")){saveCompleteTerm("50",TypeOfTerm.Number);return true;}
+        if (tokens[currentIndex].toUpperCase().equals("HUNDRED")){saveCompleteTerm("100",TypeOfTerm.Number);return true;}
         return false;
     }
 
@@ -136,9 +150,6 @@ public class Parse implements IParse {
      * get the next term and parse it
      */
     private void getNextTerm() {
-
-        if (newRule())
-            return;
 
         //Check between
         if (parseBetween())
@@ -153,7 +164,9 @@ public class Parse implements IParse {
         if (parseNumbers())
             return;
 
-        saveRegularTerm(tokens[currentIndex]);
+        //its junk...
+        //System.out.println(tokens[currentIndex]); //lets see what kind of junk it is...
+        //saveRegularTerm(tokens[currentIndex]);
         //Done
     }
 
@@ -205,7 +218,7 @@ public class Parse implements IParse {
                     Term numberOfDollar = getNumber(tempForCheckingNumber, 0);
                     if (numberOfDollar != null) {
                         currentIndex += numberOfDollar.getNumOfTokensParsed() - 1;
-                        saveCompleteTerm("$" + ChangeToPriceFormat(numberOfDollar.getValue()), TypeOfTerm.Price);
+                        saveCompleteTerm(ChangeToPriceFormat(numberOfDollar.getValue()) + " Dollars", TypeOfTerm.Price);
                         return true;
                     } else
                         return false;
@@ -213,7 +226,7 @@ public class Parse implements IParse {
                 Term numberOfDollar = getNumber(new String[]{dollarNum}, 0);
                 if (numberOfDollar != null) {
                     currentIndex += numberOfDollar.getNumOfTokensParsed() - 1;
-                    saveCompleteTerm("$" + ChangeToPriceFormat(numberOfDollar.getValue()), TypeOfTerm.Price);
+                    saveCompleteTerm(ChangeToPriceFormat(numberOfDollar.getValue()) + " Dollars", TypeOfTerm.Price);
                     return true;
                 }
             }
@@ -289,12 +302,16 @@ public class Parse implements IParse {
                     //Month DD
                     String token = monthNumber.get(tokens[currentIndex].toUpperCase()) + "-" + tokens[currentIndex + 1];
                     saveCompleteTerm(token, TypeOfTerm.Date);
+
+                    currentIndex++;
                     return true;
                 }
                 if (isYear(tokens[currentIndex + 1])) {
                     //Month Year
                     String token = tokens[currentIndex + 1] + "-" + monthNumber.get(tokens[currentIndex].toUpperCase());
                     saveCompleteTerm(token, TypeOfTerm.Date);
+
+                    currentIndex++;
                     return true;
                 }
             }
@@ -305,6 +322,8 @@ public class Parse implements IParse {
                     //DD Month
                     String token = monthNumber.get(tokens[currentIndex + 1].toUpperCase()) + "-" + tokens[currentIndex];
                     saveCompleteTerm(token, TypeOfTerm.Date);
+
+                    currentIndex++;
                     return true;
                 }
             }
@@ -353,25 +372,21 @@ public class Parse implements IParse {
                 if (num == null)
                     return true;
                 else {
-                    saveTerm(num);
                     int andIndex = currentIndex + num.getNumOfTokensParsed() + 1;
                     if (andIndex < amountOfTokens) {
                         if (tokens[andIndex].toUpperCase().equals("AND")) {
                             if (andIndex + 1 < amountOfTokens) {
                                 Term num2 = getNumber(tokens,andIndex + 1);
                                 if (num2 != null) {
+                                    saveTerm(num);
                                     saveTerm(num2);
                                     saveCompleteTerm(num.getValue() + "-" + num2.getValue(), TypeOfTerm.RangeOrPhrase);
                                     currentIndex = andIndex + num2.getNumOfTokensParsed();
                                     return true;
                                 }
                             }
-                            currentIndex = andIndex;
-                            return true;
                         }
                     }
-                    currentIndex = currentIndex + num.getNumOfTokensParsed();
-                    return true;
                 }
             }
             return true;
@@ -446,8 +461,10 @@ public class Parse implements IParse {
                 int splitIndex = currentIndex + number.getNumOfTokensParsed() - 1;
                 //in this index there must be a hyphen.
                 String[] split = tokens[splitIndex].split("-");
-                if(split.length < 2)
+                if(split.length != 2) {
+                    currentIndex += number.getNumOfTokensParsed();
                     return true;
+                }
 
                 int count = amountOfTokens - splitIndex - 1;
                 int min = Math.min(count, 2);
@@ -455,17 +472,17 @@ public class Parse implements IParse {
                     String[] tempForCheckingNumber = new String[min + 1];
                     tempForCheckingNumber[0] = split[1];
                     for (int j = 0; j < min; j++)
-                        tempForCheckingNumber[j + 1] = tokens[currentIndex + j + 1];
+                        tempForCheckingNumber[j + 1] = tokens[splitIndex + j + 1];
                     Term number2 = getNumber(tempForCheckingNumber, 0);
 
-                    if(number2!= null){
+                    if(number2 != null){
                         saveTerm(number2);
                         saveCompleteTerm(number.getValue() + "-" + number2.getValue(), TypeOfTerm.RangeOrPhrase);
-                        currentIndex += splitIndex +number2.getNumOfTokensParsed() - 1;
+                        currentIndex = splitIndex + number2.getNumOfTokensParsed() - 1;
                         return true;
                     }
                     saveCompleteTerm(number.getValue() + "-" + split[1], TypeOfTerm.RangeOrPhrase);
-                    currentIndex += splitIndex;
+                    currentIndex = splitIndex;
                     return true;
                 }
                 Term number2 = getNumber(split, 1);
@@ -473,11 +490,11 @@ public class Parse implements IParse {
                 if(number2 != null){
                     saveTerm(number2);
                     saveCompleteTerm(number.getValue() + "-" + number2.getValue(), TypeOfTerm.RangeOrPhrase);
-                    currentIndex += splitIndex + number2.getNumOfTokensParsed() - 1;
+                    currentIndex = splitIndex + number2.getNumOfTokensParsed() - 1;
                     return true;
                 }
                 saveCompleteTerm(number.getValue() + "-" + split[1], TypeOfTerm.RangeOrPhrase);
-                currentIndex += splitIndex;
+                currentIndex = splitIndex;
                 return true;
             }
         }
@@ -491,7 +508,7 @@ public class Parse implements IParse {
      * @param i - start index
      * @return Term of the parsed number, or null if not number
      */
-    private Term getNumber(String[] tokens, int i) {
+    public Term getNumber(String[] tokens, int i) {
         if (isNumber(tokens[i])) {
             //Check if a solo number
             if (i + 1 < tokens.length) {
@@ -702,10 +719,13 @@ public class Parse implements IParse {
     }
 
     private void saveCompleteTerm(String token, TypeOfTerm type) {
-        terms.add(new Term(token, type));
+        terms.add(new Term(token, currentPositionOfTerm, type));
+        currentPositionOfTerm++;
     }
 
     private void saveTerm(Term term) {
+        term.setPosition(currentPositionOfTerm);
+        currentPositionOfTerm++;
         terms.add(term);
     }
 
@@ -716,8 +736,11 @@ public class Parse implements IParse {
      * @return true if the token is a regular term, and false otherwise
      */
     private boolean isRegularTerm(String token) {
-        char firstChar = token.charAt(0);
-        return !(possibleChars.contains(firstChar) || months.contains(token) || token.contains(",") || token.contains(".") || token.contains("/") || token.contains("%") || token.contains("-"));
+        for(char c : token.toCharArray()){
+            if(('0' <= c && c <= '9') || c == '.' || c == '/' || c == '%' || c == '-' || c == '$')
+                return false;
+        }
+        return true;
     }
 
     /**

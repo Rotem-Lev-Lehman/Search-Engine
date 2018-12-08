@@ -22,7 +22,11 @@ public abstract class ACompleteIndexFileController {
 
     public void CloseFile(){
         try {
+            dictionaryWriter.flush();
             dictionaryWriter.close();
+
+            postingWriter.flush();
+            postingWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

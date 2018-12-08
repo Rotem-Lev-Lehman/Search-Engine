@@ -3,17 +3,20 @@ package Model;
 public abstract class ADictionaryEntrance {
     private String term;
     private int docFreq;
+    private int totalTermFreq;
     private int postingPtr;
 
     /**
      * @param term
      * @param docFreq
+     * @param totalTermFreq
      * @param postingPtr
      * Constructor for a ADictionaryEntrance
      */
-    public ADictionaryEntrance(String term, int docFreq, int postingPtr){
+    public ADictionaryEntrance(String term, int docFreq, int totalTermFreq, int postingPtr){
         this.term = term;
         this.docFreq = docFreq;
+        this.totalTermFreq = totalTermFreq;
         this.postingPtr = postingPtr;
     }
 
@@ -72,5 +75,17 @@ public abstract class ADictionaryEntrance {
      */
     public void addToDocFreq(int df){
         docFreq+=df;
+    }
+
+    public int getTotalTermFreq() {
+        return totalTermFreq;
+    }
+
+    public void setTotalTermFreq(int totalTermFreq) {
+        this.totalTermFreq = totalTermFreq;
+    }
+
+    public void addToTotalTermFreq(int tf){
+        this.totalTermFreq += tf;
     }
 }

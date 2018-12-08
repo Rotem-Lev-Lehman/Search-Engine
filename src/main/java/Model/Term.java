@@ -14,6 +14,7 @@ public class Term {
     private int numOfTokensParsed;
     private boolean endedWithHyphen;
     private TypeOfTerm type;
+    private int position;
 
     /** Constructor
      * @param value - The value of the term
@@ -23,6 +24,15 @@ public class Term {
         this.numOfTokensParsed = 1;
         this.endedWithHyphen = false;
         this.type = type;
+        this.position = 0;
+    }
+
+    public Term(String value, int position, TypeOfTerm type) {
+        this.value = value;
+        this.numOfTokensParsed = 1;
+        this.endedWithHyphen = false;
+        this.type = type;
+        this.position = position;
     }
 
     public Term(String value, TypeOfTerm type, int numOfTokensParsed){
@@ -30,6 +40,7 @@ public class Term {
         this.numOfTokensParsed = numOfTokensParsed;
         this.endedWithHyphen = false;
         this.type = type;
+        this.position = 0;
     }
 
     public Term(String value, TypeOfTerm type, int numOfTokensParsed, boolean endedWithHyphen){
@@ -37,6 +48,7 @@ public class Term {
         this.numOfTokensParsed = numOfTokensParsed;
         this.endedWithHyphen = endedWithHyphen;
         this.type = type;
+        this.position = 0;
     }
 
     /** Gets the value of the term
@@ -75,6 +87,14 @@ public class Term {
 
     public void setType(TypeOfTerm type) {
         this.type = type;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     @Override

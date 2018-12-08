@@ -27,7 +27,8 @@ public class DocumentFactory implements IDocumentFactory {
         String Text = FindTextBetweenTags(doc, "TEXT");
 
         //<F P=104> </F>
-        String city = FindTextBetweenTags(doc, "<F P=104>", "</F>");
+        String city = FindCityBetweenTags(doc, "<F P=104>", "</F>");
+
 
         //Create the new Document
         Document document = new Document(DocNo, null, TI, Text, filename, city);
@@ -55,15 +56,20 @@ public class DocumentFactory implements IDocumentFactory {
      * @param doc
      * @param tagBegin
      * @param tagEnd
-     * @return String between tagBegin and tagEnd
+     * @return City between tagBegin and tagEnd
      */
-    private String FindTextBetweenTags(String doc,String tagBegin, String tagEnd) {
+    private String FindCityBetweenTags(String doc,String tagBegin, String tagEnd) {
         try {
-            return doc.split(tagBegin)[1].split(tagEnd)[0];
+            String allCity = doc.split(tagBegin)[1].split(tagEnd)[0];
+            String[] split = allCity.split(" ");
+            for(int i = 0; i < split.length; i++) {
+                if (split[i].length() > 0)
+                    return split[i];
+            }
         }
         catch (Exception e){ //change to jsoup
             //System.out.println("HERE");
         }
-        return "";
+        return null;
     }
 }

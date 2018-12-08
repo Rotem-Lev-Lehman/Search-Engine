@@ -20,6 +20,6 @@ public class CityMerger extends AMerger {
     @Override
     protected ADictionaryEntrance CreateNewDictionaryEntrance(ADictionaryEntrance dictionaryEntrance) {
         CityDictionaryEntrance entrance = (CityDictionaryEntrance)dictionaryEntrance;
-        return new CityDictionaryEntrance(entrance.getTerm(),entrance.getCurrency(),entrance.getPopulationSize(),0,0);
+        return new CityDictionaryEntrance(entrance.getTerm(), entrance.getCountryName(),entrance.getCurrency(),entrance.getPopulationSize(),0,0,0);
     }
 }

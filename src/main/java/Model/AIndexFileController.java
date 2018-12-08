@@ -1,9 +1,9 @@
 package Model;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileReader;
 import java.util.Scanner;
 
 public abstract class AIndexFileController {
@@ -22,8 +22,8 @@ public abstract class AIndexFileController {
         postingFile = new File(postingFilename);
         done = false;
         try {
-            dictionaryScanner = new Scanner(dictionaryFile);
-            postingScanner = new Scanner(postingFile);
+            dictionaryScanner = new Scanner(new BufferedReader(new FileReader(dictionaryFile)));
+            postingScanner = new Scanner(new BufferedReader(new FileReader(postingFile)));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -39,6 +39,8 @@ public abstract class AIndexFileController {
                 postingRow = postingScanner.nextLine();
             if (dictionaryRow == null || postingRow == null) { // supposed to be together...
                 done = true;
+                postingScanner.close();
+                dictionaryScanner.close();
                 return;
             }
             parseDictionaryRow(dictionaryRow);

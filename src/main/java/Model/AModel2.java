@@ -13,25 +13,11 @@ public abstract class AModel2 {
      * The ReadFile class that can return a list of all the Documents in the path given
      */
     protected IReadFile readFile;
-    /**
-     * The Documents of the model
-     */
-    //protected List<Document> documents;
 
     protected volatile Queue<Document> documents;
     protected volatile boolean finishedRetrievingFiles;
     protected volatile Object lock = new Object();
     protected HashSet<String> stopWords;
-    protected volatile Queue<MyTuple> smallLetterIndexQueue;
-    protected volatile Queue<MyTuple> bigLetterIndexQueue;
-    protected volatile Queue<MyTuple> cityIndexQueue;
-    protected volatile boolean finishedParsing;
-    protected volatile Object smallLetterIndexLock = new Object();
-    protected volatile Object bigLetterIndexLock = new Object();
-    protected volatile Object cityIndexLock = new Object();
-    protected volatile boolean finishedSmallLetterIndexing;
-    protected volatile boolean finishedBigLetterIndexing;
-    protected volatile boolean finishedCityIndexing;
     protected AIndex smallLetterIndexer;
     protected AIndex bigLetterIndexer;
     protected AIndex cityIndexer;
@@ -49,14 +35,7 @@ public abstract class AModel2 {
 
         StopWatch stopWatch = new StopWatch();
         finishedRetrievingFiles = false;
-        finishedParsing = false;
-        finishedSmallLetterIndexing = false;
-        finishedBigLetterIndexing = false;
-        finishedCityIndexing = false;
         documents = new ArrayDeque<Document>();
-        smallLetterIndexQueue = new ArrayDeque<>();
-        bigLetterIndexQueue = new ArrayDeque<MyTuple>();
-        cityIndexQueue = new ArrayDeque<MyTuple>();
 
         stopWatch.start();
 
@@ -120,8 +99,6 @@ public abstract class AModel2 {
 
     protected abstract void MergeAllIndices();
 
-    protected abstract void startIndexing();
-
     protected abstract void startReadingFiles(String path);
 
     protected abstract void startParsing();
@@ -131,12 +108,4 @@ public abstract class AModel2 {
     public void SetStopWords(File file){
         CreateStopWords(file);
     }
-
-    /** Gets the Document at the given index
-     * @param index - The index of the wanted Document
-     * @return The Document at the given index
-     */
-    //public Document GetDocumentAt(int index){
-    // return documents.get(index);
-    // }
 }
