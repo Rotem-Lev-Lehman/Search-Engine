@@ -5,8 +5,6 @@ import java.util.ArrayList;
 public class Posting {
     private ArrayList<PostingRow> PostingList;
     private volatile Object lock;
-
-
     /**
      * Constructor for the posting!
      */

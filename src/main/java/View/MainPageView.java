@@ -1,10 +1,7 @@
 package View;
 
 import javafx.event.ActionEvent;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -28,6 +25,12 @@ public class MainPageView extends AView {
     public TextField SRCPath;
     public Button srcPathOfStopWordsAndCorpus;
     public Button destinationPath;
+    public CheckBox stemming;
+
+    public Button resetBTN;
+    public Button showBTN;
+    public Button saveBTN;
+
 
     /**
      * Start the DirectoryChooser which enables picking the wanted Directory
@@ -38,6 +41,8 @@ public class MainPageView extends AView {
         if(pathType=="SRC") {
             Stage currentStage = (Stage) srcPathOfStopWordsAndCorpus.getScene().getWindow();
             File selectedDirectory = chooser.showDialog(currentStage);
+            if(selectedDirectory == null)
+                return;
             SRCPath.setText(selectedDirectory.getAbsolutePath());
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
@@ -47,6 +52,8 @@ public class MainPageView extends AView {
         else {
             Stage currentStage = (Stage) destinationPath.getScene().getWindow();
             File selectedDirectory = chooser.showDialog(currentStage);
+            if(selectedDirectory == null)
+                return;
             DSTPath.setText(selectedDirectory.getAbsolutePath());
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
@@ -90,6 +97,31 @@ public class MainPageView extends AView {
 //        }
         setChanged();
         notifyObservers("start");
+    }
 
+    public void resetProg(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("reset");
+    }
+
+    public void show(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("show");
+    }
+
+    public void save(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("save");
+    }
+
+    public void stem(ActionEvent actionEvent) {
+        if (stemming.isSelected()==true) {
+            setChanged();
+            notifyObservers("stem");
+        }
+        else{
+            setChanged();
+            notifyObservers("not stem");
+        }
     }
 }

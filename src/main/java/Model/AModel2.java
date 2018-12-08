@@ -26,7 +26,7 @@ public abstract class AModel2 {
     protected Semaphore tasksLimit;
     protected String destPathForTotalIndices;
     protected String destPathForTempIndices;
-
+    protected boolean stem;
     /** Creates all of the Documents in the given path
      * @param path - The path where all of the Documents are in
      */
@@ -105,5 +105,8 @@ public abstract class AModel2 {
 
     public void SetStopWords(File file){
         CreateStopWords(file);
+    }
+    public void setStem (){
+        stem=true;
     }
 }

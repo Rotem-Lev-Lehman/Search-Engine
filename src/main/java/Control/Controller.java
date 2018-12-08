@@ -1,5 +1,6 @@
 package Control;
 
+import Model.AModel2;
 import View.MainPageView;
 
 import java.io.File;
@@ -12,16 +13,35 @@ import java.util.Observable;
 public class Controller extends AController {
     private String root;
     private String dest;
+    private boolean stem;
+
     @Override
     public void update(Observable o, Object arg) {
         if (o instanceof MainPageView) {
             if (arg instanceof String) {
                 if (arg.equals("Given Source Files"))
                     openDirectoryDialog((MainPageView) o, "SRC");
-                else if(arg.equals("Destination Files"))
-                    openDirectoryDialog((MainPageView) o , "DST");
-                else if (arg.equals("start"))
+                else if(arg.equals("Destination Files")) {
+                    openDirectoryDialog((MainPageView) o, "DST");
+                }
+                else if (arg.equals("start")) {
                     letsStart((MainPageView) o);
+                }
+                else if (arg.equals("reset")){
+                    letsReset((MainPageView) o);
+                }
+                else if(arg.equals("show")){
+                    letsShow((MainPageView) o);
+                }
+                else if(arg.equals("save")){
+                    letsSave((MainPageView) o);
+                }
+                else if(arg.equals("stem")){
+                    stem=true;
+                }
+                else if(arg.equals("not stem")){
+                    stem=false;
+                }
             }
             else if(arg instanceof File){
                 if(((File)arg).isDirectory()){
@@ -29,8 +49,28 @@ public class Controller extends AController {
             }
         }
     }
+    private void letsSave(MainPageView o) {
+        //Save dict
+    }
 
-    //TO DO
+    private void letsShow(MainPageView o) {
+        //Show dict
+    }
+
+    private void letsReset(MainPageView o) {
+        //RESET
+    }
+
+    private void letsStart(MainPageView mainPageView){
+        mainPageView.NotifyDone();
+        model.SetDestinationPath(dest);
+        if(stem==true){
+            model.setStem();
+        }
+        model.GetAllDocuments(root);
+    }
+
+
     /** Open the files in the root Directory given
      * @param mainPageView - The View in with to say when the process has finished
      * @param file - The root Directory where all the file are in
@@ -39,8 +79,6 @@ public class Controller extends AController {
 
         mainPageView.NotifySrcLoaded();
         File[] matchingFiles = file.listFiles();
-        //System.out.println(matchingFiles[0]);
-        //System.out.println(matchingFiles[1]);
         if(matchingFiles.length==2) {
             if (matchingFiles[0].isFile()) {
                 model.SetStopWords(matchingFiles[0]);
@@ -61,14 +99,7 @@ public class Controller extends AController {
 
     }
 
-    private void letsStart(MainPageView mainPageView){
 
-        mainPageView.NotifyDone();
-        model.SetDestinationPath(dest);
-        System.out.println(root);
-        model.GetAllDocuments(root);
-
-    }
 
     /** Open a directory dialog to choose the directory with the files to open
      * @param mainPageView - The View in with to open the directory dialog in
