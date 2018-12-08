@@ -13,7 +13,7 @@ import java.util.Observable;
 public class Controller extends AController {
     private String root;
     private String dest;
-    private boolean stem;
+    private boolean stem = false;
 
     @Override
     public void update(Observable o, Object arg) {
@@ -65,8 +65,10 @@ public class Controller extends AController {
         mainPageView.NotifyDone();
         model.SetDestinationPath(dest);
         if(stem==true){
-            model.setStem();
+            model.setStem(true);
         }
+        else
+            model.setStem(false);
         model.GetAllDocuments(root);
     }
 
