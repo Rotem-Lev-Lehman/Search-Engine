@@ -1,6 +1,7 @@
 package Model;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 public abstract class AIndex {
     private MyDictionary dictionary;
@@ -22,10 +23,10 @@ public abstract class AIndex {
         }
     }
 
-    public void addDocumentToIndex(List<Term> terms, String DocNo, String Filename, CityInfo info, int length) {
+    public void addDocumentToIndex(List<Term> terms, String DocNo, String Filename, CityInfo info, int length, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object tfLock, MyInteger tfDocument, MyInteger uniqueTermsNum) {
         List<Integer> positions;
         List<TupleEntranceRowAndTerm> entranceRows = new LinkedList<TupleEntranceRowAndTerm>();
-        //int maxTf = 0;
+        int maxTf = 0;
         for (int i = 0; i < terms.size(); i++) {
             Term current = terms.get(i);
             if (current == null)
@@ -39,18 +40,43 @@ public abstract class AIndex {
                     terms.set(j, null);
                 }
             }
-            //if (maxTf < positions.size())
-            //    maxTf = positions.size();
+            if (maxTf < positions.size())
+                maxTf = positions.size();
 
             Collections.sort(positions); //make sure that the positions are sorted
 
             EntranceRow entranceRow = new EntranceRow(DocNo, Filename, positions.size(), positions);
             entranceRows.add(new TupleEntranceRowAndTerm(entranceRow, terms.get(i)));
         }
+
+        //check what is the max tf in the whole document:
+        synchronized (tfLock){
+            if(tfDocument.getValue() < maxTf)
+                tfDocument.setValue(maxTf);
+
+            //update uniqueTermsNum:
+            uniqueTermsNum.setValue(uniqueTermsNum.getValue() + entranceRows.size()); //update this for the documents usage
+        }
+
+        //tell the main thread that I have finished calculating:
+        maxTfUpdateSemaphore.release();
+
+        //wait for all of the threads to calculate it too:
+        try {
+            maxTfCalculatorSemaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //update the maxTf to be the calculated one:
+        synchronized (tfLock){
+            maxTf = tfDocument.getValue();
+        }
+
         synchronized (lock) {
             for (TupleEntranceRowAndTerm tuple : entranceRows) {
-                //tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
-                tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) length); // normalized by length of doc
+                tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
+                //tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) length); // normalized by length of doc
                 ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(tuple.getTerm());
                 if (dictionaryEntrance == null) {
                     // create a new one

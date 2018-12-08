@@ -24,6 +24,7 @@ public class Parse implements IParse {
     private SnowballStemmer stemmer;
     private String[] removes;
     private int currentPositionOfTerm;
+    private boolean toStem;
 
     public Parse() {
         stemmer = new porterStemmer();
@@ -82,7 +83,8 @@ public class Parse implements IParse {
      * @return parse all the tokens by the rules.
      */
     @Override
-    public List<Term> Parse(Document document, HashSet<String> stopWords) {
+    public List<Term> Parse(Document document, HashSet<String> stopWords, boolean toStem) {
+        this.toStem = toStem;
         String text = clearRemoves(document.getTEXT());
         tokens = text.split(" ");
         terms = new ArrayList<Term>();
@@ -705,16 +707,22 @@ public class Parse implements IParse {
 
     private void saveRegularTerm(String token) {
         TypeOfTerm type = TypeOfTerm.SmallLetters;
-        stemmer.setCurrent(token.toLowerCase());
         String stemmed;
-        if (stemmer.stem())
-            stemmed = stemmer.getCurrent();
+        if (toStem) {
+            stemmer.setCurrent(token.toLowerCase());
+            if (stemmer.stem())
+                stemmed = stemmer.getCurrent();
+            else
+                stemmed = token;
+        }
         else
             stemmed = token;
-        if(Character.isUpperCase(token.charAt(0))) {
+        
+        if (Character.isUpperCase(token.charAt(0))) {
             stemmed = stemmed.toUpperCase();
             type = TypeOfTerm.BigLetters;
         }
+
         saveCompleteTerm(stemmed, type);
     }
 

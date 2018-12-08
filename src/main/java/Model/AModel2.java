@@ -106,7 +106,7 @@ public abstract class AModel2 {
     public void SetStopWords(File file){
         CreateStopWords(file);
     }
-    public void setStem (){
-        stem=true;
+    public void setStem(boolean toStem){
+        stem = toStem;
     }
 }

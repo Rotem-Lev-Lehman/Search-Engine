@@ -153,16 +153,28 @@ public class Model2 extends AModel2 {
         private CityInfo info;
         private int length;
 
-        public IndexerThread(MyTuple tuple, int length, CityInfo info, AIndex index){
+        Semaphore maxTfCalculatorSemaphore;
+        Semaphore maxTfUpdateSemaphore;
+        Object lock;
+        MyInteger tf;
+        MyInteger uniqueTermsNum;
+
+        public IndexerThread(MyTuple tuple, int length, CityInfo info, AIndex index, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object lock, MyInteger tf, MyInteger uniqueTermsNum){
             this.tuple = tuple;
             this.index = index;
             this.info = info;
             this.length = length;
+
+            this.maxTfCalculatorSemaphore = maxTfCalculatorSemaphore;
+            this.maxTfUpdateSemaphore = maxTfUpdateSemaphore;
+            this.lock = lock;
+            this.tf = tf;
+            this.uniqueTermsNum = uniqueTermsNum;
         }
 
         @Override
         public void run() {
-            index.addDocumentToIndex(tuple.getTerms(), tuple.getDocNo(), tuple.getFilename(), info, length);
+            index.addDocumentToIndex(tuple.getTerms(), tuple.getDocNo(), tuple.getFilename(), info, length, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
         }
     }
 
@@ -349,7 +361,7 @@ public class Model2 extends AModel2 {
         @Override
         public void run() {
             Parse parse = new Parse();
-            List<Term> terms = parse.Parse(document, stopWords);
+            List<Term> terms = parse.Parse(document, stopWords, stem);
             SplitAndIndex(document, terms);
 
             //tell the threadPool's controller that it can send in another thread
@@ -390,37 +402,63 @@ public class Model2 extends AModel2 {
             }
         }
 
+        Semaphore maxTfCalculatorSemaphore = new Semaphore(0, true);
+        Semaphore maxTfUpdateSemaphore = new Semaphore(0, true);
+        int permits = 0;
+        Object lock = new Object();
+        MyInteger tf = new MyInteger(0);
+        MyInteger uniqueTermsNum = new MyInteger(0);
+
         //Index
         Thread[] threads = new Thread[3];
         MyTuple smallTuple = new MyTuple(document,smallLetterTerms);
         MyTuple bigTuple = new MyTuple(document,bigLetterTerms);
         MyTuple cityTuple = new MyTuple(document,cityTerms);
         if(smallLetterTerms.size() > 0){
-            IndexerThread small = new IndexerThread(smallTuple, terms.size(), document.getCityInfo(), smallLetterIndexer);
+            IndexerThread small = new IndexerThread(smallTuple, terms.size(), document.getCityInfo(), smallLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
             Thread thread = new Thread(small);
             thread.start();
             threads[0] = thread;
+
+            permits++;
         }
         else
             threads[0] = null;
 
         if(bigLetterTerms.size() > 0){
-            IndexerThread big = new IndexerThread(bigTuple, terms.size(), document.getCityInfo(), bigLetterIndexer);
+            IndexerThread big = new IndexerThread(bigTuple, terms.size(), document.getCityInfo(), bigLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
             Thread thread = new Thread(big);
             thread.start();
             threads[1] = thread;
+
+            permits++;
         }
         else
             threads[1] = null;
 
         if(cityTerms.size() > 0){
-            IndexerThread city = new IndexerThread(cityTuple, terms.size(), document.getCityInfo(), cityIndexer);
+            IndexerThread city = new IndexerThread(cityTuple, terms.size(), document.getCityInfo(), cityIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
             Thread thread = new Thread(city);
             thread.start();
             threads[2] = thread;
+
+            permits++;
         }
         else
             threads[2] = null;
+
+        //wait for all of the threads to calculate their max tf:
+        try {
+            maxTfUpdateSemaphore.acquire(permits);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //tell all of the threads that they may continue, because that all of them has gotten to this point:
+        maxTfCalculatorSemaphore.release(permits);
+
+        //System.out.println("max tf = " + tf.getValue());
+        //System.out.println("unique = " + uniqueTermsNum.getValue());
 
         for (int i = 0; i < threads.length; i++){
             if(threads[i] == null)

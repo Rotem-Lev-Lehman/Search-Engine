@@ -11,5 +11,5 @@ public interface IParse {
      * @param document - The document to parse
      * @return A list of all the terms
      */
-    List<Term> Parse(Document document, HashSet<String> stopWords);
+    List<Term> Parse(Document document, HashSet<String> stopWords, boolean toStem);
 }
