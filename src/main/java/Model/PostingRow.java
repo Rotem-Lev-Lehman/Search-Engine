@@ -40,7 +40,7 @@ public class PostingRow implements Serializable {
     }
 
     public static PostingRow ParsePostingRow(String postingRow){
-        //filename(string);docno(string);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)&...
+        //docId(int);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)&...
         //first split by -
         String[] differentEntrances = postingRow.split("&");
         ArrayList<EntranceRow> entranceRows = new ArrayList<EntranceRow>();
@@ -52,9 +52,10 @@ public class PostingRow implements Serializable {
             for (String num : secondStuff) {
                 places.add(Integer.parseInt(num));
             }
-            double tf = Double.parseDouble(firstStuff[2])/1000000.0;
-            EntranceRow entrance = new EntranceRow(firstStuff[0],firstStuff[1],1,places);
+            double tf = Double.parseDouble(firstStuff[1])/1000.0;
+            EntranceRow entrance = new EntranceRow(1,places);
             entrance.setNormalizedTermFreq(tf);
+            entrance.setDocId(Integer.parseInt(firstStuff[0]));
             entranceRows.add(entrance);
         }
         return new PostingRow(entranceRows);
@@ -62,12 +63,12 @@ public class PostingRow implements Serializable {
 
     @Override
     public String toString(){
-        //filename(string);docno(string);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)&...
+        //docId(int);tf(int - *1000 from what it is...);[int;int;int;...;int](indexList)&...
         StringBuilder builder = new StringBuilder();
-        Collections.sort(entranceRows);
+        //Collections.sort(entranceRows);
         for (int j = 0; j < entranceRows.size(); j++) {
             EntranceRow entrance = entranceRows.get(j);
-            builder.append(entrance.getFileName()).append(";").append(entrance.getDocNo()).append(";").append(Math.round(entrance.getNormalizedTermFreq() * 1000000)).append(";");
+            builder.append(entrance.getDocId()).append(";").append(Math.round(entrance.getNormalizedTermFreq() * 1000)).append(";");
             builder.append('[');
             List<Integer> pos = entrance.getPositions();
             for(int i = 0; i < pos.size(); i++){

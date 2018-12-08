@@ -21,6 +21,7 @@ public abstract class AModel {
     protected AIndex smallLetterIndexer;
     protected AIndex bigLetterIndexer;
     protected AIndex cityIndexer;
+    protected DocumentsDictionary documentsDictionary;
     protected Semaphore empty;
     protected Semaphore full;
     protected Semaphore tasksLimit;
@@ -35,6 +36,7 @@ public abstract class AModel {
         finishedRetrievingFiles = false;
         documents = new ArrayDeque<Document>();
 
+        System.out.println("Starting to parse");
         stopWatch.start();
 
         startReadingFiles(path);
@@ -68,30 +70,37 @@ public abstract class AModel {
         System.out.println("Total time = " + (int)totalTime + " minutes and " + (int)(totalSeconds*60) + " seconds");
     }
 
-    public void SetDestinationPath(String destPath){
+    public void SetDestinationPath(String destPath) {
         destPathForTempIndices = destPath + '\\' + "tempIndices";
         SaveIndexToDisk.setFolder(destPathForTempIndices);
         destPathForTotalIndices = destPath + '\\' + "totalIndices";
+
         String smallFolder = destPathForTotalIndices + "\\smallLetters";
         String bigFolder = destPathForTotalIndices + "\\bigLetters";
         String cityFolder = destPathForTotalIndices + "\\cities";
+        String documentsFolder = destPathForTotalIndices + "\\documents";
 
         File directory = new File(destPathForTotalIndices);
+
         File small = new File(smallFolder);
         File big = new File(bigFolder);
         File city = new File(cityFolder);
+        File documents = new File(documentsFolder);
 
-        if (!directory.exists()){
+        if (!directory.exists()) {
             directory.mkdirs();
         }
-        if(!small.exists()){
+        if (!small.exists()) {
             small.mkdir();
         }
-        if(!big.exists()){
+        if (!big.exists()) {
             big.mkdir();
         }
-        if(!city.exists()){
+        if (!city.exists()) {
             city.mkdir();
+        }
+        if (!documents.exists()) {
+            documents.mkdir();
         }
     }
 

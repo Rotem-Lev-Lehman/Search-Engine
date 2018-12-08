@@ -5,54 +5,28 @@ import java.util.List;
 
 //EntranceRow
 public class EntranceRow implements Comparable, Serializable {
-    private String docNo;
-    private String fileName;
+    private int docId;
     private int termFreqInDoc;
     private double normalizedTermFreq;
     private List<Integer> positions;
 
 
     /**
-     * @param docNo
-     * @param fileName
      * @param termFreqInDoc
      * @param positions
      * constructor for the EntranceRow
      */
-    public EntranceRow(String docNo , String fileName , int termFreqInDoc, List<Integer> positions){
-        this.docNo = docNo;
-        this.fileName = fileName;
+    public EntranceRow(int termFreqInDoc, List<Integer> positions){
         this.termFreqInDoc = termFreqInDoc;
         this.positions = positions;
     }
 
-
-    /**
-     * @return Getter for the DocNo
-     */
-    public String getDocNo() {
-        return docNo;
+    public int getDocId() {
+        return docId;
     }
 
-    /**
-     * Setter for the DocNo
-     */
-    public void setDocNo(String docNo) {
-        this.docNo = docNo;
-    }
-
-    /**
-     * @return Getter for the fileName
-     */
-    public String getFileName() {
-        return fileName;
-    }
-
-    /**
-     * Setter for the fileName
-     */
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setDocId(int docId) {
+        this.docId = docId;
     }
 
     /**
@@ -112,7 +86,7 @@ public class EntranceRow implements Comparable, Serializable {
             if (this.normalizedTermFreq > other.normalizedTermFreq)
                 return 1;
             //equal
-            return this.docNo.compareTo(other.docNo);
+            return this.docId - other.docId;
         }
         return 0;
     }

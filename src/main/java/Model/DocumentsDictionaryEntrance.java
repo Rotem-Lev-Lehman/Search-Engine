@@ -15,14 +15,6 @@ public class DocumentsDictionaryEntrance {
         this.city = city;
     }
 
-    public DocumentsDictionaryEntrance(String docNo, String fileName, int uniqueWordsAmount, int maxTf) {
-        DocNo = docNo;
-        FileName = fileName;
-        this.uniqueWordsAmount = uniqueWordsAmount;
-        this.maxTf = maxTf;
-        this.city = null;
-    }
-
     public String getDocNo() {
         return DocNo;
     }
@@ -61,5 +53,18 @@ public class DocumentsDictionaryEntrance {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    @Override
+    public String toString() {
+        //String docNo, String fileName, int uniqueWordsAmount, int maxTf, String city
+        StringBuilder builder = new StringBuilder();
+        builder.append(DocNo).append(";").append(FileName).append(";").append(uniqueWordsAmount).append(";").append(maxTf).append(";");
+        if(city != null)
+            builder.append(city);
+        else
+            builder.append("#");
+        builder.append("\n");
+        return builder.toString();
     }
 }

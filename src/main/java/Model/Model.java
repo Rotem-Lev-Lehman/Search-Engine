@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 public class Model extends AModel {
 
     private int amountOfDocsAllowedInQueue = 300;
-    private int amountOfParsedDocsInRam = 10;
+    private int amountOfParsedDocsInRam = 1000;
     private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
     private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
     private int maxAmountOfIndicesInTheMerger = 20;
@@ -148,7 +148,7 @@ public class Model extends AModel {
 
     private class IndexerThread implements Runnable {
 
-        private MyTuple tuple;
+        private List<Term> terms;
         private AIndex index;
         private CityInfo info;
         private int length;
@@ -158,9 +158,10 @@ public class Model extends AModel {
         Object lock;
         MyInteger tf;
         MyInteger uniqueTermsNum;
+        MyInteger docId;
 
-        public IndexerThread(MyTuple tuple, int length, CityInfo info, AIndex index, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object lock, MyInteger tf, MyInteger uniqueTermsNum){
-            this.tuple = tuple;
+        public IndexerThread(List<Term> terms, int length, CityInfo info, AIndex index, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object lock, MyInteger tf, MyInteger uniqueTermsNum, MyInteger docId){
+            this.terms = terms;
             this.index = index;
             this.info = info;
             this.length = length;
@@ -170,11 +171,12 @@ public class Model extends AModel {
             this.lock = lock;
             this.tf = tf;
             this.uniqueTermsNum = uniqueTermsNum;
+            this.docId = docId;
         }
 
         @Override
         public void run() {
-            index.addDocumentToIndex(tuple.getTerms(), tuple.getDocNo(), tuple.getFilename(), info, length, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            index.addDocumentToIndex(terms, info, length, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docId);
         }
     }
 
@@ -237,6 +239,8 @@ public class Model extends AModel {
         bigLetterIndexer.setType(TypeOfIndex.BigLetters);
         cityIndexer = new CityIndex();
         cityIndexer.setType(TypeOfIndex.City);
+
+        documentsDictionary = new DocumentsDictionary(destPathForTotalIndices + "\\documents");
 
         ExecutorService threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
         ExecutorService savers = Executors.newCachedThreadPool();
@@ -336,6 +340,8 @@ public class Model extends AModel {
         ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
         savers.submit(cityIndex);
 
+        documentsDictionary.close();
+
         savers.shutdown();
         try {
             boolean done = false;
@@ -408,14 +414,12 @@ public class Model extends AModel {
         Object lock = new Object();
         MyInteger tf = new MyInteger(0);
         MyInteger uniqueTermsNum = new MyInteger(0);
+        MyInteger docIndex = new MyInteger(0);
 
         //Index
         Thread[] threads = new Thread[3];
-        MyTuple smallTuple = new MyTuple(document,smallLetterTerms);
-        MyTuple bigTuple = new MyTuple(document,bigLetterTerms);
-        MyTuple cityTuple = new MyTuple(document,cityTerms);
         if(smallLetterTerms.size() > 0){
-            IndexerThread small = new IndexerThread(smallTuple, terms.size(), document.getCityInfo(), smallLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            IndexerThread small = new IndexerThread(smallLetterTerms, terms.size(), document.getCityInfo(), smallLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(small);
             thread.start();
             threads[0] = thread;
@@ -426,7 +430,7 @@ public class Model extends AModel {
             threads[0] = null;
 
         if(bigLetterTerms.size() > 0){
-            IndexerThread big = new IndexerThread(bigTuple, terms.size(), document.getCityInfo(), bigLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            IndexerThread big = new IndexerThread(bigLetterTerms, terms.size(), document.getCityInfo(), bigLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(big);
             thread.start();
             threads[1] = thread;
@@ -437,7 +441,7 @@ public class Model extends AModel {
             threads[1] = null;
 
         if(cityTerms.size() > 0){
-            IndexerThread city = new IndexerThread(cityTuple, terms.size(), document.getCityInfo(), cityIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            IndexerThread city = new IndexerThread(cityTerms, terms.size(), document.getCityInfo(), cityIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(city);
             thread.start();
             threads[2] = thread;
@@ -454,11 +458,10 @@ public class Model extends AModel {
             e.printStackTrace();
         }
 
+        docIndex.setValue(documentsDictionary.insert(new DocumentsDictionaryEntrance(document.getDOCNO(),document.getFilename(),uniqueTermsNum.getValue(),tf.getValue(),document.getCity())));
+
         //tell all of the threads that they may continue, because that all of them has gotten to this point:
         maxTfCalculatorSemaphore.release(permits);
-
-        //System.out.println("max tf = " + tf.getValue());
-        //System.out.println("unique = " + uniqueTermsNum.getValue());
 
         for (int i = 0; i < threads.length; i++){
             if(threads[i] == null)

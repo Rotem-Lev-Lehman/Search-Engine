@@ -23,7 +23,7 @@ public abstract class AIndex {
         }
     }
 
-    public void addDocumentToIndex(List<Term> terms, String DocNo, String Filename, CityInfo info, int length, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object tfLock, MyInteger tfDocument, MyInteger uniqueTermsNum) {
+    public void addDocumentToIndex(List<Term> terms, CityInfo info, int length, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object tfLock, MyInteger tfDocument, MyInteger uniqueTermsNum, MyInteger docId) {
         List<Integer> positions;
         List<TupleEntranceRowAndTerm> entranceRows = new LinkedList<TupleEntranceRowAndTerm>();
         int maxTf = 0;
@@ -45,7 +45,7 @@ public abstract class AIndex {
 
             Collections.sort(positions); //make sure that the positions are sorted
 
-            EntranceRow entranceRow = new EntranceRow(DocNo, Filename, positions.size(), positions);
+            EntranceRow entranceRow = new EntranceRow(positions.size(), positions);
             entranceRows.add(new TupleEntranceRowAndTerm(entranceRow, terms.get(i)));
         }
 
@@ -55,7 +55,7 @@ public abstract class AIndex {
                 tfDocument.setValue(maxTf);
 
             //update uniqueTermsNum:
-            uniqueTermsNum.setValue(uniqueTermsNum.getValue() + entranceRows.size()); //update this for the documents usage
+            uniqueTermsNum.add(entranceRows.size()); //update this for the documents usage
         }
 
         //tell the main thread that I have finished calculating:
@@ -69,12 +69,12 @@ public abstract class AIndex {
         }
 
         //update the maxTf to be the calculated one:
-        synchronized (tfLock){
-            maxTf = tfDocument.getValue();
-        }
+        maxTf = tfDocument.getValue();
+        int documentID = docId.getValue();
 
         synchronized (lock) {
             for (TupleEntranceRowAndTerm tuple : entranceRows) {
+                tuple.getEntranceRow().setDocId(documentID);
                 tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
                 //tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) length); // normalized by length of doc
                 ADictionaryEntrance dictionaryEntrance = dictionary.getEntrance(tuple.getTerm());
