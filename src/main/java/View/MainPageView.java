@@ -116,14 +116,12 @@ public class MainPageView extends AView {
         }
         //languages;
         languagesChoiceBox.getItems().addAll(languages);
-        //languageText.setText("Choose Language-Available");
-        //setChanged();
-        //notifyObservers("start");
+        setChanged();
+        notifyObservers("start");
     }
 
     public void resetProg(ActionEvent actionEvent) {
         languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
-        //languageText.setText("Choose Language-Unavailable");
         setChanged();
         notifyObservers("reset");
     }
