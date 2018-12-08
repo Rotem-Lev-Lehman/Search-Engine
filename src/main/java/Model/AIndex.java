@@ -7,13 +7,13 @@ public abstract class AIndex {
     private MyDictionary dictionary;
     private Posting posting;
     private volatile Object lock;
-    private TypeOfIndex type;
+    private TypeOfTerm type;
 
     public AIndex() {
         dictionary = new MyDictionary();
         posting = new Posting();
         lock = new Object();
-        type = TypeOfIndex.SmallLetters;
+        type = TypeOfTerm.SmallLetters;
     }
 
     public void ClearIndex(){
@@ -129,11 +129,11 @@ public abstract class AIndex {
         this.posting = posting;
     }
 
-    public TypeOfIndex getType() {
+    public TypeOfTerm getType() {
         return type;
     }
 
-    public void setType(TypeOfIndex type) {
+    public void setType(TypeOfTerm type) {
         this.type = type;
     }
 

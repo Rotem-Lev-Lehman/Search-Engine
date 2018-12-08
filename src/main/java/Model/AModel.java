@@ -20,6 +20,11 @@ public abstract class AModel {
     protected HashSet<String> stopWords;
     protected AIndex smallLetterIndexer;
     protected AIndex bigLetterIndexer;
+    protected AIndex numbersIndexer;
+    protected AIndex rangeOrPhraseIndexer;
+    protected AIndex percentageIndexer;
+    protected AIndex priceIndexer;
+    protected AIndex dateIndexer;
     protected AIndex cityIndexer;
     protected DocumentsDictionary documentsDictionary;
     protected Semaphore empty;
@@ -78,6 +83,12 @@ public abstract class AModel {
         String smallFolder = destPathForTotalIndices + "\\smallLetters";
         String bigFolder = destPathForTotalIndices + "\\bigLetters";
         String cityFolder = destPathForTotalIndices + "\\cities";
+        String numFolder = destPathForTotalIndices + "\\numbers";
+        String rangeOrPhraseFolder = destPathForTotalIndices + "\\rangeOrPhrase";
+        String percentageFolder = destPathForTotalIndices + "\\percentage";
+        String priceFolder = destPathForTotalIndices + "\\price";
+        String dateFolder = destPathForTotalIndices + "\\date";
+
         String documentsFolder = destPathForTotalIndices + "\\documents";
 
         File directory = new File(destPathForTotalIndices);
@@ -85,11 +96,18 @@ public abstract class AModel {
         File small = new File(smallFolder);
         File big = new File(bigFolder);
         File city = new File(cityFolder);
+        File num = new File(numFolder);
+        File rangeOrPhrase = new File(rangeOrPhraseFolder);
+        File percentage = new File(percentageFolder);
+        File price = new File(priceFolder);
+        File date = new File(dateFolder);
+
         File documents = new File(documentsFolder);
 
         if (!directory.exists()) {
             directory.mkdirs();
         }
+
         if (!small.exists()) {
             small.mkdir();
         }
@@ -99,6 +117,22 @@ public abstract class AModel {
         if (!city.exists()) {
             city.mkdir();
         }
+        if(!num.exists()){
+            num.mkdir();
+        }
+        if(!rangeOrPhrase.exists()){
+            rangeOrPhrase.mkdir();
+        }
+        if(!percentage.exists()){
+            percentage.mkdir();
+        }
+        if(!price.exists()){
+            price.mkdir();
+        }
+        if(!date.exists()){
+            date.mkdir();
+        }
+
         if (!documents.exists()) {
             documents.mkdir();
         }

@@ -27,10 +27,20 @@ public class Model extends AModel {
         String smallPath = destPathForTempIndices + "\\smallLetters";
         String bigPath = destPathForTempIndices + "\\bigLetters";
         String cityPath = destPathForTempIndices + "\\cities";
+        String numPath = destPathForTempIndices + "\\numbers";
+        String rangeOrPhrasePath = destPathForTempIndices + "\\rangeOrPhrase";
+        String percentagePath = destPathForTempIndices + "\\percentage";
+        String pricePath = destPathForTempIndices + "\\price";
+        String datePath = destPathForTempIndices + "\\date";
 
         String totalSmallPath = destPathForTotalIndices + "\\smallLetters";
         String totalBigPath = destPathForTotalIndices + "\\bigLetters";
         String totalCityPath = destPathForTotalIndices + "\\cities";
+        String totalNumPath = destPathForTotalIndices + "\\numbers";
+        String totalRangeOrPhrasePath = destPathForTotalIndices + "\\rangeOrPhrase";
+        String totalPercentagePath = destPathForTotalIndices + "\\percentage";
+        String totalPricePath = destPathForTotalIndices + "\\price";
+        String totalDatePath = destPathForTotalIndices + "\\date";
 
         String tempSmallPath = destPathForTempIndices + "\\onlySmallLetters";
         String tempBigPath = destPathForTempIndices + "\\onlyBigLetters";
@@ -38,11 +48,33 @@ public class Model extends AModel {
         File smallDir = new File(smallPath);
         File bigDir = new File(bigPath);
         File cityDir = new File(cityPath);
+        File numDir = new File(numPath);
+        File rangeOrPhraseDir = new File(rangeOrPhrasePath);
+        File percentageDir = new File(percentagePath);
+        File priceDir = new File(pricePath);
+        File dateDir = new File(datePath);
 
+        MergerThread smallMerger = new MergerThread(smallDir,tempSmallPath,TypeOfTerm.SmallLetters);
+        smallMerger.run();
+        MergerThread bigMerger = new MergerThread(bigDir,tempBigPath,TypeOfTerm.BigLetters);
+        bigMerger.run();
+        MergerThread cityMerger = new MergerThread(cityDir,totalCityPath,TypeOfTerm.City);
+        cityMerger.run();
+        MergerThread numMerger = new MergerThread(numDir,totalNumPath,TypeOfTerm.Number);
+        numMerger.run();
+        MergerThread rangeOrPhraseMerger = new MergerThread(rangeOrPhraseDir,totalRangeOrPhrasePath,TypeOfTerm.RangeOrPhrase);
+        rangeOrPhraseMerger.run();
+        MergerThread percentageMerger = new MergerThread(percentageDir,totalPercentagePath,TypeOfTerm.Percentage);
+        percentageMerger.run();
+        MergerThread priceMerger = new MergerThread(priceDir,totalPricePath,TypeOfTerm.Price);
+        priceMerger.run();
+        MergerThread dateMerger = new MergerThread(dateDir,totalDatePath,TypeOfTerm.Date);
+        dateMerger.run();
+        /*
         Thread[] threads = new Thread[3];
-        threads[0] = new Thread(new MergerThread(smallDir, tempSmallPath, TypeOfIndex.SmallLetters));
-        threads[1] = new Thread(new MergerThread(bigDir, tempBigPath, TypeOfIndex.BigLetters));
-        threads[2] = new Thread(new MergerThread(cityDir, totalCityPath, TypeOfIndex.City));
+        threads[0] = new Thread(new MergerThread(smallDir, tempSmallPath, TypeOfTerm.SmallLetters));
+        threads[1] = new Thread(new MergerThread(bigDir, tempBigPath, TypeOfTerm.BigLetters));
+        threads[2] = new Thread(new MergerThread(cityDir, totalCityPath, TypeOfTerm.City));
 
         // start merging
         for (int i = 0; i < threads.length; i++)
@@ -56,6 +88,7 @@ public class Model extends AModel {
                 e.printStackTrace();
             }
         }
+        */
 
         //merge small letters and big letters (after each of them where merged individually
         BigSmallMerger merger;
@@ -69,10 +102,10 @@ public class Model extends AModel {
     private class MergerThread implements Runnable{
         private File directory;
         private String totalPath;
-        private TypeOfIndex type;
+        private TypeOfTerm type;
         private String tempPath;
 
-        public MergerThread(File directory, String totalPath, TypeOfIndex type){
+        public MergerThread(File directory, String totalPath, TypeOfTerm type){
             this.directory = directory;
             this.totalPath = totalPath;
             this.type = type;
@@ -115,7 +148,7 @@ public class Model extends AModel {
                     }
 
                     AMerger merger;
-                    if (type == TypeOfIndex.City)
+                    if (type == TypeOfTerm.City)
                         merger = new CityMerger(current, currentDir);
                     else
                         merger = new TermsMerger(current, currentDir);
@@ -234,11 +267,21 @@ public class Model extends AModel {
     @Override
     protected void startParsing() {
         smallLetterIndexer = new TermsIndex();
-        smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+        smallLetterIndexer.setType(TypeOfTerm.SmallLetters);
         bigLetterIndexer = new TermsIndex();
-        bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+        bigLetterIndexer.setType(TypeOfTerm.BigLetters);
         cityIndexer = new CityIndex();
-        cityIndexer.setType(TypeOfIndex.City);
+        cityIndexer.setType(TypeOfTerm.City);
+        numbersIndexer = new TermsIndex();
+        numbersIndexer.setType(TypeOfTerm.Number);
+        rangeOrPhraseIndexer = new TermsIndex();
+        rangeOrPhraseIndexer.setType(TypeOfTerm.RangeOrPhrase);
+        percentageIndexer = new TermsIndex();
+        percentageIndexer.setType(TypeOfTerm.Percentage);
+        priceIndexer = new TermsIndex();
+        priceIndexer.setType(TypeOfTerm.Price);
+        dateIndexer = new TermsIndex();
+        dateIndexer.setType(TypeOfTerm.Date);
 
         documentsDictionary = new DocumentsDictionary(destPathForTotalIndices + "\\documents");
 
@@ -304,14 +347,39 @@ public class Model extends AModel {
                 ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
                 savers.submit(cityIndex);
 
+                ThreadIndexSaver num = new ThreadIndexSaver(numbersIndexer);
+                savers.submit(num);
+
+                ThreadIndexSaver rangePhrase = new ThreadIndexSaver(rangeOrPhraseIndexer);
+                savers.submit(rangePhrase);
+
+                ThreadIndexSaver percentage = new ThreadIndexSaver(percentageIndexer);
+                savers.submit(percentage);
+
+                ThreadIndexSaver price = new ThreadIndexSaver(priceIndexer);
+                savers.submit(price);
+
+                ThreadIndexSaver date = new ThreadIndexSaver(dateIndexer);
+                savers.submit(date);
+
                 //System.out.println("Creating new indices");
                 //create the new indices
                 smallLetterIndexer = new TermsIndex();
-                smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+                smallLetterIndexer.setType(TypeOfTerm.SmallLetters);
                 bigLetterIndexer = new TermsIndex();
-                bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+                bigLetterIndexer.setType(TypeOfTerm.BigLetters);
                 cityIndexer = new CityIndex();
-                cityIndexer.setType(TypeOfIndex.City);
+                cityIndexer.setType(TypeOfTerm.City);
+                numbersIndexer = new TermsIndex();
+                numbersIndexer.setType(TypeOfTerm.Number);
+                rangeOrPhraseIndexer = new TermsIndex();
+                rangeOrPhraseIndexer.setType(TypeOfTerm.RangeOrPhrase);
+                percentageIndexer = new TermsIndex();
+                percentageIndexer.setType(TypeOfTerm.Percentage);
+                priceIndexer = new TermsIndex();
+                priceIndexer.setType(TypeOfTerm.Price);
+                dateIndexer = new TermsIndex();
+                dateIndexer.setType(TypeOfTerm.Date);
 
                 //System.out.println("Restarting the pool");
                 //restart
@@ -334,11 +402,27 @@ public class Model extends AModel {
         ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
         savers.submit(smallLetterIndex);
 
+        //System.out.println("Saving the total big letters index");
         ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
         savers.submit(bigLetterIndex);
 
         ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
         savers.submit(cityIndex);
+
+        ThreadIndexSaver num = new ThreadIndexSaver(numbersIndexer);
+        savers.submit(num);
+
+        ThreadIndexSaver rangePhrase = new ThreadIndexSaver(rangeOrPhraseIndexer);
+        savers.submit(rangePhrase);
+
+        ThreadIndexSaver percentage = new ThreadIndexSaver(percentageIndexer);
+        savers.submit(percentage);
+
+        ThreadIndexSaver price = new ThreadIndexSaver(priceIndexer);
+        savers.submit(price);
+
+        ThreadIndexSaver date = new ThreadIndexSaver(dateIndexer);
+        savers.submit(date);
 
         documentsDictionary.close();
 
@@ -354,6 +438,11 @@ public class Model extends AModel {
         smallLetterIndexer = null;
         bigLetterIndexer = null;
         cityIndexer = null;
+        numbersIndexer = null;
+        rangeOrPhraseIndexer = null;
+        percentageIndexer = null;
+        priceIndexer = null;
+        dateIndexer = null;
     }
 
     private class ParserThread implements Runnable {
@@ -380,13 +469,28 @@ public class Model extends AModel {
         List<Term> smallLetterTerms = new ArrayList<Term>();
         List<Term> bigLetterTerms = new ArrayList<Term>();
         List<Term> cityTerms = new ArrayList<Term>();
+        List<Term> numbersTerms = new ArrayList<Term>();
+        List<Term> rangeOrPhraseTerms = new ArrayList<Term>();
+        List<Term> percentageTerms = new ArrayList<Term>();
+        List<Term> priceTerms = new ArrayList<Term>();
+        List<Term> dateTerms = new ArrayList<Term>();
         for (Term term : terms) {
             if(term.getType() == TypeOfTerm.BigLetters)
                 bigLetterTerms.add(term);
             else if(term.getType() == TypeOfTerm.City)
                 cityTerms.add(term);
-            else //if it's a small letter term or a special term
+            else if(term.getType() == TypeOfTerm.SmallLetters)
                 smallLetterTerms.add(term);
+            else if(term.getType() == TypeOfTerm.Number)
+                numbersTerms.add(term);
+            else if(term.getType() == TypeOfTerm.RangeOrPhrase)
+                rangeOrPhraseTerms.add(term);
+            else if(term.getType() == TypeOfTerm.Percentage)
+                percentageTerms.add(term);
+            else if(term.getType() == TypeOfTerm.Price)
+                priceTerms.add(term);
+            else // term.getType() == TypeOfTerm.Date
+                dateTerms.add(term);
         }
 
         //Ensure that there will not be a small letter and a big letter term of the same String in the same document.
@@ -417,7 +521,7 @@ public class Model extends AModel {
         MyInteger docIndex = new MyInteger(0);
 
         //Index
-        Thread[] threads = new Thread[3];
+        Thread[] threads = new Thread[8];
         if(smallLetterTerms.size() > 0){
             IndexerThread small = new IndexerThread(smallLetterTerms, terms.size(), document.getCityInfo(), smallLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(small);
@@ -450,6 +554,61 @@ public class Model extends AModel {
         }
         else
             threads[2] = null;
+
+        if(numbersTerms.size() > 0){
+            IndexerThread number = new IndexerThread(numbersTerms, terms.size(), document.getCityInfo(), numbersIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+            Thread thread = new Thread(number);
+            thread.start();
+            threads[3] = thread;
+
+            permits++;
+        }
+        else
+            threads[3] = null;
+
+        if(rangeOrPhraseTerms.size() > 0){
+            IndexerThread rangeOrPhrase = new IndexerThread(rangeOrPhraseTerms, terms.size(), document.getCityInfo(), rangeOrPhraseIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+            Thread thread = new Thread(rangeOrPhrase);
+            thread.start();
+            threads[4] = thread;
+
+            permits++;
+        }
+        else
+            threads[4] = null;
+
+        if(percentageTerms.size() > 0){
+            IndexerThread percentage = new IndexerThread(percentageTerms, terms.size(), document.getCityInfo(), percentageIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+            Thread thread = new Thread(percentage);
+            thread.start();
+            threads[5] = thread;
+
+            permits++;
+        }
+        else
+            threads[5] = null;
+
+        if(priceTerms.size() > 0){
+            IndexerThread price = new IndexerThread(priceTerms, terms.size(), document.getCityInfo(), priceIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+            Thread thread = new Thread(price);
+            thread.start();
+            threads[6] = thread;
+
+            permits++;
+        }
+        else
+            threads[6] = null;
+
+        if(dateTerms.size() > 0){
+            IndexerThread date = new IndexerThread(dateTerms, terms.size(), document.getCityInfo(), dateIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+            Thread thread = new Thread(date);
+            thread.start();
+            threads[7] = thread;
+
+            permits++;
+        }
+        else
+            threads[7] = null;
 
         //wait for all of the threads to calculate their max tf:
         try {
