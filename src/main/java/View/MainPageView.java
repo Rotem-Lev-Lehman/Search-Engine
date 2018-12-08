@@ -7,7 +7,12 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
+import javax.annotation.Resource;
+import javax.annotation.Resources;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 /**
  * The main page view controller
@@ -19,7 +24,7 @@ public class MainPageView extends AView {
     public Label labelDone;
     public Button startButton;
     public ChoiceBox<String> languagesChoiceBox;
-
+    public TextField languageText;
 
     public TextField DSTPath;
     public TextField SRCPath;
@@ -30,6 +35,11 @@ public class MainPageView extends AView {
     public Button resetBTN;
     public Button showBTN;
     public Button saveBTN;
+
+    public List<String> languages;
+
+
+
 
 
     /**
@@ -89,17 +99,32 @@ public class MainPageView extends AView {
 
 
     public void letsStart(ActionEvent actionEvent) {
+        languages = new ArrayList<>();
+        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("language.txt").getFile());
+            Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)));
+            //System.out.println("hey");
+            while (scanner.hasNext()) {
+                String thisLine = scanner.nextLine();
+                languages.add(thisLine.substring(1,thisLine.length()-1));
+            }
 
-//        public void initialize() {
-//            languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
-//            languagesChoiceBox.getItems().addAll("English" , "Hebrew", "Spanish", "Japanese");
-//            languagesChoiceBox.getSelectionModel().select("English");
-//        }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        //languages;
+        languagesChoiceBox.getItems().addAll(languages);
+        languageText.setText("Choose Language-Available");
         setChanged();
         notifyObservers("start");
     }
 
     public void resetProg(ActionEvent actionEvent) {
+        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
+        languageText.setText("Choose Language-Unavailable");
         setChanged();
         notifyObservers("reset");
     }

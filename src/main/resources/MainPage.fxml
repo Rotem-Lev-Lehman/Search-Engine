@@ -35,7 +35,7 @@
                  </font>
              </TextArea>
              <ChoiceBox fx:id="languagesChoiceBox" layoutX="232.0" layoutY="321.0" prefWidth="200.0" />
-            <Label layoutX="30.0" layoutY="321.0" prefWidth="185.0" text="Choose Language">
+            <Label fx:id="languageText" layoutX="30.0" layoutY="321.0" prefWidth="185.0" text="Choose Language-Unavailable">
                <font>
                   <Font name="Comic Sans MS" size="21.0" />
                </font>
