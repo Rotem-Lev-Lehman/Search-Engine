@@ -16,7 +16,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        AModel2 model = new Model2();
+        AModel model = new Model();
         AController controller = new Controller();
         controller.setModel(model);
 

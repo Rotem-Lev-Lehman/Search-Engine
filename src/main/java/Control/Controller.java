@@ -1,10 +1,8 @@
 package Control;
 
-import Model.AModel2;
 import View.MainPageView;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.Observable;
 
 /**

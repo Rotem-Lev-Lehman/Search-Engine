@@ -1,166 +1,180 @@
 package Model;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-/**
- * A model class that represents the entire model of our Search Engine
- */
 public class Model extends AModel {
-    /**
-     * An empty constructor for the model
-     */
-    public Model() {
+
+    private int amountOfDocsAllowedInQueue = 300;
+    private int amountOfParsedDocsInRam = 10;
+    private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
+    private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
+    private int maxAmountOfIndicesInTheMerger = 20;
+
+    public Model(){
         readFile = new ReadFile(new DocumentFactory());
-        parser = new Parse();
-    }
-
-    private void initializeAllSmallLetterIndexers() {
-        for (int i = 0; i < smallLetterIndexers.length; i++) {
-            smallLetterIndexers[i] = new TermsIndex();
-        }
-    }
-
-    private void initializeAllBigLetterIndexers() {
-        for (int i = 0; i < bigLetterIndexers.length; i++) {
-            bigLetterIndexers[i] = new TermsIndex();
-        }
-    }
-
-    private void initializeAllCityIndexers() {
-        for (int i = 0; i < cityIndexers.length; i++) {
-            cityIndexers[i] = new TermsIndex();
-        }
+        empty = new Semaphore(0, true);
+        full = new Semaphore(amountOfDocsAllowedInQueue, true); // change permits to be good with Memory space and timing
+        tasksLimit = new Semaphore(amountOfTasksAllowedInThreadPool, true);
     }
 
     @Override
-    protected void startIndexing() {
-        smallLetterIndexers = new AIndex[Runtime.getRuntime().availableProcessors()];
-        bigLetterIndexers = new AIndex[Runtime.getRuntime().availableProcessors()];
-        //cityIndexers = new AIndex[Runtime.getRuntime().availableProcessors()];
+    protected void MergeAllIndices() {
+        String smallPath = destPathForTempIndices + "\\smallLetters";
+        String bigPath = destPathForTempIndices + "\\bigLetters";
+        String cityPath = destPathForTempIndices + "\\cities";
 
-        initializeAllSmallLetterIndexers();
-        initializeAllBigLetterIndexers();
-        //initializeAllCityIndexers();
+        String totalSmallPath = destPathForTotalIndices + "\\smallLetters";
+        String totalBigPath = destPathForTotalIndices + "\\bigLetters";
+        String totalCityPath = destPathForTotalIndices + "\\cities";
 
-        AIndexMerger smallLetterIndexMerger = new TermsIndexMerger();
-        AIndexMerger bigLetterIndexMerger = new TermsIndexMerger();
-        //AIndexMerger cityIndexMerger = new CityIndexMerger();
+        String tempSmallPath = destPathForTempIndices + "\\onlySmallLetters";
+        String tempBigPath = destPathForTempIndices + "\\onlyBigLetters";
 
-        IndexStarter smallLetterIndexStarter = new IndexStarter(smallLetterIndexers, smallLetterIndexQueue, smallLetterIndexLock, smallLetterIndexMerger, TypeOfIndex.SmallLetters);
-        Thread smallLetterThread = new Thread(smallLetterIndexStarter);
-        smallLetterThread.start();
+        File smallDir = new File(smallPath);
+        File bigDir = new File(bigPath);
+        File cityDir = new File(cityPath);
 
-        IndexStarter bigLetterIndexStarter = new IndexStarter(bigLetterIndexers, bigLetterIndexQueue, bigLetterIndexLock, bigLetterIndexMerger, TypeOfIndex.BigLetters);
-        Thread bigLetterThread = new Thread(bigLetterIndexStarter);
-        bigLetterThread.start();
+        Thread[] threads = new Thread[3];
+        threads[0] = new Thread(new MergerThread(smallDir, tempSmallPath, TypeOfIndex.SmallLetters));
+        threads[1] = new Thread(new MergerThread(bigDir, tempBigPath, TypeOfIndex.BigLetters));
+        threads[2] = new Thread(new MergerThread(cityDir, totalCityPath, TypeOfIndex.City));
 
-        //IndexStarter cityIndexStarter = new IndexStarter(cityIndexers, cityIndexQueue, cityIndexLock, cityIndexMerger, TypeOfIndex.City);
-        //Thread cityThread = new Thread(cityIndexStarter);
-        //cityThread.start();
+        // start merging
+        for (int i = 0; i < threads.length; i++)
+            threads[i].start();
+
+        //wait for all mergers to finish
+        for (int i = 0; i < threads.length; i++) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //merge small letters and big letters (after each of them where merged individually
+        BigSmallMerger merger;
+        merger = new BigSmallMerger(tempBigPath, tempSmallPath, totalBigPath, totalSmallPath);
+        merger.MergeAll();
+
+        //were done with the temp indices, so delete them...
+        deleteDirectory(new File(destPathForTempIndices));
     }
 
-    private class IndexStarter implements Runnable{
-        private AIndex[] indices;
-        private Queue<MyTuple> indicesQueue;
-        private Object indicesLock;
-        private AIndexMerger merger;
-        private TypeOfIndex typeOfIndex;
+    private class MergerThread implements Runnable{
+        private File directory;
+        private String totalPath;
+        private TypeOfIndex type;
+        private String tempPath;
 
-        public IndexStarter(AIndex[] indices, Queue<MyTuple> indicesQueue, Object indicesLock, AIndexMerger merger, TypeOfIndex typeOfIndex){
-            this.indices = indices;
-            this.indicesLock = indicesLock;
-            this.indicesQueue = indicesQueue;
-            this.merger = merger;
-            this.typeOfIndex = typeOfIndex;
+        public MergerThread(File directory, String totalPath, TypeOfIndex type){
+            this.directory = directory;
+            this.totalPath = totalPath;
+            this.type = type;
+            this.tempPath = totalPath + "\\temp";
         }
 
         @Override
         public void run() {
-            int amountOfDocs = 0;
-            int currentIndex = 0;
-            ExecutorService threadPool = Executors.newFixedThreadPool(indices.length);
-            while (!finishedParsing || indicesQueue.size() != 0) {
-                MyTuple tuple;
-                synchronized (indicesLock) {
-                    tuple = indicesQueue.poll();
-                }
-                if (tuple == null) {
-                    try {
-                        Thread.sleep(10); // minimize busy waiting
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    continue;
-                }
-                IndexerThread indexerThread = new IndexerThread(tuple, indices[currentIndex]);
-                currentIndex = (currentIndex + 1) % indices.length; // the next index to use
-                amountOfDocs++;
-                threadPool.submit(indexerThread);
-                //System.out.println("current file = " + tuple.getDocument().getFilename());
+            File[] files = directory.listFiles();
 
-                if (amountOfDocs > 3500) { //approximately 10 MB
-                    //start counting again
-                    amountOfDocs = 0;
-                    //wait for all threads to finish indexing
-                    threadPool.shutdown();
-                    try {
-                        boolean done = false;
-                        while (!done)
-                            done = threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            int layers = (int)Math.ceil(Math.log(files.length) / Math.log(maxAmountOfIndicesInTheMerger)); // log of length in base of max
+
+            for(int layerIndex = 0; layerIndex < layers; layerIndex++) {
+                String layerDirectoryName;
+                if (layerIndex == layers - 1)
+                    layerDirectoryName = this.totalPath;
+                else
+                    layerDirectoryName = tempPath + '\\' + layerIndex;
+
+                int next = 0;
+                int length = Math.min(maxAmountOfIndicesInTheMerger, files.length - next);
+
+                int indexOfCurrent = 0;
+
+                while (length > 0) {
+                    String[] current = new String[length];
+                    for (int i = 0; i < length; i++) {
+                        current[i] = files[next + i].getAbsolutePath();
                     }
 
-                    //merge the indices
-                    AIndex merged = merger.Merge(indices);
-                    merged.setType(typeOfIndex);
+                    String currentDir = layerDirectoryName;
+                    if (layerIndex < layers - 1)
+                        currentDir += "\\" + indexOfCurrent;
 
-                    //save the merged index
-                    ThreadIndexSaver threadIndexSaver = new ThreadIndexSaver(merged);
-                    Thread indexSaver = new Thread(threadIndexSaver);
-                    indexSaver.start();
 
-                    //create the new indices
-                    for (AIndex index : indices) {
-                        index.ClearIndex();
+                    File curr = new File(currentDir);
+
+                    if (!curr.exists()){
+                        curr.mkdirs();
                     }
 
-                    //start again
-                    threadPool = Executors.newFixedThreadPool(indices.length);
+                    AMerger merger;
+                    if (type == TypeOfIndex.City)
+                        merger = new CityMerger(current, currentDir);
+                    else
+                        merger = new TermsMerger(current, currentDir);
+                    merger.MergeAll();
+
+                    next += length;
+                    length = Math.min(maxAmountOfIndicesInTheMerger, files.length - next);
+
+                    indexOfCurrent++;
                 }
-            }
-            threadPool.shutdown();
-            try {
-                boolean done = false;
-                while (!done)
-                    done = threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+
+                File nextDir = new File(layerDirectoryName);
+                files = nextDir.listFiles();
             }
 
-            //merge the indices
-            AIndex merged = merger.Merge(indices);
-            merged.setType(typeOfIndex);
+            //delete the temp files after we have merged successfully
+            deleteDirectory(new File(tempPath));
+        }
+    }
 
-            if(!merged.isEmpty()) {
-                //save the merged index
-                ThreadIndexSaver threadIndexSaver = new ThreadIndexSaver(merged);
-                Thread indexSaver = new Thread(threadIndexSaver);
-                indexSaver.start();
+    private boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
             }
+        }
+        return directoryToBeDeleted.delete();
+    }
 
-            if(typeOfIndex == TypeOfIndex.SmallLetters)
-                finishedSmallLetterIndexing = true;
-            else if(typeOfIndex == TypeOfIndex.BigLetters)
-                finishedBigLetterIndexing = true;
-            else
-                finishedCityIndexing = true;
+    private class IndexerThread implements Runnable {
+
+        private MyTuple tuple;
+        private AIndex index;
+        private CityInfo info;
+        private int length;
+
+        Semaphore maxTfCalculatorSemaphore;
+        Semaphore maxTfUpdateSemaphore;
+        Object lock;
+        MyInteger tf;
+        MyInteger uniqueTermsNum;
+
+        public IndexerThread(MyTuple tuple, int length, CityInfo info, AIndex index, Semaphore maxTfCalculatorSemaphore, Semaphore maxTfUpdateSemaphore, Object lock, MyInteger tf, MyInteger uniqueTermsNum){
+            this.tuple = tuple;
+            this.index = index;
+            this.info = info;
+            this.length = length;
+
+            this.maxTfCalculatorSemaphore = maxTfCalculatorSemaphore;
+            this.maxTfUpdateSemaphore = maxTfUpdateSemaphore;
+            this.lock = lock;
+            this.tf = tf;
+            this.uniqueTermsNum = uniqueTermsNum;
+        }
+
+        @Override
+        public void run() {
+            index.addDocumentToIndex(tuple.getTerms(), tuple.getDocNo(), tuple.getFilename(), info, length, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
         }
     }
 
@@ -185,22 +199,6 @@ public class Model extends AModel {
         reader.start();
     }
 
-    private class IndexerThread implements Runnable {
-
-        private MyTuple tuple;
-        private AIndex index;
-
-        public IndexerThread(MyTuple tuple, AIndex index){
-            this.tuple = tuple;
-            this.index = index;
-        }
-
-        @Override
-        public void run() {
-            //index.addDocumentToIndex(tuple.getTerms(), tuple.getDocument());
-        }
-    }
-
     private class ReaderThread implements Runnable {
 
         private String path;
@@ -211,89 +209,113 @@ public class Model extends AModel {
 
         @Override
         public void run() {
-            //readFile.ReadFile(path, documents, lock);
+            readFile.ReadFile(path, documents, lock, empty, full);
             finishedRetrievingFiles = true;
+
+            empty.release(); // signal to the parser that we have finished reading
         }
     }
 
     @Override
     protected void CreateStopWords(File file) {
-        String content = ReadAGivenFile(file);
-        stopWords = new HashSet<String>();
-        String[] words = content.split("\n");
-        List<String> w = Arrays.asList(words);
-
-        stopWords.addAll(w);
-    }
-
-    /**
-     * Reads a given file
-     *
-     * @param file - The file that needs to be read
-     * @return The file's content
-     */
-    private String ReadAGivenFile(File file) {
-        String content = null;
-        FileReader reader = null;
         try {
-            reader = new FileReader(file);
-            char[] chars = new char[(int) file.length()];
-            reader.read(chars);
-            content = new String(chars);
-            reader.close();
-        } catch (IOException e) {
+            stopWords = new HashSet<String>();
+            Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)));
+            while (scanner.hasNext())
+                stopWords.add(scanner.nextLine());
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-        return content;
+
     }
 
     @Override
     protected void startParsing() {
-        ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        int totalDocsWaiting=0;
-        while (!finishedRetrievingFiles || documents.size() != 0) {
-            synchronized (smallLetterIndexLock)
-            {
-                totalDocsWaiting += smallLetterIndexQueue.size();
-            }
-            synchronized (bigLetterIndexLock){
-                totalDocsWaiting += bigLetterIndexQueue.size();
-            }
-            synchronized (cityIndexLock){
-                totalDocsWaiting += cityIndexQueue.size();
-            }
-            if(totalDocsWaiting > 100) {
-                try {
-                    Thread.sleep(10); // give the Indexers a chance to control the situation
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        smallLetterIndexer = new TermsIndex();
+        smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+        bigLetterIndexer = new TermsIndex();
+        bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+        cityIndexer = new CityIndex();
+        cityIndexer.setType(TypeOfIndex.City);
 
+        ExecutorService threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+        ExecutorService savers = Executors.newCachedThreadPool();
+        int amountOfDocs = 0;
+        while (!finishedRetrievingFiles || documents.size() != 0) {
             Document currentDoc;
+            try {
+                empty.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             synchronized (lock) {
                 currentDoc = documents.poll();
             }
-            if (currentDoc == null) {
-                try {
-                    Thread.sleep(10); // give a chance to the reader thread
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                continue;
+            full.release();
+
+            if(currentDoc == null)
+            {
+                //done signal...
+                break;
             }
+
+            //block until free
+            try {
+                tasksLimit.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             ParserThread parserThread = new ParserThread(currentDoc);
             threadPool.submit(parserThread);
 
-            //System.out.println("current file = " + currentDoc.getFilename());
+            amountOfDocs++;
+
+            if (amountOfDocs > amountOfParsedDocsInRam) {
+                //System.out.println("Starting to save");
+
+                //start counting again
+                amountOfDocs = 0;
+
+                //System.out.println("Waiting for indexing threads to finish");
+                //wait for the indexing to finish
+                threadPool.shutdown();
+                try {
+                    boolean done = false;
+                    while (!done)
+                        done = threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                //System.out.println("Saving the total small letters index");
+                //save the index
+                ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
+                savers.submit(smallLetterIndex);
+
+                //System.out.println("Saving the total big letters index");
+                ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
+                savers.submit(bigLetterIndex);
+
+                ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
+                savers.submit(cityIndex);
+
+                //System.out.println("Creating new indices");
+                //create the new indices
+                smallLetterIndexer = new TermsIndex();
+                smallLetterIndexer.setType(TypeOfIndex.SmallLetters);
+                bigLetterIndexer = new TermsIndex();
+                bigLetterIndexer.setType(TypeOfIndex.BigLetters);
+                cityIndexer = new CityIndex();
+                cityIndexer.setType(TypeOfIndex.City);
+
+                //System.out.println("Restarting the pool");
+                //restart
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+
         }
         threadPool.shutdown();
         try {
@@ -303,7 +325,29 @@ public class Model extends AModel {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        finishedParsing = true;
+
+        //save the index
+        ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
+        savers.submit(smallLetterIndex);
+
+        ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
+        savers.submit(bigLetterIndex);
+
+        ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
+        savers.submit(cityIndex);
+
+        savers.shutdown();
+        try {
+            boolean done = false;
+            while (!done)
+                done = savers.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        smallLetterIndexer = null;
+        bigLetterIndexer = null;
+        cityIndexer = null;
     }
 
     private class ParserThread implements Runnable {
@@ -317,8 +361,11 @@ public class Model extends AModel {
         @Override
         public void run() {
             Parse parse = new Parse();
-            List<Term> terms = parse.Parse(document, stopWords);
+            List<Term> terms = parse.Parse(document, stopWords, stem);
             SplitAndIndex(document, terms);
+
+            //tell the threadPool's controller that it can send in another thread
+            tasksLimit.release();
         }
     }
 
@@ -332,18 +379,97 @@ public class Model extends AModel {
                 bigLetterTerms.add(term);
             else if(term.getType() == TypeOfTerm.City)
                 cityTerms.add(term);
-            else //if its a small letter term or a special term
+            else //if it's a small letter term or a special term
                 smallLetterTerms.add(term);
         }
+
+        //Ensure that there will not be a small letter and a big letter term of the same String in the same document.
+        int bigSize = bigLetterTerms.size();
+        for(int i = 0; i < bigSize; i++){
+            Term big = bigLetterTerms.get(i);
+            boolean found = false;
+            for(Term term : smallLetterTerms){
+                if(term.getValue().equals(big.getValue().toLowerCase()))
+                    found = true;
+            }
+            if(found) {
+                big.setType(TypeOfTerm.SmallLetters);
+                big.setValue(big.getValue().toLowerCase());
+                smallLetterTerms.add(big);
+                bigLetterTerms.remove(i);
+                i--; //check the next big letter
+                bigSize = bigLetterTerms.size();
+            }
+        }
+
+        Semaphore maxTfCalculatorSemaphore = new Semaphore(0, true);
+        Semaphore maxTfUpdateSemaphore = new Semaphore(0, true);
+        int permits = 0;
+        Object lock = new Object();
+        MyInteger tf = new MyInteger(0);
+        MyInteger uniqueTermsNum = new MyInteger(0);
+
         //Index
-        synchronized (smallLetterIndexLock){
-            smallLetterIndexQueue.add(new MyTuple(document,smallLetterTerms));
+        Thread[] threads = new Thread[3];
+        MyTuple smallTuple = new MyTuple(document,smallLetterTerms);
+        MyTuple bigTuple = new MyTuple(document,bigLetterTerms);
+        MyTuple cityTuple = new MyTuple(document,cityTerms);
+        if(smallLetterTerms.size() > 0){
+            IndexerThread small = new IndexerThread(smallTuple, terms.size(), document.getCityInfo(), smallLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            Thread thread = new Thread(small);
+            thread.start();
+            threads[0] = thread;
+
+            permits++;
         }
-        synchronized (bigLetterIndexLock){
-            bigLetterIndexQueue.add(new MyTuple(document,bigLetterTerms));
+        else
+            threads[0] = null;
+
+        if(bigLetterTerms.size() > 0){
+            IndexerThread big = new IndexerThread(bigTuple, terms.size(), document.getCityInfo(), bigLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            Thread thread = new Thread(big);
+            thread.start();
+            threads[1] = thread;
+
+            permits++;
         }
-        synchronized (cityIndexLock){
-            //cityIndexQueue.add(new MyTuple(document,cityTerms));
+        else
+            threads[1] = null;
+
+        if(cityTerms.size() > 0){
+            IndexerThread city = new IndexerThread(cityTuple, terms.size(), document.getCityInfo(), cityIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum);
+            Thread thread = new Thread(city);
+            thread.start();
+            threads[2] = thread;
+
+            permits++;
+        }
+        else
+            threads[2] = null;
+
+        //wait for all of the threads to calculate their max tf:
+        try {
+            maxTfUpdateSemaphore.acquire(permits);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //tell all of the threads that they may continue, because that all of them has gotten to this point:
+        maxTfCalculatorSemaphore.release(permits);
+
+        //System.out.println("max tf = " + tf.getValue());
+        //System.out.println("unique = " + uniqueTermsNum.getValue());
+
+        for (int i = 0; i < threads.length; i++){
+            if(threads[i] == null)
+                continue;
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
+
+
 }
