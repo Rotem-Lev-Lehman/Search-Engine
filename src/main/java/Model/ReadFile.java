@@ -146,7 +146,7 @@ public class ReadFile implements IReadFile {
                 JSONArray currencyData = current.getJSONArray("currencies");
                 JSONObject first = currencyData.getJSONObject(0);
                 currencyCode = (String)first.get("code");
-                String population = (String)first.get("population");
+                String population = (String)current.get("population");
                 String[] term = new String[1];
                 term[0] = population;
                 Term num = parser.getNumber(term, 0);
