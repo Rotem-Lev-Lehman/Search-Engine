@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 
 import javax.annotation.Resource;
 import javax.annotation.Resources;
+import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ public class MainPageView extends AView {
 
     public Button resetBTN;
     public Button showBTN;
-    public Button saveBTN;
+    public Button loadBTN;
 
     public List<String> languages;
 
@@ -65,6 +66,7 @@ public class MainPageView extends AView {
             if(selectedDirectory == null)
                 return;
             DSTPath.setText(selectedDirectory.getAbsolutePath());
+            destinationPath.setTextFill(Paint.valueOf("#11ff00"));
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
                 notifyObservers(selectedDirectory);
@@ -99,28 +101,47 @@ public class MainPageView extends AView {
 
 
     public void letsStart(ActionEvent actionEvent) {
-        languages = new ArrayList<>();
-        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
-        try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("language.txt").getFile());
-            Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)));
-            //System.out.println("hey");
-            while (scanner.hasNext()) {
-                String thisLine = scanner.nextLine();
-                languages.add(thisLine.substring(1,thisLine.length()-1));
+        if ( !(DSTPath.getText().equals("") | SRCPath.getText().equals(""))) {
+            languages = new ArrayList<>();
+            languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
+            try {
+                ClassLoader classLoader = getClass().getClassLoader();
+                File file = new File(classLoader.getResource("language.txt").getFile());
+                Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)));
+                //System.out.println("hey");
+                while (scanner.hasNext()) {
+                    String thisLine = scanner.nextLine();
+                    languages.add(thisLine.substring(1, thisLine.length() - 1));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //languages;
+            languagesChoiceBox.getItems().addAll(languages);
+            setChanged();
+            notifyObservers("start");
+        }
+        else {
+            JOptionPane.showMessageDialog(null, "Re-enter SRC and DST path's");
+        }
+    }
+    public void deleteDirectory(File directoryToBDeleted){
+        File[] Files = directoryToBDeleted.listFiles();
+        if(Files != null) {
+            for(File file : Files){
+                deleteDirectory(file);
             }
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        //languages;
-        languagesChoiceBox.getItems().addAll(languages);
-        setChanged();
-        notifyObservers("start");
+        directoryToBDeleted.delete();
     }
 
     public void resetProg(ActionEvent actionEvent) {
+        File root = new File(DSTPath.getText());
+        deleteDirectory(root);
+        DSTPath.setText("");
+        SRCPath.setText("");
+        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#333333ff"));
+        destinationPath.setTextFill(Paint.valueOf("#333333ff"));
         languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
         setChanged();
         notifyObservers("reset");
@@ -131,9 +152,9 @@ public class MainPageView extends AView {
         notifyObservers("show");
     }
 
-    public void save(ActionEvent actionEvent) {
+    public void load(ActionEvent actionEvent) {
         setChanged();
-        notifyObservers("save");
+        notifyObservers("load");
     }
 
     public void stem(ActionEvent actionEvent) {
