@@ -17,8 +17,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Analizer analizer = new Analizer();
-        analizer.AnalizeAmountOfNumbers("C:\\Users\\User\\Desktop\\אחזור מידע\\totalIndex\\totalIndices\\totalIndices\\numbers");
+        //Analizer analizer = new Analizer();
+        //analizer.AnalizeAmountOfNumbers("C:\\Users\\User\\Desktop\\אחזור מידע\\totalIndex\\totalIndices\\totalIndices\\numbers");
         AModel model = new Model();
         AController controller = new Controller();
         controller.setModel(model);
