@@ -30,6 +30,22 @@ public class TermFreqTuple implements Comparable{
         return 0;
     }
 
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
+    }
+
+    public int getFreq() {
+        return freq;
+    }
+
+    public void setFreq(int freq) {
+        this.freq = freq;
+    }
+
     @Override
     public String toString() {
         return term + "," + freq + "\n";

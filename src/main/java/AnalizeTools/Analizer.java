@@ -6,10 +6,7 @@ import Model.TermsDictionaryEntrance;
 import Model.TypeOfTerm;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Analizer {
     List<TermFreqTuple> termFreqTuples;
@@ -32,7 +29,7 @@ public class Analizer {
         System.out.println("amount of different numbers = " + count);
     }
 
-    public void AnalizeForZipf(String path){
+    public Map<String, String> AnalizeForZipf(String path){
         File mainDir = new File(path);
         File[] files = mainDir.listFiles();
         for(int i = 0; i < files.length; i++){
@@ -57,8 +54,13 @@ public class Analizer {
                     readFileAndSaveTermFreqTuples(sons[j], type);
             }
         }
-        Collections.sort(termFreqTuples);
-        writeToFile();
+        //Collections.sort(termFreqTuples);
+        Map<String, String> map = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for(TermFreqTuple tuple : termFreqTuples){
+            map.put(tuple.getTerm(), String.valueOf(tuple.getFreq()));
+        }
+        //writeToFile();
+        return map;
     }
 
     private void writeToFile() {

@@ -1,8 +1,16 @@
 package Control;
 
+import AnalizeTools.Analizer;
+import View.DictionaryViewer;
 import View.MainPageView;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 import java.util.Observable;
 
 /**
@@ -12,6 +20,7 @@ public class Controller extends AController {
     private String root;
     private String dest;
     private boolean stem = false;
+    private Map<String,String> termFreqTuples;
 
     @Override
     public void update(Observable o, Object arg) {
@@ -49,11 +58,25 @@ public class Controller extends AController {
     }
     private void letsLoad(MainPageView o) {
         //Save dict
-
+        Analizer analizer = new Analizer();
+        termFreqTuples = analizer.AnalizeForZipf(dest);
     }
 
     private void letsShow(MainPageView o) {
         //Show dict
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        Parent root = null;
+        try {
+            root = fxmlLoader.load(getClass().getResource("/dictionaryViewer.fxml").openStream());
+            ((DictionaryViewer)fxmlLoader.getController()).setTermFreqTuples(termFreqTuples);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Stage dictionary = new Stage();
+        dictionary.setTitle("Dictionary viewer");
+        dictionary.setScene(new Scene(root, 773, 605));
+        dictionary.show();
     }
 
     private void letsReset(MainPageView o) {

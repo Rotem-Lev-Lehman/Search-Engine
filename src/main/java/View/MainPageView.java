@@ -1,6 +1,11 @@
 package View;
 
+import AnalizeTools.Analizer;
+import AnalizeTools.TermFreqTuple;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
 import javafx.stage.DirectoryChooser;
@@ -13,6 +18,7 @@ import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -38,9 +44,6 @@ public class MainPageView extends AView {
     public Button loadBTN;
 
     public List<String> languages;
-
-
-
 
 
     /**
@@ -150,6 +153,8 @@ public class MainPageView extends AView {
     public void show(ActionEvent actionEvent) {
         setChanged();
         notifyObservers("show");
+
+
     }
 
     public void load(ActionEvent actionEvent) {
