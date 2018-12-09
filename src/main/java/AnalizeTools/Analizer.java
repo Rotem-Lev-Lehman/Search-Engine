@@ -17,7 +17,22 @@ public class Analizer {
         termFreqTuples = new LinkedList<>();
     }
 
-    public void Analize(String path){
+    public void AnalizeAmountOfNumbers(String path){
+        int count = 0;
+        try {
+            Scanner scanner = new Scanner(new BufferedReader(new FileReader(path + "\\" + "dic.data")));
+            while (scanner.hasNext())
+            {
+                String line = scanner.nextLine();
+                count++;
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.out.println("amount of different numbers = " + count);
+    }
+
+    public void AnalizeForZipf(String path){
         File mainDir = new File(path);
         File[] files = mainDir.listFiles();
         for(int i = 0; i < files.length; i++){

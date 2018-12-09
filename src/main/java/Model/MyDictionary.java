@@ -1,6 +1,6 @@
 package Model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -12,8 +12,8 @@ public class MyDictionary {
      * Constructor for a dictionary , (use of TreeMap<String, ADictionaryEntrance)
      */
     public MyDictionary(){
-        //map = new HashMap<String, ADictionaryEntrance>();
-        map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
+        map = new LinkedHashMap<String, ADictionaryEntrance>();
+        //map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
     }
 
     /**
