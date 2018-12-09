@@ -1,5 +1,6 @@
 package View;
 
+import AnalizeTools.Analizer;
 import Control.AController;
 import Control.Controller;
 import Model.*;
@@ -16,6 +17,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        Analizer analizer = new Analizer();
+        analizer.Analize("C:\\Users\\User\\Desktop\\אחזור מידע\\totalIndex\\totalIndices\\totalIndices");
         AModel model = new Model();
         AController controller = new Controller();
         controller.setModel(model);
