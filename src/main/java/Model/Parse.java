@@ -716,7 +716,7 @@ public class Parse implements IParse {
                 stemmed = token;
         }
         else
-            stemmed = token;
+            stemmed = token.toLowerCase();
 
         if (Character.isUpperCase(token.charAt(0))) {
             stemmed = stemmed.toUpperCase();
@@ -745,7 +745,7 @@ public class Parse implements IParse {
      */
     private boolean isRegularTerm(String token) {
         for(char c : token.toCharArray()){
-            if(('0' <= c && c <= '9') || c == '.' || c == '/' || c == '%' || c == '-' || c == '$')
+            if(!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')))
                 return false;
         }
         return true;

@@ -3,8 +3,8 @@ package Model;
 import java.io.*;
 
 public class SaveIndexToDisk {
-    private static volatile int numOfSmallLettersIndex = 0;
-    private static volatile int numOfBigLettersIndex = 0;
+    private static volatile int[] numOfSmallLettersIndex = new int[26];
+    private static volatile int[] numOfBigLettersIndex = new int[26];
     private static volatile int numOfCityIndex = 0;
     private static volatile int numOfNumIndex = 0;
     private static volatile int numOfRangeOrPhraseIndex = 0;
@@ -12,8 +12,8 @@ public class SaveIndexToDisk {
     private static volatile int numOfPriceIndex = 0;
     private static volatile int numOfDateIndex = 0;
 
-    private static volatile Object smallLettersLock = new Object();
-    private static volatile Object bigLettersLock = new Object();
+    private static volatile Object[] smallLettersLock = new Object[26];
+    private static volatile Object[] bigLettersLock = new Object[26];
     private static volatile Object cityLock = new Object();
     private static volatile Object numLock = new Object();
     private static volatile Object rangeOrPhraseLock = new Object();
@@ -22,6 +22,15 @@ public class SaveIndexToDisk {
     private static volatile Object dateLock = new Object();
 
     private static String folder = null;
+
+    public static void initialize(){
+        for(int i =0; i < numOfSmallLettersIndex.length; i++){
+            numOfSmallLettersIndex[i] = 0;
+            numOfBigLettersIndex[i] = 0;
+            smallLettersLock[i] = new Object();
+            bigLettersLock[i] = new Object();
+        }
+    }
 
     public static void setFolder(String foldername){
         folder = foldername + '\\';
@@ -39,6 +48,15 @@ public class SaveIndexToDisk {
 
         File small = new File(smallFolder);
         File big = new File(bigFolder);
+
+        File[] smallLetters = new File[26];
+        File[] bigLetters = new File[26];
+        for(int i = 0; i < smallLetters.length; i++){
+            char currLetter = (char)('a' + i);
+            smallLetters[i] = new File(smallFolder + "\\" + currLetter);
+            bigLetters[i] = new File(bigFolder + "\\" + currLetter);
+        }
+
         File city = new File(cityFolder);
         File num = new File(numFolder);
         File rangeOrPhrase = new File(rangeOrPhraseFolder);
@@ -55,6 +73,14 @@ public class SaveIndexToDisk {
         if(!big.exists()){
             big.mkdir();
         }
+
+        for(int i = 0; i < smallLetters.length; i++){
+            if(!smallLetters[i].exists())
+                smallLetters[i].mkdir();
+            if(!bigLetters[i].exists())
+                bigLetters[i].mkdir();
+        }
+
         if(!city.exists()){
             city.mkdir();
         }
@@ -76,23 +102,29 @@ public class SaveIndexToDisk {
     }
 
     public void save(AIndex index){
+        if(index.isEmpty())
+            return;
         int currentNumOfIndex;
 
         String subFolder;
 
         if(index.getType() == TypeOfTerm.SmallLetters) {
-            synchronized (smallLettersLock){
-                currentNumOfIndex = numOfSmallLettersIndex;
-                numOfSmallLettersIndex++;
+            int i = index.getNumOfLetter();
+            synchronized (smallLettersLock[i]) {
+                currentNumOfIndex = numOfSmallLettersIndex[i];
+                numOfSmallLettersIndex[i]++;
             }
-            subFolder = "smallLetters\\" + currentNumOfIndex + "\\";
+            char currLetter = (char)('a' + i);
+            subFolder = "smallLetters\\"  + currLetter + "\\" + currentNumOfIndex + "\\";
         }
         else if(index.getType() == TypeOfTerm.BigLetters) {
-            synchronized (bigLettersLock){
-                currentNumOfIndex = numOfBigLettersIndex;
-                numOfBigLettersIndex++;
+            int i = index.getNumOfLetter();
+            synchronized (bigLettersLock[i]) {
+                currentNumOfIndex = numOfBigLettersIndex[i];
+                numOfBigLettersIndex[i]++;
             }
-            subFolder = "bigLetters\\" + currentNumOfIndex + "\\";
+            char currLetter = (char)('a' + i);
+            subFolder = "bigLetters\\"  + currLetter + "\\" + currentNumOfIndex + "\\";
         }
         else if(index.getType() == TypeOfTerm.City) {
             synchronized (cityLock){

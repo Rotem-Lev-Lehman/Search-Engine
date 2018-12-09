@@ -11,9 +11,10 @@ public class Model extends AModel {
 
     private int amountOfDocsAllowedInQueue = 300;
     private int amountOfParsedDocsInRam = 1000;
+    private int amountOfTermsAllowedInIndex = 10000;
     private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
     private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
-    private int maxAmountOfIndicesInTheMerger = 20;
+    private int maxAmountOfIndicesInTheMerger = 50;
 
     public Model(){
         readFile = new ReadFile(new DocumentFactory());
@@ -35,6 +36,9 @@ public class Model extends AModel {
 
         String totalSmallPath = destPathForTotalIndices + "\\smallLetters";
         String totalBigPath = destPathForTotalIndices + "\\bigLetters";
+        String[] totalSmallLettersPath = new String[26];
+        String[] totalBigLettersPath = new String[26];
+
         String totalCityPath = destPathForTotalIndices + "\\cities";
         String totalNumPath = destPathForTotalIndices + "\\numbers";
         String totalRangeOrPhrasePath = destPathForTotalIndices + "\\rangeOrPhrase";
@@ -44,9 +48,26 @@ public class Model extends AModel {
 
         String tempSmallPath = destPathForTempIndices + "\\onlySmallLetters";
         String tempBigPath = destPathForTempIndices + "\\onlyBigLetters";
+        String[] tempSmallLettersPath = new String[26];
+        String[] tempBigLettersPath = new String[26];
 
-        File smallDir = new File(smallPath);
-        File bigDir = new File(bigPath);
+        //File smallDir = new File(smallPath);
+        //File bigDir = new File(bigPath);
+        File[] smallLettersDir = new File[26];
+        File[] bigLettersDir = new File[26];
+        for(int i = 0; i < smallLettersDir.length; i++){
+            char currLetter = (char)('a' + i);
+
+            totalSmallLettersPath[i] = totalSmallPath + "\\" + currLetter;
+            totalBigLettersPath[i] = totalBigPath + "\\" + currLetter;
+
+            tempSmallLettersPath[i] = tempSmallPath + "\\" + currLetter;
+            tempBigLettersPath[i] = tempBigPath + "\\" + currLetter;
+
+            smallLettersDir[i] = new File(smallPath + "\\" + currLetter);
+            bigLettersDir[i] = new File(bigPath + "\\" + currLetter);
+        }
+
         File cityDir = new File(cityPath);
         File numDir = new File(numPath);
         File rangeOrPhraseDir = new File(rangeOrPhrasePath);
@@ -54,10 +75,18 @@ public class Model extends AModel {
         File priceDir = new File(pricePath);
         File dateDir = new File(datePath);
 
-        MergerThread smallMerger = new MergerThread(smallDir,tempSmallPath,TypeOfTerm.SmallLetters);
-        smallMerger.run();
-        MergerThread bigMerger = new MergerThread(bigDir,tempBigPath,TypeOfTerm.BigLetters);
-        bigMerger.run();
+        MergerThread[] smallMergers = new MergerThread[26];
+        for(int i = 0; i < smallMergers.length; i++){
+            smallMergers[i] = new MergerThread(smallLettersDir[i],tempSmallLettersPath[i],TypeOfTerm.SmallLetters);
+            smallMergers[i].run();
+        }
+
+        MergerThread[] bigMergers = new MergerThread[26];
+        for(int i = 0; i < smallMergers.length; i++){
+            bigMergers[i] = new MergerThread(bigLettersDir[i],tempBigLettersPath[i],TypeOfTerm.BigLetters);
+            bigMergers[i].run();
+        }
+
         MergerThread cityMerger = new MergerThread(cityDir,totalCityPath,TypeOfTerm.City);
         cityMerger.run();
         MergerThread numMerger = new MergerThread(numDir,totalNumPath,TypeOfTerm.Number);
@@ -91,9 +120,16 @@ public class Model extends AModel {
         */
 
         //merge small letters and big letters (after each of them where merged individually
+        BigSmallMerger[] bigSmallMergers = new BigSmallMerger[26];
+        for(int i = 0; i < bigSmallMergers.length; i++){
+            bigSmallMergers[i] = new BigSmallMerger(tempBigLettersPath[i], tempSmallLettersPath[i], totalBigLettersPath[i], totalSmallLettersPath[i]);
+            bigSmallMergers[i].MergeAll();
+        }
+        /*
         BigSmallMerger merger;
         merger = new BigSmallMerger(tempBigPath, tempSmallPath, totalBigPath, totalSmallPath);
         merger.MergeAll();
+        */
 
         //were done with the temp indices, so delete them...
         deleteDirectory(new File(destPathForTempIndices));
@@ -115,6 +151,20 @@ public class Model extends AModel {
         @Override
         public void run() {
             File[] files = directory.listFiles();
+
+            if(files.length == 1) {
+                //only file so it's already merged
+                File[] indexFiles = files[0].listFiles();
+                File dest = new File(totalPath);
+                if (!dest.exists()){
+                    dest.mkdirs();
+                }
+                for(int i = 0; i < indexFiles.length; i++) {
+                    String name = indexFiles[i].getName();
+                    indexFiles[i].renameTo(new File(totalPath + "\\" + name));
+                }
+                return;
+            }
 
             int layers = (int)Math.ceil(Math.log(files.length) / Math.log(maxAmountOfIndicesInTheMerger)); // log of length in base of max
 
@@ -152,7 +202,11 @@ public class Model extends AModel {
                         merger = new CityMerger(current, currentDir);
                     else
                         merger = new TermsMerger(current, currentDir);
-                    merger.MergeAll();
+                    try {
+                        merger.MergeAll();
+                    }catch (Exception e){
+                        System.out.println("here");
+                    }
 
                     next += length;
                     length = Math.min(maxAmountOfIndicesInTheMerger, files.length - next);
@@ -266,10 +320,16 @@ public class Model extends AModel {
 
     @Override
     protected void startParsing() {
-        smallLetterIndexer = new TermsIndex();
-        smallLetterIndexer.setType(TypeOfTerm.SmallLetters);
-        bigLetterIndexer = new TermsIndex();
-        bigLetterIndexer.setType(TypeOfTerm.BigLetters);
+        for(int i = 0; i < smallLetterIndexer.length; i++){
+            smallLetterIndexer[i] = new TermsIndex();
+            smallLetterIndexer[i].setType(TypeOfTerm.SmallLetters);
+            smallLetterIndexer[i].setNumOfLetter(i);
+
+            bigLetterIndexer[i] = new TermsIndex();
+            bigLetterIndexer[i].setType(TypeOfTerm.BigLetters);
+            bigLetterIndexer[i].setNumOfLetter(i);
+        }
+
         cityIndexer = new CityIndex();
         cityIndexer.setType(TypeOfTerm.City);
         numbersIndexer = new TermsIndex();
@@ -287,7 +347,7 @@ public class Model extends AModel {
 
         ExecutorService threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
         ExecutorService savers = Executors.newCachedThreadPool();
-        int amountOfDocs = 0;
+        //int amountOfDocs = 0;
         while (!finishedRetrievingFiles || documents.size() != 0) {
             Document currentDoc;
             try {
@@ -307,22 +367,78 @@ public class Model extends AModel {
             }
 
             //block until free
+            //System.out.println("waiting for task limit to be ok");
             try {
                 tasksLimit.acquire();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            //System.out.println("done waiting for task limit to be ok");
 
             ParserThread parserThread = new ParserThread(currentDoc);
             threadPool.submit(parserThread);
 
-            amountOfDocs++;
+            //amountOfDocs++;
 
-            if (amountOfDocs > amountOfParsedDocsInRam) {
+            for(int i = 0; i < smallLetterIndexer.length; i++) {
+                if (checkFullIndex(threadPool, savers, smallLetterIndexer[i])) {
+                    threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                    smallLetterIndexer[i] = new TermsIndex();
+                    smallLetterIndexer[i].setType(TypeOfTerm.SmallLetters);
+                    smallLetterIndexer[i].setNumOfLetter(i);
+                    System.out.println("current file = " + currentDoc.getFilename());
+                }
+                if (checkFullIndex(threadPool, savers, bigLetterIndexer[i])) {
+                    threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                    bigLetterIndexer[i] = new TermsIndex();
+                    bigLetterIndexer[i].setType(TypeOfTerm.BigLetters);
+                    bigLetterIndexer[i].setNumOfLetter(i);
+                    System.out.println("current file = " + currentDoc.getFilename());
+                }
+            }
+            if(checkFullIndex(threadPool, savers, cityIndexer)){
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                cityIndexer = new CityIndex();
+                cityIndexer.setType(TypeOfTerm.City);
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+            if(checkFullIndex(threadPool, savers, numbersIndexer)){
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                numbersIndexer = new TermsIndex();
+                numbersIndexer.setType(TypeOfTerm.Number);
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+            if(checkFullIndex(threadPool, savers, rangeOrPhraseIndexer)){
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                rangeOrPhraseIndexer = new TermsIndex();
+                rangeOrPhraseIndexer.setType(TypeOfTerm.RangeOrPhrase);
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+            if(checkFullIndex(threadPool, savers, percentageIndexer)){
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                percentageIndexer = new TermsIndex();
+                percentageIndexer.setType(TypeOfTerm.Percentage);
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+            if(checkFullIndex(threadPool, savers, priceIndexer)){
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                priceIndexer = new TermsIndex();
+                priceIndexer.setType(TypeOfTerm.Price);
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+            if(checkFullIndex(threadPool, savers, dateIndexer)){
+                threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
+                dateIndexer = new TermsIndex();
+                dateIndexer.setType(TypeOfTerm.Date);
+                System.out.println("current file = " + currentDoc.getFilename());
+            }
+
+            /*
+            if(amountOfDocs > amountOfParsedDocsInRam){
                 //System.out.println("Starting to save");
 
                 //start counting again
-                amountOfDocs = 0;
+                //amountOfDocs = 0;
 
                 //System.out.println("Waiting for indexing threads to finish");
                 //wait for the indexing to finish
@@ -387,8 +503,9 @@ public class Model extends AModel {
 
                 System.out.println("current file = " + currentDoc.getFilename());
             }
-
+            */
         }
+
         threadPool.shutdown();
         try {
             boolean done = false;
@@ -399,12 +516,14 @@ public class Model extends AModel {
         }
 
         //save the index
-        ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
-        savers.submit(smallLetterIndex);
+        for(int i = 0; i < smallLetterIndexer.length; i++) {
+            ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer[i]);
+            savers.submit(smallLetterIndex);
 
-        //System.out.println("Saving the total big letters index");
-        ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
-        savers.submit(bigLetterIndex);
+            //System.out.println("Saving the total big letters index");
+            ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer[i]);
+            savers.submit(bigLetterIndex);
+        }
 
         ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
         savers.submit(cityIndex);
@@ -445,6 +564,27 @@ public class Model extends AModel {
         dateIndexer = null;
     }
 
+    private boolean checkFullIndex(ExecutorService threadPool, ExecutorService savers, AIndex indexer) {
+        if(indexer.getCount() > amountOfTermsAllowedInIndex) {
+            //wait for the indexing to finish
+            threadPool.shutdown();
+            try {
+                boolean done = false;
+                while (!done)
+                    done = threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //save the index
+            ThreadIndexSaver saver = new ThreadIndexSaver(indexer);
+            savers.submit(saver);
+
+            return true;
+        }
+        return false;
+    }
+
     private class ParserThread implements Runnable {
 
         private Document document;
@@ -456,8 +596,11 @@ public class Model extends AModel {
         @Override
         public void run() {
             Parse parse = new Parse();
+            //System.out.println("start parsing");
             List<Term> terms = parse.Parse(document, stopWords, stem);
+            //System.out.println("done parsing");
             SplitAndIndex(document, terms);
+            //System.out.println("done splitting");
 
             //tell the threadPool's controller that it can send in another thread
             tasksLimit.release();
@@ -466,8 +609,17 @@ public class Model extends AModel {
 
     private void SplitAndIndex(Document document, List<Term> terms) {
         //Split
-        List<Term> smallLetterTerms = new ArrayList<Term>();
-        List<Term> bigLetterTerms = new ArrayList<Term>();
+        //System.out.println("1");
+        List<List<Term>> smallLetterTerms = new ArrayList<>(26);
+        //System.out.println("2");
+        List<List<Term>> bigLetterTerms = new ArrayList<>(26);
+        //System.out.println("3");
+        for(int i = 0; i < smallLetterIndexer.length; i++)
+        {
+            smallLetterTerms.add(new ArrayList<Term>());
+            bigLetterTerms.add(new ArrayList<Term>());
+        }
+        //System.out.println("4");
         List<Term> cityTerms = new ArrayList<Term>();
         List<Term> numbersTerms = new ArrayList<Term>();
         List<Term> rangeOrPhraseTerms = new ArrayList<Term>();
@@ -475,40 +627,33 @@ public class Model extends AModel {
         List<Term> priceTerms = new ArrayList<Term>();
         List<Term> dateTerms = new ArrayList<Term>();
         for (Term term : terms) {
-            if(term.getType() == TypeOfTerm.BigLetters)
-                bigLetterTerms.add(term);
-            else if(term.getType() == TypeOfTerm.City)
-                cityTerms.add(term);
-            else if(term.getType() == TypeOfTerm.SmallLetters)
-                smallLetterTerms.add(term);
-            else if(term.getType() == TypeOfTerm.Number)
-                numbersTerms.add(term);
-            else if(term.getType() == TypeOfTerm.RangeOrPhrase)
-                rangeOrPhraseTerms.add(term);
-            else if(term.getType() == TypeOfTerm.Percentage)
-                percentageTerms.add(term);
-            else if(term.getType() == TypeOfTerm.Price)
-                priceTerms.add(term);
-            else // term.getType() == TypeOfTerm.Date
-                dateTerms.add(term);
-        }
-
-        //Ensure that there will not be a small letter and a big letter term of the same String in the same document.
-        int bigSize = bigLetterTerms.size();
-        for(int i = 0; i < bigSize; i++){
-            Term big = bigLetterTerms.get(i);
-            boolean found = false;
-            for(Term term : smallLetterTerms){
-                if(term.getValue().equals(big.getValue().toLowerCase()))
-                    found = true;
+            if(term.getType() == TypeOfTerm.BigLetters) {
+                char first = term.getValue().charAt(0);
+                int index = first - 'A';
+                bigLetterTerms.get(index).add(term);
             }
-            if(found) {
-                big.setType(TypeOfTerm.SmallLetters);
-                big.setValue(big.getValue().toLowerCase());
-                smallLetterTerms.add(big);
-                bigLetterTerms.remove(i);
-                i--; //check the next big letter
-                bigSize = bigLetterTerms.size();
+            else if(term.getType() == TypeOfTerm.City) {
+                cityTerms.add(term);
+            }
+            else if(term.getType() == TypeOfTerm.SmallLetters) {
+                char first = term.getValue().charAt(0);
+                int index = first - 'a';
+                smallLetterTerms.get(index).add(term);
+            }
+            else if(term.getType() == TypeOfTerm.Number) {
+                numbersTerms.add(term);
+            }
+            else if(term.getType() == TypeOfTerm.RangeOrPhrase) {
+                rangeOrPhraseTerms.add(term);
+            }
+            else if(term.getType() == TypeOfTerm.Percentage) {
+                percentageTerms.add(term);
+            }
+            else if(term.getType() == TypeOfTerm.Price) {
+                priceTerms.add(term);
+            }
+            else { // term.getType() == TypeOfTerm.Date
+                dateTerms.add(term);
             }
         }
 
@@ -520,117 +665,174 @@ public class Model extends AModel {
         MyInteger uniqueTermsNum = new MyInteger(0);
         MyInteger docIndex = new MyInteger(0);
 
+        //System.out.println("7");
+        Thread[] smallAndBigThreads = new Thread[smallLetterIndexer.length * 2];
+        int smallAndBigIndex = 0;
+
+        //System.out.println("8");
+        //Ensure that there will not be a small letter and a big letter term of the same String in the same document.
+        for(int i = 0; i < smallLetterTerms.size(); i++) {
+            int bigSize = bigLetterTerms.get(i).size();
+            for (int j = 0; j < bigSize; j++) {
+                Term big = bigLetterTerms.get(i).get(j);
+                boolean found = false;
+                for (Term term : smallLetterTerms.get(i)) {
+                    if (term.getValue().equals(big.getValue().toLowerCase()))
+                        found = true;
+                }
+                if (found) {
+                    big.setType(TypeOfTerm.SmallLetters);
+                    big.setValue(big.getValue().toLowerCase());
+                    smallLetterTerms.get(i).add(big);
+                    bigLetterTerms.get(i).remove(j);
+                    j--; //check the next big letter
+                    bigSize = bigLetterTerms.get(i).size();
+                }
+            }
+
+            //Index the small and big letters
+            if(smallLetterTerms.get(i).size() > 0){
+                IndexerThread small = new IndexerThread(smallLetterTerms.get(i), terms.size(), document.getCityInfo(), smallLetterIndexer[i], maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+                Thread thread = new Thread(small);
+                thread.start();
+                smallAndBigThreads[smallAndBigIndex] = thread;
+
+                permits++;
+            }
+            else
+                smallAndBigThreads[smallAndBigIndex] = null;
+
+            smallAndBigIndex++;
+
+            if(bigLetterTerms.get(i).size() > 0){
+                IndexerThread big = new IndexerThread(bigLetterTerms.get(i), terms.size(), document.getCityInfo(), bigLetterIndexer[i], maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
+                Thread thread = new Thread(big);
+                thread.start();
+                smallAndBigThreads[smallAndBigIndex] = thread;
+
+                permits++;
+            }
+            else
+                smallAndBigThreads[smallAndBigIndex] = null;
+
+            smallAndBigIndex++;
+        }
+
+        //System.out.println("9");
+
         //Index
-        Thread[] threads = new Thread[8];
-        if(smallLetterTerms.size() > 0){
-            IndexerThread small = new IndexerThread(smallLetterTerms, terms.size(), document.getCityInfo(), smallLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
-            Thread thread = new Thread(small);
-            thread.start();
-            threads[0] = thread;
+        Thread[] otherThreads = new Thread[6];
 
-            permits++;
-        }
-        else
-            threads[0] = null;
-
-        if(bigLetterTerms.size() > 0){
-            IndexerThread big = new IndexerThread(bigLetterTerms, terms.size(), document.getCityInfo(), bigLetterIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
-            Thread thread = new Thread(big);
-            thread.start();
-            threads[1] = thread;
-
-            permits++;
-        }
-        else
-            threads[1] = null;
-
+        //System.out.println("10");
         if(cityTerms.size() > 0){
             IndexerThread city = new IndexerThread(cityTerms, terms.size(), document.getCityInfo(), cityIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(city);
             thread.start();
-            threads[2] = thread;
+            otherThreads[0] = thread;
 
             permits++;
         }
         else
-            threads[2] = null;
+            otherThreads[0] = null;
+
+        //System.out.println("11");
 
         if(numbersTerms.size() > 0){
             IndexerThread number = new IndexerThread(numbersTerms, terms.size(), document.getCityInfo(), numbersIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(number);
             thread.start();
-            threads[3] = thread;
+            otherThreads[1] = thread;
 
             permits++;
         }
         else
-            threads[3] = null;
+            otherThreads[1] = null;
 
+        //System.out.println("12");
         if(rangeOrPhraseTerms.size() > 0){
             IndexerThread rangeOrPhrase = new IndexerThread(rangeOrPhraseTerms, terms.size(), document.getCityInfo(), rangeOrPhraseIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(rangeOrPhrase);
             thread.start();
-            threads[4] = thread;
+            otherThreads[2] = thread;
 
             permits++;
         }
         else
-            threads[4] = null;
-
+            otherThreads[2] = null;
+        //System.out.println("13");
         if(percentageTerms.size() > 0){
             IndexerThread percentage = new IndexerThread(percentageTerms, terms.size(), document.getCityInfo(), percentageIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(percentage);
             thread.start();
-            threads[5] = thread;
+            otherThreads[3] = thread;
 
             permits++;
         }
         else
-            threads[5] = null;
-
+            otherThreads[3] = null;
+        //System.out.println("14");
         if(priceTerms.size() > 0){
             IndexerThread price = new IndexerThread(priceTerms, terms.size(), document.getCityInfo(), priceIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(price);
             thread.start();
-            threads[6] = thread;
+            otherThreads[4] = thread;
 
             permits++;
         }
         else
-            threads[6] = null;
-
+            otherThreads[4] = null;
+        //System.out.println("15");
         if(dateTerms.size() > 0){
             IndexerThread date = new IndexerThread(dateTerms, terms.size(), document.getCityInfo(), dateIndexer, maxTfCalculatorSemaphore, maxTfUpdateSemaphore, lock, tf, uniqueTermsNum, docIndex);
             Thread thread = new Thread(date);
             thread.start();
-            threads[7] = thread;
+            otherThreads[5] = thread;
 
             permits++;
         }
         else
-            threads[7] = null;
-
+            otherThreads[5] = null;
+        //System.out.println("16");
         //wait for all of the threads to calculate their max tf:
         try {
             maxTfUpdateSemaphore.acquire(permits);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        //System.out.println("17");
 
         docIndex.setValue(documentsDictionary.insert(new DocumentsDictionaryEntrance(document.getDOCNO(),document.getFilename(),uniqueTermsNum.getValue(),tf.getValue(),document.getCity())));
 
+        //System.out.println("18");
         //tell all of the threads that they may continue, because that all of them has gotten to this point:
         maxTfCalculatorSemaphore.release(permits);
 
-        for (int i = 0; i < threads.length; i++){
-            if(threads[i] == null)
+        //System.out.println("19");
+        //System.out.println("waiting for threads to finish");
+        for (int i = 0; i < smallAndBigThreads.length; i++){
+            if(smallAndBigThreads[i] == null)
                 continue;
             try {
-                threads[i].join();
+                smallAndBigThreads[i].join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        //System.out.println("20");
+
+        for (int i = 0; i < otherThreads.length; i++){
+            if(otherThreads[i] == null)
+                continue;
+            try {
+                otherThreads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //System.out.println("21");
+
+        //System.out.println("done waiting for threads to finish");
     }
 
 

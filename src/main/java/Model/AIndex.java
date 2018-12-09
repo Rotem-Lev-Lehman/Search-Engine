@@ -8,18 +8,23 @@ public abstract class AIndex {
     private Posting posting;
     private volatile Object lock;
     private TypeOfTerm type;
+    private int numOfLetter;
+    private int count;
 
     public AIndex() {
         dictionary = new MyDictionary();
         posting = new Posting();
         lock = new Object();
         type = TypeOfTerm.SmallLetters;
+        numOfLetter = 0;
+        count = 0;
     }
 
     public void ClearIndex(){
         synchronized (lock) {
             dictionary = new MyDictionary();
             posting = new Posting();
+            count = 0;
         }
     }
 
@@ -73,6 +78,8 @@ public abstract class AIndex {
         int documentID = docId.getValue();
 
         synchronized (lock) {
+            count += entranceRows.size();
+
             for (TupleEntranceRowAndTerm tuple : entranceRows) {
                 tuple.getEntranceRow().setDocId(documentID);
                 tuple.getEntranceRow().setNormalizedTermFreq((double) tuple.getEntranceRow().getTermFreqInDoc() / (double) maxTf); // normalized by max tf in doc
@@ -137,6 +144,14 @@ public abstract class AIndex {
         this.type = type;
     }
 
+    public int getNumOfLetter() {
+        return numOfLetter;
+    }
+
+    public void setNumOfLetter(int numOfLetter) {
+        this.numOfLetter = numOfLetter;
+    }
+
     public void SortAll(){
         ArrayList<PostingRow> postingRows = new ArrayList<PostingRow>();
         for(Map.Entry<String, ADictionaryEntrance> tuple : dictionary.getMap().entrySet()){
@@ -145,5 +160,9 @@ public abstract class AIndex {
         posting.setPostingList(postingRows);
 
         //dictionary is already sorted :)
+    }
+
+    public int getCount(){
+        return count;
     }
 }

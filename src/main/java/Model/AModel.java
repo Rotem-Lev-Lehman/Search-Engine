@@ -18,8 +18,10 @@ public abstract class AModel {
     protected volatile boolean finishedRetrievingFiles;
     protected volatile Object lock = new Object();
     protected HashSet<String> stopWords;
-    protected AIndex smallLetterIndexer;
-    protected AIndex bigLetterIndexer;
+    //protected AIndex smallLetterIndexer;
+    //protected AIndex bigLetterIndexer;
+    protected AIndex[] smallLetterIndexer; //one for each letter in the abc
+    protected AIndex[] bigLetterIndexer; //one for each letter in the abc
     protected AIndex numbersIndexer;
     protected AIndex rangeOrPhraseIndexer;
     protected AIndex percentageIndexer;
@@ -40,6 +42,9 @@ public abstract class AModel {
         StopWatch stopWatch = new StopWatch();
         finishedRetrievingFiles = false;
         documents = new ArrayDeque<Document>();
+
+        smallLetterIndexer = new AIndex[26];
+        bigLetterIndexer = new AIndex[26];
 
         System.out.println("Starting to parse");
         stopWatch.start();
@@ -78,6 +83,7 @@ public abstract class AModel {
     public void SetDestinationPath(String destPath) {
         destPathForTempIndices = destPath + '\\' + "tempIndices";
         SaveIndexToDisk.setFolder(destPathForTempIndices);
+        SaveIndexToDisk.initialize();
         destPathForTotalIndices = destPath + '\\' + "totalIndices";
 
         String smallFolder = destPathForTotalIndices + "\\smallLetters";
@@ -95,6 +101,14 @@ public abstract class AModel {
 
         File small = new File(smallFolder);
         File big = new File(bigFolder);
+        File[] smallLetters = new File[26];
+        File[] bigLetters = new File[26];
+        for(int i = 0; i < smallLetters.length; i++){
+            char currLetter = (char)('a' + i);
+            smallLetters[i] = new File(smallFolder + "\\" + currLetter);
+            bigLetters[i] = new File(bigFolder + "\\" + currLetter);
+        }
+
         File city = new File(cityFolder);
         File num = new File(numFolder);
         File rangeOrPhrase = new File(rangeOrPhraseFolder);
@@ -114,6 +128,13 @@ public abstract class AModel {
         if (!big.exists()) {
             big.mkdir();
         }
+        for(int i = 0; i < smallLetters.length; i++){
+            if(!smallLetters[i].exists())
+                smallLetters[i].mkdir();
+            if(!bigLetters[i].exists())
+                bigLetters[i].mkdir();
+        }
+
         if (!city.exists()) {
             city.mkdir();
         }
