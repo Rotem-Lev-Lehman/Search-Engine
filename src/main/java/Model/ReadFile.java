@@ -1,5 +1,7 @@
 package Model;
 
+import jdk.nashorn.internal.parser.JSONParser;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -21,6 +23,8 @@ public class ReadFile implements IReadFile {
 
     private Parse parser; //only for parsing the number of the population size
 
+    private JSONArray jsonAPI;
+
     /**
      * The files in the given folder
      */
@@ -36,6 +40,16 @@ public class ReadFile implements IReadFile {
         citiesThatWeSaw = new HashMap<>();
         url = "http://getcitydetails.geobytes.com/GetCityDetails?fqcn=";
         parser = new Parse();
+        ClassLoader classLoader = getClass().getClassLoader();
+        File jFile = new File(classLoader.getResource("citiesAPI.json").getFile());
+        try {
+            Scanner scanner = new Scanner(new FileReader(jFile));
+            String line = scanner.nextLine();
+            scanner.close();
+            jsonAPI = new JSONArray(line);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -105,7 +119,8 @@ public class ReadFile implements IReadFile {
                 CityInfo info = citiesThatWeSaw.get(city);
                 if(info == null){
                     //we need to get the city from the API
-                    info = getCityInfoFromAPI(city);
+                    //info = getCityInfoFromAPI(city);
+                    info = getCityInfoFromJsonAPI(city);
                     citiesThatWeSaw.put(city, info);
                 }
                 document.setCityInfo(info);
@@ -113,6 +128,34 @@ public class ReadFile implements IReadFile {
             documents.add(document);
         }
         return documents;
+    }
+
+    private CityInfo getCityInfoFromJsonAPI(String city){
+        String lowerCity = city.toLowerCase();
+        lowerCity = Character.toUpperCase(lowerCity.charAt(0)) + lowerCity.substring(1);
+
+        String countryName = "#";
+        String currencyCode = "#";
+        String populationSize = "#";
+
+        for (int i = 0; i < jsonAPI.length(); i++){
+            JSONObject current = (JSONObject) jsonAPI.get(i);
+            String currCity = (String)current.get("capital");
+            if(currCity.equals(lowerCity)){
+                countryName = (String)current.get("name");
+                JSONArray currencyData = current.getJSONArray("currencies");
+                JSONObject first = currencyData.getJSONObject(0);
+                currencyCode = (String)first.get("code");
+                String population = (String)first.get("population");
+                String[] term = new String[1];
+                term[0] = population;
+                Term num = parser.getNumber(term, 0);
+                if (num != null)
+                    populationSize = num.getValue();
+            }
+        }
+        CityInfo info = new CityInfo(city, countryName, currencyCode, populationSize);
+        return info;
     }
 
     private CityInfo getCityInfoFromAPI(String city) {
