@@ -9,7 +9,7 @@ public abstract class AIndex {
     private volatile Object lock;
     private TypeOfTerm type;
     private int numOfLetter;
-    private int count;
+    //private int count;
 
     public AIndex() {
         dictionary = new MyDictionary();
@@ -17,14 +17,14 @@ public abstract class AIndex {
         lock = new Object();
         type = TypeOfTerm.SmallLetters;
         numOfLetter = 0;
-        count = 0;
+        //count = 0;
     }
 
     public void ClearIndex(){
         synchronized (lock) {
             dictionary = new MyDictionary();
             posting = new Posting();
-            count = 0;
+            //count = 0;
         }
     }
 
@@ -78,7 +78,7 @@ public abstract class AIndex {
         int documentID = docId.getValue();
 
         synchronized (lock) {
-            count += entranceRows.size();
+            //count += entranceRows.size();
 
             for (TupleEntranceRowAndTerm tuple : entranceRows) {
                 tuple.getEntranceRow().setDocId(documentID);
@@ -161,8 +161,9 @@ public abstract class AIndex {
 
         //dictionary is already sorted :)
     }
-
+    /*
     public int getCount(){
         return count;
     }
+    */
 }

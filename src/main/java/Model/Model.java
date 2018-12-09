@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit;
 public class Model extends AModel {
 
     private int amountOfDocsAllowedInQueue = 300;
-    private int amountOfParsedDocsInRam = 1000;
-    private int amountOfTermsAllowedInIndex = 1000000;
+    private int amountOfParsedDocsInRam = 17000;
+    //private int amountOfTermsAllowedInIndex = 1000000;
     private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
     private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
-    private int maxAmountOfIndicesInTheMerger = 100;
+    private int maxAmountOfIndicesInTheMerger = 200;
 
     public Model(){
         readFile = new ReadFile(new DocumentFactory());
@@ -347,7 +347,7 @@ public class Model extends AModel {
 
         ExecutorService threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
         ExecutorService savers = Executors.newCachedThreadPool();
-        //int amountOfDocs = 0;
+        int amountOfDocs = 0;
         while (!finishedRetrievingFiles || documents.size() != 0) {
             Document currentDoc;
             try {
@@ -378,8 +378,8 @@ public class Model extends AModel {
             ParserThread parserThread = new ParserThread(currentDoc);
             threadPool.submit(parserThread);
 
-            //amountOfDocs++;
-
+            amountOfDocs++;
+/*
             for(int i = 0; i < smallLetterIndexer.length; i++) {
                 if (checkFullIndex(threadPool, savers, smallLetterIndexer[i])) {
                     threadPool = Executors.newFixedThreadPool(amountOfThreadsInThreadPool);
@@ -432,13 +432,13 @@ public class Model extends AModel {
                 dateIndexer.setType(TypeOfTerm.Date);
                 System.out.println("current file = " + currentDoc.getFilename());
             }
+*/
 
-            /*
             if(amountOfDocs > amountOfParsedDocsInRam){
                 //System.out.println("Starting to save");
 
                 //start counting again
-                //amountOfDocs = 0;
+                amountOfDocs = 0;
 
                 //System.out.println("Waiting for indexing threads to finish");
                 //wait for the indexing to finish
@@ -453,12 +453,14 @@ public class Model extends AModel {
 
                 //System.out.println("Saving the total small letters index");
                 //save the index
-                ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer);
-                savers.submit(smallLetterIndex);
+                for(int i = 0; i < smallLetterIndexer.length; i++) {
+                    ThreadIndexSaver smallLetterIndex = new ThreadIndexSaver(smallLetterIndexer[i]);
+                    savers.submit(smallLetterIndex);
 
-                //System.out.println("Saving the total big letters index");
-                ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer);
-                savers.submit(bigLetterIndex);
+                    //System.out.println("Saving the total big letters index");
+                    ThreadIndexSaver bigLetterIndex = new ThreadIndexSaver(bigLetterIndexer[i]);
+                    savers.submit(bigLetterIndex);
+                }
 
                 ThreadIndexSaver cityIndex = new ThreadIndexSaver(cityIndexer);
                 savers.submit(cityIndex);
@@ -480,10 +482,16 @@ public class Model extends AModel {
 
                 //System.out.println("Creating new indices");
                 //create the new indices
-                smallLetterIndexer = new TermsIndex();
-                smallLetterIndexer.setType(TypeOfTerm.SmallLetters);
-                bigLetterIndexer = new TermsIndex();
-                bigLetterIndexer.setType(TypeOfTerm.BigLetters);
+                for(int i = 0; i < smallLetterIndexer.length; i++){
+                    smallLetterIndexer[i] = new TermsIndex();
+                    smallLetterIndexer[i].setType(TypeOfTerm.SmallLetters);
+                    smallLetterIndexer[i].setNumOfLetter(i);
+
+                    bigLetterIndexer[i] = new TermsIndex();
+                    bigLetterIndexer[i].setType(TypeOfTerm.BigLetters);
+                    bigLetterIndexer[i].setNumOfLetter(i);
+                }
+
                 cityIndexer = new CityIndex();
                 cityIndexer.setType(TypeOfTerm.City);
                 numbersIndexer = new TermsIndex();
@@ -503,7 +511,7 @@ public class Model extends AModel {
 
                 System.out.println("current file = " + currentDoc.getFilename());
             }
-            */
+
         }
 
         threadPool.shutdown();
@@ -564,6 +572,7 @@ public class Model extends AModel {
         dateIndexer = null;
     }
 
+    /*
     private boolean checkFullIndex(ExecutorService threadPool, ExecutorService savers, AIndex indexer) {
         if(indexer.getCount() > amountOfTermsAllowedInIndex) {
             //wait for the indexing to finish
@@ -584,6 +593,7 @@ public class Model extends AModel {
         }
         return false;
     }
+    */
 
     private class ParserThread implements Runnable {
 
