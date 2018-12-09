@@ -31,8 +31,8 @@ public class Controller extends AController {
                 else if(arg.equals("show")){
                     letsShow((MainPageView) o);
                 }
-                else if(arg.equals("save")){
-                    letsSave((MainPageView) o);
+                else if(arg.equals("load")){
+                    letsLoad((MainPageView) o);
                 }
                 else if(arg.equals("stem")){
                     stem=true;
@@ -47,8 +47,9 @@ public class Controller extends AController {
             }
         }
     }
-    private void letsSave(MainPageView o) {
+    private void letsLoad(MainPageView o) {
         //Save dict
+
     }
 
     private void letsShow(MainPageView o) {
@@ -56,7 +57,7 @@ public class Controller extends AController {
     }
 
     private void letsReset(MainPageView o) {
-        //RESET
+        //RESET-done in the Main page view.
     }
 
     private void letsStart(MainPageView mainPageView){
