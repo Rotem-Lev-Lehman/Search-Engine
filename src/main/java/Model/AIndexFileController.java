@@ -25,7 +25,8 @@ public abstract class AIndexFileController {
             dictionaryScanner = new Scanner(new BufferedReader(new FileReader(dictionaryFile)));
             postingScanner = new Scanner(new BufferedReader(new FileReader(postingFile)));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            done = true;
+            //e.printStackTrace();
         }
     }
 

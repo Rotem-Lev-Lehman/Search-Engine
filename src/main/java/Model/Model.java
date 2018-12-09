@@ -151,14 +151,15 @@ public class Model extends AModel {
         @Override
         public void run() {
             File[] files = directory.listFiles();
-
+            File dest = new File(totalPath);
+            if (!dest.exists()){
+                dest.mkdirs();
+            }
             if(files.length == 1) {
                 //only file so it's already merged
                 File[] indexFiles = files[0].listFiles();
-                File dest = new File(totalPath);
-                if (!dest.exists()){
-                    dest.mkdirs();
-                }
+
+
                 for(int i = 0; i < indexFiles.length; i++) {
                     String name = indexFiles[i].getName();
                     indexFiles[i].renameTo(new File(totalPath + "\\" + name));
