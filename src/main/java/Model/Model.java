@@ -11,10 +11,10 @@ public class Model extends AModel {
 
     private int amountOfDocsAllowedInQueue = 300;
     private int amountOfParsedDocsInRam = 1000;
-    private int amountOfTermsAllowedInIndex = 10000;
+    private int amountOfTermsAllowedInIndex = 1000000;
     private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
     private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
-    private int maxAmountOfIndicesInTheMerger = 50;
+    private int maxAmountOfIndicesInTheMerger = 100;
 
     public Model(){
         readFile = new ReadFile(new DocumentFactory());
