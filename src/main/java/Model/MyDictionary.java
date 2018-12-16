@@ -12,8 +12,8 @@ public class MyDictionary {
      * Constructor for a dictionary , (use of TreeMap<String, ADictionaryEntrance)
      */
     public MyDictionary(){
-        map = new LinkedHashMap<String, ADictionaryEntrance>();
-        //map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
+        //map = new LinkedHashMap<String, ADictionaryEntrance>();
+        map = new TreeMap<String, ADictionaryEntrance>(); // sorted :)
     }
 
     /**

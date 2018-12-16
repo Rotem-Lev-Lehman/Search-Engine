@@ -153,17 +153,10 @@ public abstract class AIndex {
     }
 
     public void SortAll(){
-        List<String> dictionarySorted = new ArrayList<>();
-        dictionarySorted.addAll(dictionary.getMap().keySet());
-        Collections.sort(dictionarySorted);
-
         ArrayList<PostingRow> postingRows = new ArrayList<PostingRow>();
-        for(String key : dictionarySorted){
-            postingRows.add(posting.getPostingRow(dictionary.getMap().get(key).getPostingPtr()));
+        for(Map.Entry<String, ADictionaryEntrance> tuple : dictionary.getMap().entrySet()){
+            postingRows.add(posting.getPostingRow(tuple.getValue().getPostingPtr()));
         }
-        //for(Map.Entry<String, ADictionaryEntrance> tuple : dictionary.getMap().entrySet()){
-        //    postingRows.add(posting.getPostingRow(tuple.getValue().getPostingPtr()));
-        //}
         posting.setPostingList(postingRows);
 
         //dictionary is already sorted :)
