@@ -72,7 +72,7 @@ public class DocumentsDictionaryEntrance {
         return topFiveBigWords;
     }
 
-    public static DocumentsDictionaryEntrance Parse(String entrance) {
+    public static DocumentsDictionaryEntrance Parse(String entrance, boolean usePreviousData) {
         //String docNo, String fileName, int uniqueWordsAmount, int maxTf, String city, (IdAndScore) * 5
         String[] split = entrance.split(";");
         String docNo = split[0];
@@ -85,8 +85,10 @@ public class DocumentsDictionaryEntrance {
 
         IdentityAndScore[] topFive = new IdentityAndScore[5];
         for (int i = 0; i < topFive.length; i++) {
-            topFive[i] = IdentityAndScore.Parse(split[5 + i]);
-            //topFive[i] = new IdentityAndScore(null,0);
+            if(usePreviousData)
+                topFive[i] = IdentityAndScore.Parse(split[5 + i]);
+            else
+                topFive[i] = new IdentityAndScore(null,0);
         }
 
         return new DocumentsDictionaryEntrance(docNo, fileName, uniqueWordsAmount, maxTf, city, topFive);

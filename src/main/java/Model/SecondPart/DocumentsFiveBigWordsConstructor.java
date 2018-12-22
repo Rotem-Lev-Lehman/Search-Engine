@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class DocumentsFiveBigWordsConstructor {
-    private TermsIndexFileController currentFileController;
     private DocumentsDictionaryController documentsDictionaryController;
     private File[] files;
 
@@ -18,10 +17,32 @@ public class DocumentsFiveBigWordsConstructor {
     }
 
     public void construct(){
-        documentsDictionaryController.ReadAllDictionary();
+        documentsDictionaryController.ReadAllDictionary(false);
+        Thread[] threads = new Thread[files.length];
         for(int i = 0; i < files.length; i++) {
-            currentFileController = new TermsIndexFileController();
-            currentFileController.OpenFile(files[i].getAbsolutePath());
+            threads[i] = new Thread(new constructingThread(files[i]));
+            threads[i].start();
+        }
+        for (int i = 0; i < threads.length; i++) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        documentsDictionaryController.WriteTheDictionaryToDisk();
+    }
+
+    private class constructingThread implements Runnable{
+
+        private File file;
+        public constructingThread(File file){
+            this.file = file;
+        }
+        @Override
+        public void run() {
+            TermsIndexFileController currentFileController = new TermsIndexFileController();
+            currentFileController.OpenFile(file.getAbsolutePath());
 
             while (!currentFileController.done()){
                 currentFileController.getNextRow();
@@ -31,6 +52,5 @@ public class DocumentsFiveBigWordsConstructor {
                 }
             }
         }
-        documentsDictionaryController.WriteTheDictionaryToDisk();
     }
 }

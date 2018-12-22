@@ -12,13 +12,13 @@ public class DocumentsDictionaryController {
         this.dictionaryFile = new File(directory.getAbsoluteFile() + "\\dic.data");
     }
 
-    public void ReadAllDictionary() {
+    public void ReadAllDictionary(boolean usePreviousData) {
         dictionary = new ArrayList<DocumentsDictionaryEntrance>();
         Scanner scanner;
         try {
             scanner = new Scanner(new BufferedReader(new FileReader(dictionaryFile)));
             while (scanner.hasNext())
-                dictionary.add(DocumentsDictionaryEntrance.Parse(scanner.nextLine()));
+                dictionary.add(DocumentsDictionaryEntrance.Parse(scanner.nextLine(), usePreviousData));
 
             scanner.close();
             N = dictionary.size();
@@ -56,25 +56,44 @@ public class DocumentsDictionaryController {
         int index = entrance.getDocId();
         DocumentsDictionaryEntrance dictionaryEntrance = dictionary.get(index);
 
+        double score = calculateScore(entrance.getNormalizedTermFreq(), df);
         IdentityAndScore[] topFive = dictionaryEntrance.getTopFiveBigWords();
         for(int i = 0; i < topFive.length; i++) {
-            double score = calculateScore(entrance.getNormalizedTermFreq(), df);
+            try {
+                topFive[i].lock.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             if (topFive[i] == null) {
                 topFive[i].setTerm(term);
                 topFive[i].setScore(score);
+
+                topFive[i].lock.release();
                 return;
             }
             if(topFive[i].getScore() < score){
                 //move it all one to the side and drop the least significant one
+                for(int j = i + 1; j < topFive.length; j++) {
+                    try {
+                        topFive[j].lock.acquire();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 for(int j = topFive.length - 1; j > i; j--) {
                     topFive[j].setTerm(topFive[j - 1].getTerm());
                     topFive[j].setScore(topFive[j - 1].getScore());
+
+                    topFive[j].lock.release();
                 }
                 //save the new one
                 topFive[i].setTerm(term);
                 topFive[i].setScore(score);
+
+                topFive[i].lock.release();
                 return;
             }
+            topFive[i].lock.release();
         }
     }
 

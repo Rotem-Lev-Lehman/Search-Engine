@@ -1,8 +1,12 @@
 package Model;
 
+import com.sun.corba.se.impl.orbutil.concurrent.Mutex;
+
 public class IdentityAndScore {
     private String term;
     private double score;
+
+    public Mutex lock = new Mutex();
 
     public IdentityAndScore(String term, double score){
         this.term = term;
