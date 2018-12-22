@@ -29,18 +29,24 @@ public class MainPageView extends AView {
      * The label that states we have finished parsing
      */
     public Label labelDone;
-    public Button startButton;
-    public ChoiceBox<String> languagesChoiceBox;
-    public TextField languageText;
+    //public TextField languageText;
 
-    public TextField DSTPath;
-    public TextField SRCPath;
     public Button srcPathOfStopWordsAndCorpus;
+    public TextField SRCPath;
+
     public Button destinationPath;
+    public TextField DSTPath;
+
+    public ChoiceBox<String> languagesChoiceBox;
+
     public CheckBox stemming;
 
+    public Button startButton;
+
     public Button resetBTN;
+
     public Button showBTN;
+
     public Button loadBTN;
 
     public List<String> languages;
@@ -58,18 +64,29 @@ public class MainPageView extends AView {
             if(selectedDirectory == null)
                 return;
             SRCPath.setText(selectedDirectory.getAbsolutePath());
+            //srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
                 notifyObservers(selectedDirectory);
             }
         }
-        else {
+        else if(pathType=="DST") {
             Stage currentStage = (Stage) destinationPath.getScene().getWindow();
             File selectedDirectory = chooser.showDialog(currentStage);
             if(selectedDirectory == null)
                 return;
             DSTPath.setText(selectedDirectory.getAbsolutePath());
-            destinationPath.setTextFill(Paint.valueOf("#11ff00"));
+            //destinationPath.setTextFill(Paint.valueOf("#11ff00"));
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                setChanged();
+                notifyObservers(selectedDirectory);
+            }
+        }
+        else if(pathType=="LOAD") {
+            Stage currentStage = (Stage) loadBTN.getScene().getWindow();
+            File selectedDirectory = chooser.showDialog(currentStage);
+            if (selectedDirectory == null)
+                return;
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
                 notifyObservers(selectedDirectory);
@@ -81,7 +98,6 @@ public class MainPageView extends AView {
      * Notify the user that the parsing operation was finished
      */
     public void NotifyDone(){
-        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
         labelDone.setVisible(true);
     }
 
@@ -98,13 +114,75 @@ public class MainPageView extends AView {
     /**
      * Notify the user that the parsing operation was finished
      */
-    public void NotifySrcLoaded(){
-        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
+    public void NotifySrcLoaded(String str){
+        if(str == "srcFiles") {
+            srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
+        }
+        else if (str=="dstFiles"){
+            destinationPath.setTextFill(Paint.valueOf("#11ff00"));
+        }
+        else if (str=="Error"){
+            System.out.println("Input error, Please read the README file again and start over the program.");
+        }
     }
 
 
+
+    public void deleteDirectory(File directoryToBDeleted){
+        File[] Files = directoryToBDeleted.listFiles();
+        if(Files != null) {
+            for(File file : Files){
+                deleteDirectoryInside(file);
+            }
+        }
+    }
+    public void deleteDirectoryInside(File DirectoryInsideToBeDeleted){
+        File[] Files = DirectoryInsideToBeDeleted.listFiles();
+        if(Files != null) {
+            for(File file : Files){
+                deleteDirectoryInside(file);
+            }
+        }
+        DirectoryInsideToBeDeleted.delete();
+    }
+
+    public void resetProg(ActionEvent actionEvent) {
+        File root = new File(DSTPath.getText());
+        deleteDirectory(root);
+        DSTPath.setText("");
+        SRCPath.setText("");
+        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#333333ff"));
+        destinationPath.setTextFill(Paint.valueOf("#333333ff"));
+        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
+        stemming.setSelected(false);
+        setChanged();
+        notifyObservers("reset");
+
+    }
+
+    public void show(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("show");
+    }
+
+    public void load(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("load");
+    }
+    //--------------------------------------------------------------------------CHECKED
+    public void stem(ActionEvent actionEvent) {
+        if (stemming.isSelected()==true) {
+            setChanged();
+            notifyObservers("stem");
+        }
+        else{
+            setChanged();
+            notifyObservers("not stem");
+        }
+    }
+    //--------------------------------------------------------------------------
     public void letsStart(ActionEvent actionEvent) {
-        if ( !(DSTPath.getText().equals("") | SRCPath.getText().equals(""))) {
+        if (!(DSTPath.getText().equals("") | SRCPath.getText().equals(""))) {
             languages = new ArrayList<>();
             languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
             try {
@@ -123,53 +201,8 @@ public class MainPageView extends AView {
             languagesChoiceBox.getItems().addAll(languages);
             setChanged();
             notifyObservers("start");
-        }
-        else {
+        } else {
             JOptionPane.showMessageDialog(null, "Re-enter SRC and DST path's");
-        }
-    }
-    public void deleteDirectory(File directoryToBDeleted){
-        File[] Files = directoryToBDeleted.listFiles();
-        if(Files != null) {
-            for(File file : Files){
-                deleteDirectory(file);
-            }
-        }
-        directoryToBDeleted.delete();
-    }
-
-    public void resetProg(ActionEvent actionEvent) {
-        File root = new File(DSTPath.getText());
-        deleteDirectory(root);
-        DSTPath.setText("");
-        SRCPath.setText("");
-        srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#333333ff"));
-        destinationPath.setTextFill(Paint.valueOf("#333333ff"));
-        languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
-        setChanged();
-        notifyObservers("reset");
-    }
-
-    public void show(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("show");
-
-
-    }
-
-    public void load(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("load");
-    }
-
-    public void stem(ActionEvent actionEvent) {
-        if (stemming.isSelected()==true) {
-            setChanged();
-            notifyObservers("stem");
-        }
-        else{
-            setChanged();
-            notifyObservers("not stem");
         }
     }
 }
