@@ -1,5 +1,7 @@
 package Model;
 
+import Model.SecondPart.DocumentsFiveBigWordsConstructor;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +23,22 @@ public class Model extends AModel {
         empty = new Semaphore(0, true);
         full = new Semaphore(amountOfDocsAllowedInQueue, true); // change permits to be good with Memory space and timing
         tasksLimit = new Semaphore(amountOfTasksAllowedInThreadPool, true);
+    }
+
+    @Override
+    protected void saveFiveBigWordsForEachDocument() {
+        String bigPath = destPathForTotalIndices + "\\bigLetters";
+        File[] bigLettersDir = new File[26];
+        for(int i = 0; i < bigLettersDir.length; i++){
+            char currLetter = (char)('a' + i);
+
+            bigLettersDir[i] = new File(bigPath + "\\" + currLetter);
+        }
+        String documentsPath = destPathForTotalIndices + "\\documents";
+        File documentsDir = new File(documentsPath);
+
+        DocumentsFiveBigWordsConstructor constractor = new DocumentsFiveBigWordsConstructor(documentsDir, bigLettersDir);
+        constractor.construct();
     }
 
     @Override

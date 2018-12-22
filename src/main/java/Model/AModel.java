@@ -78,7 +78,23 @@ public abstract class AModel {
         double totalTime = time+time1;
         double totalSeconds =  totalTime - (int)totalTime;
         System.out.println("Total time = " + (int)totalTime + " minutes and " + (int)(totalSeconds*60) + " seconds");
+        System.out.println();
+        System.out.println();
+
+        System.out.println("Starting to save for each document it's five big words");
+        StopWatch stopWatchForSavingFiveBigWordsForEachDocument = new StopWatch();
+        stopWatchForSavingFiveBigWordsForEachDocument.start();
+
+        saveFiveBigWordsForEachDocument();
+
+        stopWatchForSavingFiveBigWordsForEachDocument.stop();
+        System.out.println("Finished saving for each document it's five big words");
+        double timeFive = stopWatchForSavingFiveBigWordsForEachDocument.getTime() / 60000.0;
+        double secondsFive = timeFive - (int)timeFive;
+        System.out.println("Time = " + (int)timeFive + " minutes and " + (int)(secondsFive*60) + " seconds");
     }
+
+    protected abstract void saveFiveBigWordsForEachDocument();
 
     public void SetDestinationPath(String destPath) {
         destPathForTempIndices = destPath + '\\' + "tempIndices";
