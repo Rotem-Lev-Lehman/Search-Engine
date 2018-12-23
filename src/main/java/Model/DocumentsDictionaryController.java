@@ -52,6 +52,14 @@ public class DocumentsDictionaryController {
 
     }
 
+    public DocumentsDictionaryEntrance getDictionaryEntrance(int documentID){
+        return dictionary.get(documentID);
+    }
+
+    public int getN(){
+        return N;
+    }
+
     public void insertIfBetter(String term, EntranceRow entrance, int df){
         int index = entrance.getDocId();
         DocumentsDictionaryEntrance dictionaryEntrance = dictionary.get(index);
