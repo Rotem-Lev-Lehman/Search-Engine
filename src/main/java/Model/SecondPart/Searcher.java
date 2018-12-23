@@ -9,40 +9,84 @@ public class Searcher {
     private IParse parser;
     private HashSet<String> stopWords;
     private boolean toStem;
-    private File indicesFolder;
-    private DocumentsDictionaryController documentsDictionaryController;
+    private TotalDictionaryController totalDictionaryController;
 
-    public Searcher(HashSet<String> stopWords, boolean toStem, File indicesFolder){
+    private boolean useSemantic;
+
+    public Searcher(HashSet<String> stopWords, boolean toStem, TotalDictionaryController totalDictionaryController, boolean useSemantic){
         this.stopWords = stopWords;
         parser = new Parse();
         this.toStem = toStem;
-        this.indicesFolder = indicesFolder;
+        this.useSemantic = useSemantic;
+        this.totalDictionaryController = totalDictionaryController;
     }
 
-    public void LoadDictionary(){
-        continue
+    private void GeneratePermutations(List<List<Term>> Lists, List<SubQuery> result, int depth, SubQuery current, MyInteger nextIndex)
+    {
+        if(depth == Lists.size())
+        {
+            current.setSubQueryNum(nextIndex.getValue());
+            nextIndex.add(1);
+
+            result.add(current);
+            return;
+        }
+
+        for(int i = 0; i < Lists.get(depth).size(); i++)
+        {
+            SubQuery curr = new SubQuery(current);
+            curr.addTerm(Lists.get(depth).get(i));
+
+            GeneratePermutations(Lists, result, depth + 1, curr, nextIndex);
+        }
     }
 
-    public List<DocumentsDictionaryEntrance> SearchRelevantDocuments(MyQuery query) {
-        List<Term> terms = parser.Parse(query.getDocument(), stopWords, toStem);
+    public void SearchForRelevantDocuments(List<MyQuery> queries) {
+        //create all of the queries data
+        List<QuerysTerm> querysTerms = new ArrayList<>();
+        for(MyQuery query : queries) {
+            MyInteger subQueryIndex = new MyInteger(0);
+            List<Term> terms = parser.Parse(query.getDocument(), stopWords, toStem);
+            List<SubQuery> subQueries = new ArrayList<>();
+            query.setSubQueries(subQueries);
 
-        List<DocumentAndTermDataForRanking> candidates = new ArrayList<>();
+            if (useSemantic) {
+                List<List<Term>> similarTerms = new ArrayList<>();
+                for (Term term : terms) {
+                    similarTerms.add(SemanticSearcher(term));
+                }
+
+                GeneratePermutations(similarTerms, subQueries, 0, new SubQuery(query.getId()), subQueryIndex);
+
+                for (SubQuery subQuery : subQueries) {
+                    querysTerms.addAll(subQuery.getQueryTerms());
+                }
+            } else {
+                SubQuery curr = new SubQuery(query.getId());
+                curr.setSubQueryNum(subQueryIndex.getValue());
+                for (Term term : terms) {
+                    curr.addTerm(term);
+                }
+                subQueries.add(curr);
+                querysTerms.addAll(curr.getQueryTerms());
+            }
+        }
 
         // split the terms to their different lists
-        List<List<Term>> smallLetterTerms = new ArrayList<>(26);
-        List<List<Term>> bigLetterTerms = new ArrayList<>(26);
+        List<List<QuerysTerm>> smallLetterTerms = new ArrayList<>(26);
+        List<List<QuerysTerm>> bigLetterTerms = new ArrayList<>(26);
         for(int i = 0; i < 26; i++)
         {
-            smallLetterTerms.add(new ArrayList<Term>());
-            bigLetterTerms.add(new ArrayList<Term>());
+            smallLetterTerms.add(new ArrayList<QuerysTerm>());
+            bigLetterTerms.add(new ArrayList<QuerysTerm>());
         }
-        List<Term> cityTerms = new ArrayList<Term>();
-        List<Term> numbersTerms = new ArrayList<Term>();
-        List<Term> rangeOrPhraseTerms = new ArrayList<Term>();
-        List<Term> percentageTerms = new ArrayList<Term>();
-        List<Term> priceTerms = new ArrayList<Term>();
-        List<Term> dateTerms = new ArrayList<Term>();
-        for (Term term : terms) {
+        List<QuerysTerm> cityTerms = new ArrayList<QuerysTerm>();
+        List<QuerysTerm> numbersTerms = new ArrayList<QuerysTerm>();
+        List<QuerysTerm> rangeOrPhraseTerms = new ArrayList<QuerysTerm>();
+        List<QuerysTerm> percentageTerms = new ArrayList<QuerysTerm>();
+        List<QuerysTerm> priceTerms = new ArrayList<QuerysTerm>();
+        List<QuerysTerm> dateTerms = new ArrayList<QuerysTerm>();
+        for (QuerysTerm term : querysTerms) {
             if(term.getType() == TypeOfTerm.BigLetters) {
                 char first = term.getValue().charAt(0);
                 int index = first - 'A';
@@ -74,13 +118,46 @@ public class Searcher {
         }
 
         //now search in every dictionary if the terms exist in it
+        //merge all the data to a single list (so the read of the posting file will be with only one pass over it
+        List<DocumentAndTermDataForRanking> totalData = new ArrayList<>();
+        for(int i = 0; i < 26; i++) {
+            totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i)));
+            totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i)));
+        }
+        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Number), totalDictionaryController.getPosting(TypeOfTerm.Number), numbersTerms));
+        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.RangeOrPhrase), totalDictionaryController.getPosting(TypeOfTerm.RangeOrPhrase), rangeOrPhraseTerms));
+        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.City), totalDictionaryController.getPosting(TypeOfTerm.City), cityTerms));
+        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Price), totalDictionaryController.getPosting(TypeOfTerm.Price), priceTerms));
+        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Percentage), totalDictionaryController.getPosting(TypeOfTerm.Percentage), percentageTerms));
+        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms));
+        //split the data to the given queries
+        for(DocumentAndTermDataForRanking data : totalData){
+            MyQuery query = findQuery(queries, data.getQueryID());
+            SubQuery subQuery = query.getSubQueries().get(data.getNumOfSubQuery());
+
+            subQuery.addToData(data);
+        }
+        //rank the queries
+        for(MyQuery query : queries){
+            Ranker ranker = new Ranker();
+            ranker.Rank(query);
+        }
+        //done
     }
 
-    private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<Term> terms){
+    private MyQuery findQuery(List<MyQuery> queries, String queryID){
+        for(MyQuery query : queries) {
+            if (query.getId().equals(queryID))
+                return query;
+        }
+        return null;
+    }
+
+    private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms){
         //sort so will be searched in the index only with one pass on it
-        terms.sort(new Comparator<Term>() {
+        terms.sort(new Comparator<QuerysTerm>() {
             @Override
-            public int compare(Term o1, Term o2) {
+            public int compare(QuerysTerm o1, QuerysTerm o2) {
                 return o1.getValue().compareTo(o2.getValue());
             }
         });
@@ -89,7 +166,7 @@ public class Searcher {
 
         PostingFileReader postingFileReader = new PostingFileReader(postingFile);
 
-        for(Term term : terms) {
+        for(QuerysTerm term : terms) {
             ADictionaryEntrance dictionaryEntrance = dictionary.get(term.getValue());
             if (dictionaryEntrance == null) {
                 //don't exist - ignore it...
@@ -100,7 +177,7 @@ public class Searcher {
             if(!postingFileReader.isDone()){
                 ArrayList<EntranceRow> row = postingFileReader.getCurrent().getEntranceRows();
                 for(EntranceRow entranceRow : row){
-                    DocumentAndTermDataForRanking data = new DocumentAndTermDataForRanking(documentsDictionaryController.getDictionaryEntrance(entranceRow.getDocId()),dictionaryEntrance,entranceRow,term.getPosition());
+                    DocumentAndTermDataForRanking data = new DocumentAndTermDataForRanking(totalDictionaryController.getDocumentsDictionaryEntrance(entranceRow.getDocId()),dictionaryEntrance,entranceRow,term.getTerm().getPosition(), term.getQueryID(), term.getSubQueryNum());
                     documentAndTermDataForRankings.add(data);
                 }
             }

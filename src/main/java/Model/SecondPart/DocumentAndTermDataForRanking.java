@@ -5,16 +5,20 @@ import Model.DocumentsDictionaryEntrance;
 import Model.EntranceRow;
 
 public class DocumentAndTermDataForRanking {
-    DocumentsDictionaryEntrance documentData;
-    ADictionaryEntrance termData;
-    EntranceRow termInDocumentData;
-    int position;
+    private DocumentsDictionaryEntrance documentData;
+    private ADictionaryEntrance termData;
+    private EntranceRow termInDocumentData;
+    private int position;
+    private String queryID;
+    private int numOfSubQuery;
 
-    public DocumentAndTermDataForRanking(DocumentsDictionaryEntrance documentData, ADictionaryEntrance termData, EntranceRow termInDocumentData, int position) {
+    public DocumentAndTermDataForRanking(DocumentsDictionaryEntrance documentData, ADictionaryEntrance termData, EntranceRow termInDocumentData, int position, String queryID, int numOfSubQuery) {
         this.documentData = documentData;
         this.termData = termData;
         this.termInDocumentData = termInDocumentData;
         this.position = position;
+        this.queryID = queryID;
+        this.numOfSubQuery = numOfSubQuery;
     }
 
     public DocumentsDictionaryEntrance getDocumentData() {
@@ -47,5 +51,21 @@ public class DocumentAndTermDataForRanking {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public String getQueryID() {
+        return queryID;
+    }
+
+    public void setQueryID(String queryID) {
+        this.queryID = queryID;
+    }
+
+    public int getNumOfSubQuery() {
+        return numOfSubQuery;
+    }
+
+    public void setNumOfSubQuery(int numOfSubQuery) {
+        this.numOfSubQuery = numOfSubQuery;
     }
 }
