@@ -225,6 +225,8 @@ public class Searcher {
     }
 
     private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms){
+        if(terms.size() == 0)
+            return new ArrayList<DocumentAndTermDataForRanking>();
         //sort so will be searched in the index only with one pass on it
         terms.sort(new Comparator<QuerysTerm>() {
             @Override

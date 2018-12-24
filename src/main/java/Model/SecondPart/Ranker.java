@@ -46,17 +46,14 @@ public class Ranker {
 
             }
             score = bm25; // for now
-            DocRank docScore =new DocRank((DocumentsDictionaryEntrance)myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(),score);
+            DocRank docScore = new DocRank((DocumentsDictionaryEntrance)myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(),score);
             allRankedDocs.add(docScore);
         }
 
         Collections.sort(allRankedDocs, new toSort());
-        int count = 0;
-        while (count < 50 & allRankedDocs.get(count) != null)
-
-        {
-            sortedToReturn.add(allRankedDocs.get(count).getDocumentsDictionaryEntrance());
-        }
+        int count = Math.min(50, allRankedDocs.size());
+        for(int i = 0; i < count; i++)
+            sortedToReturn.add(allRankedDocs.get(i).getDocumentsDictionaryEntrance());
 
         myQuery.setRetrievedDocuments(sortedToReturn);
     }
