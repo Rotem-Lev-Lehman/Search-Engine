@@ -1,57 +1,74 @@
 package Model.SecondPart;
 
+import Model.DocumentsDictionaryEntrance;
+
 import javax.print.Doc;
 import java.util.*;
 
 public class Ranker {
 
     private List<DocRank> allRankedDocs;
-    private List<String> sortedRankedDocsToReturn;
+    private List<DocumentsDictionaryEntrance> sortedToReturn;
     private double k;
     private double b;
 
+    public void initRank() {
+        k = 1.5;
+        b = 0.75;
+        allRankedDocs = new ArrayList<>();
+        sortedToReturn = new ArrayList<>();
+    }
 
+    public double calcIDF(int DF, int TotalNumOfDocs) {
+        double IDF = Math.log(((double) TotalNumOfDocs - (double) DF + 0.5) / ((double) DF + 0.5));
+        return IDF;
+    }
 
     public void Rank(MyQuery myQuery, double avgDl, int TotalNumOfDocs) {
-        k=1.5;
-        b=0.75;
-        int count = 0;
-        allRankedDocs= new ArrayList<>();
-        // rank = Calc bm 25 for each doc and give it 90% percent and then 10% percent for the distance between words.
-        // to sort the docs from their rank
-        // return the doc numbers sorted (max 50)
-        //ADD YOUR CODE HERE
-        for (int i = 0 ; i < numOfDocToRank ; i++){
-            double bm25=0;
-            double score;
-            int docSize = DocsOb.get(i).getDocSizeSentFromSearcher();
-            List<Integer> queryWordsTF = DocsOb.get(i).getWordsTFSentFromSearcher();
-            List<Integer> queryWordsIDF = DocsOb.get(i).getWordsIDFSentFromSeacher();
+        initRank();
+        double bm25;
+        double score;
 
-            int querySize = DocsOb.get(i).getQuerySizeSentFromSearcher();
-            for (int j = 0 ; j < querySize ; j++){
-                double wordTF = queryWordsTF.get(j).doubleValue();
-                double wordIDF = queryWordsIDF.get(j).doubleValue();
-                double tmp = wordIDF*(wordTF*(k+1))/(wordTF+(k*(1-b+((b*docSize)/AvgDl))));
-                bm25=bm25+tmp;
+        List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
+        for (int i = 0; i < data.size(); i++) {
+            score=0.0;
+            bm25=0.0;
+            int MaxTF = data.get(i).getDocumentData().getMaxTf();
+            int numOfUniqueWords = data.get(i).getDocumentData().getUniqueWordsAmount();
+            int DF = data.get(i).getTermData().getDocFreq();//maybe wrong to use
+            //int TF = data.get(i).getTermData().getTotalTermFreq();
+
+            for (int k = 0; k < numOfUniqueWords; k++) {
+                double IDF = calcIDF(DF, TotalNumOfDocs);
+                double docSize = ((double)MaxTF / 2.0) * (double)numOfUniqueWords;
+                double TF = (double)data.get(i).getTermInDocumentData().getNormalizedTermFreq() * (double)MaxTF;
+                bm25 = bm25 + IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
+
             }
-
-            score = bm25; //more to add for the score calculation;
-            DocRank docScore = DocRank(DocsOb.get(i).getDocIDSentFromSearcher(), score);
+            score = bm25; // for now
+            DocRank docScore =new DocRank((DocumentsDictionaryEntrance)myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(),score);
             allRankedDocs.add(docScore);
         }
+
         Collections.sort(allRankedDocs, new toSort());
-        while (count < 50 & allRankedDocs.get(count)!=null){
-            sortedRankedDocsToReturn.add(allRankedDocs.get(count).getDocID());
+        int count = 0;
+        while (count < 50 & allRankedDocs.get(count) != null)
+
+        {
+            sortedToReturn.add(allRankedDocs.get(count).getDocumentsDictionaryEntrance());
         }
-        return sortedRankedDocsToReturn;
+
+        myQuery.setRetrievedDocuments(sortedToReturn);
     }
+
+
+
 
     public class toSort implements Comparator<Object>{
         @Override
         public int compare(Object o1, Object o2) {
-            double first = ((DocRank)o1).getRank();
-            double second = ((DocRank)o2).getRank();
+            double first = ((DocRank)o1).getScore();
+            double second = ((DocRank)o2).getScore();
             if (first>second){
                 return 1;
             }
@@ -66,27 +83,27 @@ public class Ranker {
     }
 
     public class DocRank{
-        private String docID;
+        private DocumentsDictionaryEntrance documentsDictionaryEntrance;
         private double score;
 
-        public DocRank(String docID, double score) {
-            this.docID = docID;
+        public DocRank(DocumentsDictionaryEntrance documentsDictionaryEntrance, double score) {
+            this.documentsDictionaryEntrance = documentsDictionaryEntrance;
             this.score = score;
         }
 
-        public String getDocID() {
-            return docID;
+        public DocumentsDictionaryEntrance getDocumentsDictionaryEntrance() {
+            return documentsDictionaryEntrance;
         }
 
-        public void setDocID(String docID) {
-            this.docID = docID;
+        public void setDocumentsDictionaryEntrance(DocumentsDictionaryEntrance documentsDictionaryEntrance) {
+            this.documentsDictionaryEntrance = documentsDictionaryEntrance;
         }
 
-        public double getRank() {
+        public double getScore() {
             return score;
         }
 
-        public void setRank(double score) {
+        public void setScore(double score) {
             this.score = score;
         }
     }
