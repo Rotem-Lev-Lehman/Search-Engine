@@ -1,6 +1,8 @@
 package Model.SecondPart;
 
 import Model.*;
+import org.tartarus.snowball.SnowballStemmer;
+import org.tartarus.snowball.ext.porterStemmer;
 
 import java.io.File;
 import java.util.*;
@@ -10,7 +12,7 @@ public class Searcher {
     private HashSet<String> stopWords;
     private boolean toStem;
     private TotalDictionaryController totalDictionaryController;
-
+    private SnowballStemmer stemmer;
     private boolean useSemantic;
 
     public Searcher(HashSet<String> stopWords, boolean toStem, TotalDictionaryController totalDictionaryController, boolean useSemantic){
@@ -19,6 +21,7 @@ public class Searcher {
         this.toStem = toStem;
         this.useSemantic = useSemantic;
         this.totalDictionaryController = totalDictionaryController;
+        this.stemmer = new porterStemmer();
     }
 
     private void GeneratePermutations(List<List<Term>> Lists, List<SubQuery> result, int depth, SubQuery current, MyInteger nextIndex)
@@ -46,14 +49,28 @@ public class Searcher {
         List<QuerysTerm> querysTerms = new ArrayList<>();
         for(MyQuery query : queries) {
             MyInteger subQueryIndex = new MyInteger(0);
-            List<Term> terms = parser.Parse(query.getDocument(), stopWords, toStem);
             List<SubQuery> subQueries = new ArrayList<>();
             query.setSubQueries(subQueries);
 
             if (useSemantic) {
+                List<Term> parsedWithoutStemming = parser.Parse(query.getDocument(), stopWords, false);
                 List<List<Term>> similarTerms = new ArrayList<>();
-                for (Term term : terms) {
-                    similarTerms.add(SemanticSearcher(term));
+                for (Term term : parsedWithoutStemming) {
+                    List<Term> currentSimilarTerms = SemanticSearcher(term);
+                    similarTerms.add(currentSimilarTerms);
+                    if(toStem){
+                        for(Term curr : currentSimilarTerms){
+                            if(curr.getType() == TypeOfTerm.SmallLetters || curr.getType() == TypeOfTerm.BigLetters) {
+                                stemmer.setCurrent(curr.getValue().toLowerCase());
+                                if (stemmer.stem()) {
+                                    if (curr.getType() == TypeOfTerm.BigLetters)
+                                        curr.setValue(stemmer.getCurrent().toUpperCase());
+                                    else
+                                        curr.setValue(stemmer.getCurrent());
+                                }
+                            }
+                        }
+                    }
                 }
 
                 GeneratePermutations(similarTerms, subQueries, 0, new SubQuery(query.getId()), subQueryIndex);
@@ -62,6 +79,7 @@ public class Searcher {
                     querysTerms.addAll(subQuery.getQueryTerms());
                 }
             } else {
+                List<Term> terms = parser.Parse(query.getDocument(), stopWords, toStem);
                 SubQuery curr = new SubQuery(query.getId());
                 curr.setSubQueryNum(subQueryIndex.getValue());
                 for (Term term : terms) {
