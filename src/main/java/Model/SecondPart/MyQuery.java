@@ -1,7 +1,7 @@
 package Model.SecondPart;
 
 import Model.Document;
-import Model.Term;
+import Model.DocumentsDictionaryEntrance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +12,7 @@ public class MyQuery {
     private String id;
     private List<SubQuery> subQueries;
     private int nextSubQueryNum;
+    private List<DocumentsDictionaryEntrance> retrievedDocuments;
 
     public MyQuery(String text, String id){
         this.document = new Document();
@@ -62,5 +63,13 @@ public class MyQuery {
         int next = nextSubQueryNum;
         nextSubQueryNum++;
         return next;
+    }
+
+    public List<DocumentsDictionaryEntrance> getRetrievedDocuments() {
+        return retrievedDocuments;
+    }
+
+    public void setRetrievedDocuments(List<DocumentsDictionaryEntrance> retrievedDocuments) {
+        this.retrievedDocuments = retrievedDocuments;
     }
 }
