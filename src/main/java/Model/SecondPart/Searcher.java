@@ -1,10 +1,16 @@
 package Model.SecondPart;
 
 import Model.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.porterStemmer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 
 public class Searcher {
@@ -162,6 +168,52 @@ public class Searcher {
             ranker.Rank(query, totalDictionaryController.getAvgDocLength(), totalDictionaryController.getN());
         }
         //done
+    }
+
+    private List<Term> SemanticSearcher(Term term) {
+        List<Term> terms = new ArrayList<Term>();
+        terms.add(term);
+        if(term.getType() == TypeOfTerm.SmallLetters || term.getType() == TypeOfTerm.BigLetters || term.getType() == TypeOfTerm.City) {
+            String urlAddress = "https://api.datamuse.com/words?ml=" + term.getValue();
+            try {
+                URL url = new URL(urlAddress);
+                URLConnection connection = url.openConnection();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String result = reader.readLine();
+
+                JSONArray array = new JSONArray(result);
+                int length = Math.min(array.length(), maxAmountOfSimilarWords);
+
+                for (int i = 0; i < length; i++) {
+                    JSONObject current = (JSONObject) array.get(i);
+                    String currTerm = (String) current.get("word");
+                    Term t;
+                    String[] split = currTerm.split(" "); //check if is a phrase
+                    if(split.length > 1){
+                        //its a phrase...
+                        StringBuilder phrase = new StringBuilder();
+                        for (int j = 0; j < split.length; j++) {
+                            if(split[j].equals(""))
+                                continue;
+                            phrase.append(split[j]).append("-");
+                        }
+                        String p = phrase.toString();
+                        p = p.substring(0, p.length() - 1); // remove the last "-"
+                        t = new Term(p, term.getPosition(), TypeOfTerm.RangeOrPhrase);
+                    }
+                    else{
+                        t = new Term(currTerm, term.getPosition(), TypeOfTerm.SmallLetters); // it is the most possible option...(to be a small term)
+                    }
+                    terms.add(t);
+                }
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        } //else - doesn't matter, because we only care in semantic about the regular terms...
+
+        return terms;
     }
 
     private MyQuery findQuery(List<MyQuery> queries, String queryID){
