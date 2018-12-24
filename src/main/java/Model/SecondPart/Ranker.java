@@ -12,7 +12,7 @@ public class Ranker {
 
 
 
-    public List<String> getRankedDocs(ArrayList<DocumentAndTermDataForRanking> DocsOb, int numOfDocToRank) {
+    public void Rank(MyQuery myQuery, double avgDl, int TotalNumOfDocs) {
         k=1.5;
         b=0.75;
         int count = 0;
@@ -21,7 +21,6 @@ public class Ranker {
         // to sort the docs from their rank
         // return the doc numbers sorted (max 50)
         //ADD YOUR CODE HERE
-        double AvgDl = getAvgDl(DocsOb, numOfDocToRank);
         for (int i = 0 ; i < numOfDocToRank ; i++){
             double bm25=0;
             double score;
@@ -46,17 +45,6 @@ public class Ranker {
             sortedRankedDocsToReturn.add(allRankedDocs.get(count).getDocID());
         }
         return sortedRankedDocsToReturn;
-    }
-
-
-
-    public double getAvgDl(List<DocumentAndTermDataForRanking> DocsOb, int numOfDocToRank) {
-        double AvgDl = 0;
-        for (int i = 0; i < numOfDocToRank; i++) {
-            AvgDl=AvgDl+DocsOb.get(i).getDocSize();
-        }
-        AvgDl=AvgDl/numOfDocToRank;
-        return AvgDl;
     }
 
     public class toSort implements Comparator<Object>{
