@@ -8,6 +8,7 @@ public class DocumentsDictionaryController {
     private File dictionaryFile;
     private ArrayList<DocumentsDictionaryEntrance> dictionary;
     private int N; //num of documents
+    private double avgDocLength; //avgdl for the BM25 formula
     public DocumentsDictionaryController(File directory){
         this.dictionaryFile = new File(directory.getAbsoluteFile() + "\\dic.data");
     }
@@ -17,11 +18,16 @@ public class DocumentsDictionaryController {
         Scanner scanner;
         try {
             scanner = new Scanner(new BufferedReader(new FileReader(dictionaryFile)));
-            while (scanner.hasNext())
-                dictionary.add(DocumentsDictionaryEntrance.Parse(scanner.nextLine(), usePreviousData));
+            avgDocLength = 0;
+            while (scanner.hasNext()) {
+                DocumentsDictionaryEntrance curr = DocumentsDictionaryEntrance.Parse(scanner.nextLine(), usePreviousData);
+                dictionary.add(curr);
+                avgDocLength += (((double)(curr.getUniqueWordsAmount() * curr.getMaxTf())) / 2.0);
+            }
 
             scanner.close();
             N = dictionary.size();
+            avgDocLength = (avgDocLength / (double)N);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -58,6 +64,10 @@ public class DocumentsDictionaryController {
 
     public int getN(){
         return N;
+    }
+
+    public double getAvgDocLength(){
+        return avgDocLength;
     }
 
     public void insertIfBetter(String term, EntranceRow entrance, int df){

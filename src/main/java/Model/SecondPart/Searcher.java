@@ -14,6 +14,7 @@ public class Searcher {
     private TotalDictionaryController totalDictionaryController;
     private SnowballStemmer stemmer;
     private boolean useSemantic;
+    private int maxAmountOfSimilarWords = 10;
 
     public Searcher(HashSet<String> stopWords, boolean toStem, TotalDictionaryController totalDictionaryController, boolean useSemantic){
         this.stopWords = stopWords;
@@ -57,7 +58,6 @@ public class Searcher {
                 List<List<Term>> similarTerms = new ArrayList<>();
                 for (Term term : parsedWithoutStemming) {
                     List<Term> currentSimilarTerms = SemanticSearcher(term);
-                    similarTerms.add(currentSimilarTerms);
                     if(toStem){
                         for(Term curr : currentSimilarTerms){
                             if(curr.getType() == TypeOfTerm.SmallLetters || curr.getType() == TypeOfTerm.BigLetters) {
@@ -71,6 +71,7 @@ public class Searcher {
                             }
                         }
                     }
+                    similarTerms.add(currentSimilarTerms);
                 }
 
                 GeneratePermutations(similarTerms, subQueries, 0, new SubQuery(query.getId()), subQueryIndex);
@@ -158,7 +159,7 @@ public class Searcher {
         //rank the queries
         for(MyQuery query : queries){
             Ranker ranker = new Ranker();
-            ranker.Rank(query);
+            ranker.Rank(query, totalDictionaryController.getAvgDocLength(), totalDictionaryController.getN());
         }
         //done
     }

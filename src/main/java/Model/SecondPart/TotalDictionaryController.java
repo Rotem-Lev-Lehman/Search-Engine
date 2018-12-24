@@ -38,4 +38,12 @@ public class TotalDictionaryController {
     public DocumentsDictionaryEntrance getDocumentsDictionaryEntrance(int docID){
         return documentsDictionaryController.getDictionaryEntrance(docID);
     }
+
+    public int getN(){
+        return documentsDictionaryController.getN();
+    }
+
+    public double getAvgDocLength(){
+        return documentsDictionaryController.getAvgDocLength();
+    }
 }
