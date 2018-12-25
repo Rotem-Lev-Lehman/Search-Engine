@@ -83,6 +83,7 @@ public class TotalDictionaryController {
         String postingFile = folderPath + "\\post.data";
         String dictionaryFile = folderPath + "\\dic.data";
         Scanner scanner;
+        int postingPtr = 0;
         try {
             scanner = new Scanner(new BufferedReader(new FileReader(dictionaryFile)));
 
@@ -93,7 +94,9 @@ public class TotalDictionaryController {
                 else
                     entrance = TermsDictionaryEntrance.ParseDictionaryRowAsMyKind(scanner.nextLine());
 
+                entrance.setPostingPtr(postingPtr);
                 dictionary.put(entrance.getTerm(),entrance);
+                postingPtr++;
             }
 
             scanner.close();

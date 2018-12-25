@@ -23,7 +23,7 @@ public class PostingFileReader {
 
         done = false;
         current = null;
-        currentLineNum = -1;
+        currentLineNum = 0;
     }
 
     public void close() {
@@ -39,7 +39,7 @@ public class PostingFileReader {
     }
 
     public void readLineNum(int index) {
-        if (index <= currentLineNum) {
+        if (index < currentLineNum) {
             try {
                 throw new Exception("Tried to search for a line that we have already passed!");
             } catch (Exception e) {
@@ -67,7 +67,7 @@ public class PostingFileReader {
         if (scanner.hasNext()) {
             String wantedLine = scanner.nextLine();
             current = PostingRow.ParsePostingRow(wantedLine);
-            currentLineNum = index;
+            currentLineNum = index + 1;
 
         } else {
             done = true;

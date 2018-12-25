@@ -28,9 +28,11 @@ public class Main extends Application {
         SecondPartModel secondPartModel = new SecondPartModel();
         File folder = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\totalIndices\\totalIndices");
         File stopWords = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\stop_words.txt");
+        File qrels = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\part2\\qrels.txt");
         secondPartModel.LoadDictionary(folder,false);
         secondPartModel.LoadStopwords(stopWords);
-        MyQuery query = new MyQuery("Falkland petroleum exploration", "102");
+        secondPartModel.LoadQrels(qrels);
+        MyQuery query = new MyQuery("Falkland petroleum exploration", "351");
         List<DocumentsDictionaryEntrance> data = secondPartModel.Search(query, false);
         for(int i = 0; i < data.size(); i++){
             System.out.println("i = " + i + ", doc = " + data.get(i).getDocNo());

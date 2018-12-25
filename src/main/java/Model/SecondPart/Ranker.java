@@ -52,8 +52,14 @@ public class Ranker {
 
         Collections.sort(allRankedDocs, new toSort());
         int count = Math.min(50, allRankedDocs.size());
-        for(int i = 0; i < count; i++)
+        //int count = allRankedDocs.size();
+        HashSet<String> seenDocs = new HashSet<>();
+        for(int i = 0; i < count; i++) {
+            if(seenDocs.contains(allRankedDocs.get(i).getDocumentsDictionaryEntrance().getDocNo().replace(" ", "")))
+                continue;
+            seenDocs.add(allRankedDocs.get(i).getDocumentsDictionaryEntrance().getDocNo().replace(" ", ""));
             sortedToReturn.add(allRankedDocs.get(i).getDocumentsDictionaryEntrance());
+        }
 
         myQuery.setRetrievedDocuments(sortedToReturn);
     }
@@ -66,10 +72,10 @@ public class Ranker {
         public int compare(Object o1, Object o2) {
             double first = ((DocRank)o1).getScore();
             double second = ((DocRank)o2).getScore();
-            if (first>second){
+            if (first<second){
                 return 1;
             }
-            else if (second>first){
+            else if (second<first){
                 return -1;
             }
             else{
