@@ -186,10 +186,10 @@ public class MainPageView extends AView {
             languages = new ArrayList<>();
             languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
             try {
-                String name = Main.class.getResource("/resources/language.txt").getFile();
-                //ClassLoader classLoader = getClass().getClassLoader();
-                //File file = new File(classLoader.getResource("language.txt").getFile());
-                File file = new File(name);
+                //String name = Main.class.getResource("/resources/language.txt").getFile();
+                ClassLoader classLoader = getClass().getClassLoader();
+                File file = new File(classLoader.getResource("language.txt").getFile());
+                //File file = new File(name);
                 Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)));
                 //System.out.println("hey");
                 while (scanner.hasNext()) {
