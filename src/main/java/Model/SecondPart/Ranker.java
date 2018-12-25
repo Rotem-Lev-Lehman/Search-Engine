@@ -14,66 +14,57 @@ public class Ranker {
     private double b;
 
     public void initRank() {
-        k = 1.5;
+        k = 1.25;
         b = 0.75;
         allRankedDocs = new ArrayList<>();
         sortedToReturn = new ArrayList<>();
     }
 
     public double calcIDF(int DF, int TotalNumOfDocs) {
-        double IDF = Math.log(((double) TotalNumOfDocs - (double) DF + 0.5) / ((double) DF + 0.5));
+        double IDF = Math.log(((double) TotalNumOfDocs - (double) DF + 0.5) / ((double) DF + 0.5)) / Math.log(2);
         return IDF;
     }
 
     public void Rank(MyQuery myQuery, double avgDl, int TotalNumOfDocs) {
         initRank();
-        double bm25;
+        //double bm25;
         double distanceWordsWeight;
-        double score;
 
         for(SubQuery subQuery : myQuery.getSubQueries()) {
             //List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
-            List<DocumentAndTermDataForRanking> data = subQuery.getData();
-            for (int i = 0; i < data.size(); i++) {
-                bm25 = 0.0;
-                int MaxTF = data.get(i).getDocumentData().getMaxTf();
-                int numOfUniqueWords = data.get(i).getDocumentData().getUniqueWordsAmount();
-                int DF = data.get(i).getTermData().getDocFreq();//maybe wrong to use
-                //int TF = data.get(i).getTermData().getTotalTermFreq();
-//--------------------------------------------------------------------------------------ADDED
-                List<Term> TermsPos = myQuery.getSubQueries().get(0).getTerms();
-                int lastPos;
-                int pos = 0;
-                for (int z = 0; z < TermsPos.size(); z++) {
-                    lastPos = myQuery.getSubQueries().get(0).getTerms().get(z).getPosition();
-                    if (!(Math.abs(pos - lastPos) < 4)) {
-                        pos = pos + Math.abs(pos - lastPos);
+            for(Term term : subQuery.getTerms()){
+                List<DocumentAndTermDataForRanking> data = subQuery.getData().get(term.getValue());
+
+                for(DocumentAndTermDataForRanking doc : data){
+                    int MaxTF = doc.getDocumentData().getMaxTf();
+                    int numOfUniqueWords = doc.getDocumentData().getUniqueWordsAmount();
+                    int DF = doc.getTermData().getDocFreq();//maybe wrong to use
+
+                    double docSize = ((double) MaxTF / 2.0) * (double) numOfUniqueWords;
+
+                    double IDF = calcIDF(DF, TotalNumOfDocs);
+                    double TF = (double) doc.getTermInDocumentData().getNormalizedTermFreq() * (double) MaxTF;
+                    double bm25 = IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
+
+                    List<Integer> currPos = doc.getTermInDocumentData().getPositions();
+
+                    DocRank docScore = new DocRank(doc.getDocumentData());
+                    docScore.currBM25 = bm25;
+                    docScore.addToPositions(currPos);
+                    docScore.setDocLength(docSize);
+                    if (!allRankedDocs.contains(docScore)) {
+                        allRankedDocs.add(docScore);
+                    } else {
+                        addScoreToExistsScore(docScore, currPos);
                     }
-                }
-//---------------------------------------------------------------------------------------
-                double docSize = ((double) MaxTF / 2.0) * (double) numOfUniqueWords;
-            /*
-            for (int s = 0; s < numOfUniqueWords; s++) {
-                double IDF = calcIDF(DF, TotalNumOfDocs);
-                double TF = (double)data.get(i).getTermInDocumentData().getNormalizedTermFreq()*(double)MaxTF;
-                bm25 += IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
-                //distanceWordsWeight += data.get(k)
-            }
-            */
-                double IDF = calcIDF(DF, TotalNumOfDocs);
-                double TF = (double) data.get(i).getTermInDocumentData().getNormalizedTermFreq() * (double) MaxTF;
-                bm25 += IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
-                //Now we also calc for positions
-                double posWeight = (docSize / (double) pos);
-                //score = bm25*0.85+posWeight*0.15; // for now
-                score = bm25; // for now
-                DocRank docScore = new DocRank((DocumentsDictionaryEntrance) myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(), score);
-                if (!allRankedDocs.contains(docScore)) {
-                    allRankedDocs.add(docScore);
-                } else {
-                    addScoreToExistsScore(docScore);
+
                 }
             }
+        }
+
+        for(DocRank docRank : allRankedDocs){
+            docRank.calculatePositions();
+            docRank.calculateScore();
         }
 
         Collections.sort(allRankedDocs, new toSort());
@@ -90,10 +81,11 @@ public class Ranker {
         myQuery.setRetrievedDocuments(sortedToReturn);
     }
 
-    private void addScoreToExistsScore(DocRank docRank) {
+    private void addScoreToExistsScore(DocRank docRank, List<Integer> pos) {
         for (int i=0 ; i < allRankedDocs.size(); i++){
-            if(allRankedDocs.get(i)==docRank){
-                allRankedDocs.get(i).score+=docRank.getScore();
+            if(allRankedDocs.get(i).equals(docRank)){
+                allRankedDocs.get(i).addToBM25(docRank.getCurrBM25());
+                allRankedDocs.get(i).addToPositions(pos);
                 return;
             }
         }
@@ -120,11 +112,18 @@ public class Ranker {
 
     public class DocRank{
         private DocumentsDictionaryEntrance documentsDictionaryEntrance;
+        private double currBM25;
+        private double posScore;
+        private List<List<Integer>> positions;
+        private double docLength;
         private double score;
 
-        public DocRank(DocumentsDictionaryEntrance documentsDictionaryEntrance, double score) {
+        public DocRank(DocumentsDictionaryEntrance documentsDictionaryEntrance) {
             this.documentsDictionaryEntrance = documentsDictionaryEntrance;
-            this.score = score;
+            this.score = 0;
+            currBM25 = 0;
+            posScore = 0;
+            positions = new ArrayList<>();
         }
 
         public DocumentsDictionaryEntrance getDocumentsDictionaryEntrance() {
@@ -141,6 +140,81 @@ public class Ranker {
 
         public void setScore(double score) {
             this.score = score;
+        }
+
+        public double getCurrBM25() {
+            return currBM25;
+        }
+
+        public void setCurrBM25(double currBM25) {
+            this.currBM25 = currBM25;
+        }
+
+        public void addToBM25(double bm25){
+            currBM25 += bm25;
+        }
+
+        public void calculateScore(){
+            //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
+            score = currBM25 * 0.8 + posScore * 0.2;
+        }
+
+        public void addToPositions(List<Integer> pos){
+            positions.add(pos);
+        }
+
+        public double getDocLength() {
+            return docLength;
+        }
+
+        public void setDocLength(double docLength) {
+            this.docLength = docLength;
+        }
+
+        /*
+                public void addToPositions(double pos){
+                    currPositions += pos;
+                }
+
+                public double getCurrPositions() {
+                    return currPositions;
+                }
+
+                public void setCurrPositions(double currPositions) {
+                    this.currPositions = currPositions;
+                }
+                */
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DocRank docRank = (DocRank) o;
+            return Objects.equals(documentsDictionaryEntrance, docRank.documentsDictionaryEntrance);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(documentsDictionaryEntrance);
+        }
+
+        public void calculatePositions() {
+            double sum = 0;
+            for(int i = 0; i < positions.size() - 1; i++){
+                for(int j = i + 1; j < positions.size(); j++){
+                    int min = Integer.MAX_VALUE;
+                    for(int posI : positions.get(i)){
+                        for(int posJ : positions.get(j)){
+                            int curr = Math.abs(posI - posJ);
+                            if(curr < min)
+                                min = curr;
+                        }
+                    }
+                    sum += min / docLength;
+                }
+            }
+            sum /= positions.size();
+
+            posScore = sum;
         }
     }
 }

@@ -167,7 +167,7 @@ public class Searcher {
             MyQuery query = findQuery(queries, data.getQueryID());
             SubQuery subQuery = query.getSubQueries().get(data.getNumOfSubQuery());
 
-            subQuery.addToData(data);
+            subQuery.addToData(data.getTermData().getTerm(), data);
         }
         System.out.println("done putting data to queries");
         //rank the queries

@@ -34,11 +34,12 @@ public class Main extends Application {
         secondPartModel.LoadStopwords(stopWords);
         secondPartModel.LoadQrels(qrels);
         MyQuery query = new MyQuery("Falkland petroleum exploration", "351");
-        List<DocumentsDictionaryEntrance> data = secondPartModel.Search(query, true);
+        List<DocumentsDictionaryEntrance> data = secondPartModel.Search(query, false);
         for(int i = 0; i < data.size(); i++){
             System.out.println("i = " + i + ", doc = " + data.get(i).getDocNo());
         }
         */
+
         AModel model = new Model();
         AController controller = new Controller();
         controller.setModel(model);

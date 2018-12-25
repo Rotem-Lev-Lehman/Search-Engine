@@ -1,12 +1,12 @@
 package Model;
 
-import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
@@ -40,14 +40,15 @@ public class ReadFile implements IReadFile {
         citiesThatWeSaw = new HashMap<>();
         url = "http://getcitydetails.geobytes.com/GetCityDetails?fqcn=";
         parser = new Parse();
-        ClassLoader classLoader = getClass().getClassLoader();
-        File jFile = new File(classLoader.getResource("citiesAPI.json").getFile());
         try {
-            Scanner scanner = new Scanner(new FileReader(jFile));
+            //ClassLoader classLoader = getClass().getClassLoader();
+            //File jFile = new File(getClass().getResource("citiesAPI.json").toURI());
+            InputStream is = getClass().getResourceAsStream("citiesAPI.json");
+            Scanner scanner = new Scanner(new InputStreamReader(is, StandardCharsets.UTF_8));
             String line = scanner.nextLine();
             scanner.close();
             jsonAPI = new JSONArray(line);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

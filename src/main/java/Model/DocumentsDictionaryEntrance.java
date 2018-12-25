@@ -1,5 +1,7 @@
 package Model;
 
+import java.util.Objects;
+
 public class DocumentsDictionaryEntrance {
     private String DocNo;
     private String FileName;
@@ -113,5 +115,19 @@ public class DocumentsDictionaryEntrance {
         }
         builder.append("\n");
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DocumentsDictionaryEntrance entrance = (DocumentsDictionaryEntrance) o;
+        return DocNo.equals(entrance.DocNo) &&
+                FileName.equals(entrance.FileName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(DocNo, FileName);
     }
 }

@@ -1,24 +1,16 @@
 package View;
 
-import AnalizeTools.Analizer;
-import AnalizeTools.TermFreqTuple;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import javax.annotation.Resource;
-import javax.annotation.Resources;
 import javax.swing.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -187,10 +179,11 @@ public class MainPageView extends AView {
             languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
             try {
                 //String name = Main.class.getResource("/resources/language.txt").getFile();
-                ClassLoader classLoader = getClass().getClassLoader();
-                File file = new File(classLoader.getResource("language.txt").getFile());
+                //ClassLoader classLoader = getClass().getClassLoader();
+                //File file = new File(getClass().getResource("language.txt").toURI());
                 //File file = new File(name);
-                Scanner scanner = new Scanner(new BufferedReader(new FileReader(file)));
+                InputStream is = getClass().getResourceAsStream("language.txt");
+                Scanner scanner = new Scanner(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)));
                 //System.out.println("hey");
                 while (scanner.hasNext()) {
                     String thisLine = scanner.nextLine();
