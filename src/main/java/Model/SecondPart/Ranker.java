@@ -1,6 +1,7 @@
 package Model.SecondPart;
 
 import Model.DocumentsDictionaryEntrance;
+import Model.Term;
 
 import javax.print.Doc;
 import java.util.*;
@@ -27,27 +28,44 @@ public class Ranker {
     public void Rank(MyQuery myQuery, double avgDl, int TotalNumOfDocs) {
         initRank();
         double bm25;
+        double distanceWordsWeight;
         double score;
 
         List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
         for (int i = 0; i < data.size(); i++) {
-            score=0.0;
             bm25=0.0;
             int MaxTF = data.get(i).getDocumentData().getMaxTf();
             int numOfUniqueWords = data.get(i).getDocumentData().getUniqueWordsAmount();
             int DF = data.get(i).getTermData().getDocFreq();//maybe wrong to use
             //int TF = data.get(i).getTermData().getTotalTermFreq();
-
-            for (int k = 0; k < numOfUniqueWords; k++) {
-                double IDF = calcIDF(DF, TotalNumOfDocs);
-                double docSize = ((double)MaxTF / 2.0) * (double)numOfUniqueWords;
-                double TF = (double)data.get(i).getTermInDocumentData().getNormalizedTermFreq() * (double)MaxTF;
-                bm25 = bm25 + IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
-
+//--------------------------------------------------------------------------------------ADDED
+            List<Term> TermsPos= myQuery.getSubQueries().get(0).getTerms();
+            int lastPos;
+            int pos=0;
+            for (int z= 0 ; z < TermsPos.size() ; z++) {
+                lastPos = myQuery.getSubQueries().get(0).getTerms().get(z).getPosition();
+                if (!(Math.abs(pos-lastPos)<4)) {
+                    pos = pos + Math.abs(pos - lastPos);
+                }
             }
-            score = bm25; // for now
+//---------------------------------------------------------------------------------------
+            double docSize = ((double)MaxTF / 2.0) * (double)numOfUniqueWords;
+            for (int s = 0; s < numOfUniqueWords; s++) {
+                double IDF = calcIDF(DF, TotalNumOfDocs);
+                double TF = (double)data.get(i).getTermInDocumentData().getNormalizedTermFreq()*(double)MaxTF;
+                bm25 += IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
+                //distanceWordsWeight += data.get(k)
+            }
+            //Now we also calc for positions
+            double posWeight = (docSize/(double)pos);
+            score = bm25*0.85+posWeight*0.15; // for now
             DocRank docScore = new DocRank((DocumentsDictionaryEntrance)myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(),score);
-            allRankedDocs.add(docScore);
+            if(!allRankedDocs.contains(docScore)) {
+                allRankedDocs.add(docScore);
+            }
+            else{
+                addScoreToExistsScore(docScore);
+            }
         }
 
         Collections.sort(allRankedDocs, new toSort());
@@ -64,7 +82,14 @@ public class Ranker {
         myQuery.setRetrievedDocuments(sortedToReturn);
     }
 
-
+    private void addScoreToExistsScore(DocRank docRank) {
+        for (int i=0 ; i < allRankedDocs.size(); i++){
+            if(allRankedDocs.get(i)==docRank){
+                allRankedDocs.get(i).score+=docRank.getScore();
+                return;
+            }
+        }
+    }
 
 
     public class toSort implements Comparator<Object>{
