@@ -12,13 +12,19 @@ public class EntranceRow implements Comparable, Serializable {
 
 
     /**
-     * @param termFreqInDoc
-     * @param positions
+     * /@param termFreqInDoc
+     * /@param positions
      * constructor for the EntranceRow
      */
+    /*
     public EntranceRow(int termFreqInDoc, List<Integer> positions){
         this.termFreqInDoc = termFreqInDoc;
         this.positions = positions;
+    }
+    */
+
+    public EntranceRow(int termFreqInDoc){
+        this.termFreqInDoc = termFreqInDoc;
     }
 
     public int getDocId() {

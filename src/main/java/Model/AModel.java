@@ -78,6 +78,8 @@ public abstract class AModel {
         double totalTime = time+time1;
         double totalSeconds =  totalTime - (int)totalTime;
         System.out.println("Total time = " + (int)totalTime + " minutes and " + (int)(totalSeconds*60) + " seconds");
+
+        /*
         System.out.println();
         System.out.println();
 
@@ -92,6 +94,7 @@ public abstract class AModel {
         double timeFive = stopWatchForSavingFiveBigWordsForEachDocument.getTime() / 60000.0;
         double secondsFive = timeFive - (int)timeFive;
         System.out.println("Time = " + (int)timeFive + " minutes and " + (int)(secondsFive*60) + " seconds");
+        */
     }
 
     protected abstract void saveFiveBigWordsForEachDocument();

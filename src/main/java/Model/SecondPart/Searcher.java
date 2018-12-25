@@ -20,7 +20,7 @@ public class Searcher {
     private TotalDictionaryController totalDictionaryController;
     private SnowballStemmer stemmer;
     private boolean useSemantic;
-    private int maxAmountOfSimilarWords = 10;
+    private int maxAmountOfSimilarWords = 5;
 
     public Searcher(HashSet<String> stopWords, boolean toStem, TotalDictionaryController totalDictionaryController, boolean useSemantic){
         this.stopWords = stopWords;
@@ -149,12 +149,19 @@ public class Searcher {
             totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i)));
             totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i)));
         }
+        System.out.println("done letters");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Number), totalDictionaryController.getPosting(TypeOfTerm.Number), numbersTerms));
+        System.out.println("done Numbers");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.RangeOrPhrase), totalDictionaryController.getPosting(TypeOfTerm.RangeOrPhrase), rangeOrPhraseTerms));
+        System.out.println("done range-phrase");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.City), totalDictionaryController.getPosting(TypeOfTerm.City), cityTerms));
+        System.out.println("done city");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Price), totalDictionaryController.getPosting(TypeOfTerm.Price), priceTerms));
+        System.out.println("done price");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Percentage), totalDictionaryController.getPosting(TypeOfTerm.Percentage), percentageTerms));
+        System.out.println("done percentage");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms));
+        System.out.println("done date");
         //split the data to the given queries
         for(DocumentAndTermDataForRanking data : totalData){
             MyQuery query = findQuery(queries, data.getQueryID());
@@ -162,6 +169,7 @@ public class Searcher {
 
             subQuery.addToData(data);
         }
+        System.out.println("done putting data to queries");
         //rank the queries
         for(MyQuery query : queries){
             Ranker ranker = new Ranker();
@@ -235,11 +243,19 @@ public class Searcher {
             }
         });
 
+        HashMap<String, List<DocumentAndTermDataForRanking>> visited = new HashMap<>();
+
         List<DocumentAndTermDataForRanking> documentAndTermDataForRankings = new ArrayList<>();
 
         PostingFileReader postingFileReader = new PostingFileReader(postingFile);
 
         for(QuerysTerm term : terms) {
+            List<DocumentAndTermDataForRanking> visitedList = visited.get(term.getValue());
+            if(visitedList != null){
+                documentAndTermDataForRankings.addAll(visitedList);
+                continue;
+            }
+
             ADictionaryEntrance dictionaryEntrance = dictionary.get(term.getValue());
             if (dictionaryEntrance == null) {
                 //don't exist - ignore it...
@@ -249,10 +265,14 @@ public class Searcher {
             postingFileReader.readLineNum(dictionaryEntrance.getPostingPtr());
             if(!postingFileReader.isDone()){
                 ArrayList<EntranceRow> row = postingFileReader.getCurrent().getEntranceRows();
+                visitedList = new ArrayList<>();
                 for(EntranceRow entranceRow : row){
                     DocumentAndTermDataForRanking data = new DocumentAndTermDataForRanking(totalDictionaryController.getDocumentsDictionaryEntrance(entranceRow.getDocId()),dictionaryEntrance,entranceRow,term.getTerm().getPosition(), term.getQueryID(), term.getSubQueryNum());
-                    documentAndTermDataForRankings.add(data);
+                    //documentAndTermDataForRankings.add(data);
+                    visitedList.add(data);
                 }
+                visited.put(term.getValue(), visitedList);
+                documentAndTermDataForRankings.addAll(visitedList);
             }
         }
 

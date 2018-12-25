@@ -31,40 +31,48 @@ public class Ranker {
         double distanceWordsWeight;
         double score;
 
-        List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
-        for (int i = 0; i < data.size(); i++) {
-            bm25=0.0;
-            int MaxTF = data.get(i).getDocumentData().getMaxTf();
-            int numOfUniqueWords = data.get(i).getDocumentData().getUniqueWordsAmount();
-            int DF = data.get(i).getTermData().getDocFreq();//maybe wrong to use
-            //int TF = data.get(i).getTermData().getTotalTermFreq();
+        for(SubQuery subQuery : myQuery.getSubQueries()) {
+            //List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
+            List<DocumentAndTermDataForRanking> data = subQuery.getData();
+            for (int i = 0; i < data.size(); i++) {
+                bm25 = 0.0;
+                int MaxTF = data.get(i).getDocumentData().getMaxTf();
+                int numOfUniqueWords = data.get(i).getDocumentData().getUniqueWordsAmount();
+                int DF = data.get(i).getTermData().getDocFreq();//maybe wrong to use
+                //int TF = data.get(i).getTermData().getTotalTermFreq();
 //--------------------------------------------------------------------------------------ADDED
-            List<Term> TermsPos= myQuery.getSubQueries().get(0).getTerms();
-            int lastPos;
-            int pos=0;
-            for (int z= 0 ; z < TermsPos.size() ; z++) {
-                lastPos = myQuery.getSubQueries().get(0).getTerms().get(z).getPosition();
-                if (!(Math.abs(pos-lastPos)<4)) {
-                    pos = pos + Math.abs(pos - lastPos);
+                List<Term> TermsPos = myQuery.getSubQueries().get(0).getTerms();
+                int lastPos;
+                int pos = 0;
+                for (int z = 0; z < TermsPos.size(); z++) {
+                    lastPos = myQuery.getSubQueries().get(0).getTerms().get(z).getPosition();
+                    if (!(Math.abs(pos - lastPos) < 4)) {
+                        pos = pos + Math.abs(pos - lastPos);
+                    }
                 }
-            }
 //---------------------------------------------------------------------------------------
-            double docSize = ((double)MaxTF / 2.0) * (double)numOfUniqueWords;
+                double docSize = ((double) MaxTF / 2.0) * (double) numOfUniqueWords;
+            /*
             for (int s = 0; s < numOfUniqueWords; s++) {
                 double IDF = calcIDF(DF, TotalNumOfDocs);
                 double TF = (double)data.get(i).getTermInDocumentData().getNormalizedTermFreq()*(double)MaxTF;
                 bm25 += IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
                 //distanceWordsWeight += data.get(k)
             }
-            //Now we also calc for positions
-            double posWeight = (docSize/(double)pos);
-            score = bm25*0.85+posWeight*0.15; // for now
-            DocRank docScore = new DocRank((DocumentsDictionaryEntrance)myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(),score);
-            if(!allRankedDocs.contains(docScore)) {
-                allRankedDocs.add(docScore);
-            }
-            else{
-                addScoreToExistsScore(docScore);
+            */
+                double IDF = calcIDF(DF, TotalNumOfDocs);
+                double TF = (double) data.get(i).getTermInDocumentData().getNormalizedTermFreq() * (double) MaxTF;
+                bm25 += IDF * (TF * (k + 1.0) / (TF + (k * (1.0 - b + b * (docSize / avgDl)))));
+                //Now we also calc for positions
+                double posWeight = (docSize / (double) pos);
+                //score = bm25*0.85+posWeight*0.15; // for now
+                score = bm25; // for now
+                DocRank docScore = new DocRank((DocumentsDictionaryEntrance) myQuery.getSubQueries().get(0).getData().get(i).getDocumentData(), score);
+                if (!allRankedDocs.contains(docScore)) {
+                    allRankedDocs.add(docScore);
+                } else {
+                    addScoreToExistsScore(docScore);
+                }
             }
         }
 

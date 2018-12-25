@@ -25,6 +25,7 @@ public class Main extends Application {
         //Analizer analizer = new Analizer();
         //analizer.AnalizeAmountOfNumbers("C:\\Users\\User\\Desktop\\אחזור מידע\\totalIndex\\totalIndices\\totalIndices\\numbers");
 
+        /*
         SecondPartModel secondPartModel = new SecondPartModel();
         File folder = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\totalIndices\\totalIndices");
         File stopWords = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\stop_words.txt");
@@ -33,10 +34,11 @@ public class Main extends Application {
         secondPartModel.LoadStopwords(stopWords);
         secondPartModel.LoadQrels(qrels);
         MyQuery query = new MyQuery("Falkland petroleum exploration", "351");
-        List<DocumentsDictionaryEntrance> data = secondPartModel.Search(query, false);
+        List<DocumentsDictionaryEntrance> data = secondPartModel.Search(query, true);
         for(int i = 0; i < data.size(); i++){
             System.out.println("i = " + i + ", doc = " + data.get(i).getDocNo());
         }
+        */
         AModel model = new Model();
         AController controller = new Controller();
         controller.setModel(model);

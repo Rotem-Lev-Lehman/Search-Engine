@@ -48,9 +48,10 @@ public abstract class AIndex {
             if (maxTf < positions.size())
                 maxTf = positions.size();
 
-            Collections.sort(positions); //make sure that the positions are sorted
+            //Collections.sort(positions); //make sure that the positions are sorted
 
-            EntranceRow entranceRow = new EntranceRow(positions.size(), positions);
+            //EntranceRow entranceRow = new EntranceRow(positions.size(), positions);
+            EntranceRow entranceRow = new EntranceRow(positions.size());
             entranceRows.add(new TupleEntranceRowAndTerm(entranceRow, terms.get(i)));
         }
 

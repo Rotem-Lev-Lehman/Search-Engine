@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class Model extends AModel {
 
     private int amountOfDocsAllowedInQueue = 300;
-    private int amountOfParsedDocsInRam = 17000;
+    private int amountOfParsedDocsInRam = 3000;
     //private int amountOfTermsAllowedInIndex = 1000000;
     private int amountOfThreadsInThreadPool = (2*(Runtime.getRuntime().availableProcessors())) - 1;
     private int amountOfTasksAllowedInThreadPool = amountOfThreadsInThreadPool;
