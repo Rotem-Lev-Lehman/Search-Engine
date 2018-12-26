@@ -1,12 +1,12 @@
 package Model;
 
-import com.sun.corba.se.impl.orbutil.concurrent.Mutex;
+import java.util.concurrent.Semaphore;
 
 public class IdentityAndScore {
     private String term;
     private double score;
 
-    public Mutex lock = new Mutex();
+    public Semaphore lock = new Semaphore(1);
 
     public IdentityAndScore(String term, double score){
         this.term = term;
