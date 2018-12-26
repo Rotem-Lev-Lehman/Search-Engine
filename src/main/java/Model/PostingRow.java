@@ -45,21 +45,17 @@ public class PostingRow implements Serializable {
         String[] differentEntrances = postingRow.split("&");
         ArrayList<EntranceRow> entranceRows = new ArrayList<EntranceRow>();
         for(int i = 0; i < differentEntrances.length; i++) {
-            /*
             String[] firstSplit = differentEntrances[i].split("\\[");
             String[] firstStuff = firstSplit[0].split(";");
             String[] secondStuff = firstSplit[1].split("]")[0].split(";");
-            */
-            String[] firstStuff = differentEntrances[i].split(";");
-            /*
+            //String[] firstStuff = differentEntrances[i].split(";");
             List<Integer> places = new ArrayList<>();
             for (String num : secondStuff) {
                 places.add(Integer.parseInt(num));
             }
-            */
             double tf = Double.parseDouble(firstStuff[1])/1000.0;
-            //EntranceRow entrance = new EntranceRow(1,places);
-            EntranceRow entrance = new EntranceRow(1);
+            EntranceRow entrance = new EntranceRow(1,places);
+            //EntranceRow entrance = new EntranceRow(1);
             entrance.setNormalizedTermFreq(tf);
             entrance.setDocId(Integer.parseInt(firstStuff[0]));
             entranceRows.add(entrance);
@@ -75,7 +71,6 @@ public class PostingRow implements Serializable {
         for (int j = 0; j < entranceRows.size(); j++) {
             EntranceRow entrance = entranceRows.get(j);
             builder.append(entrance.getDocId()).append(";").append(Math.round(entrance.getNormalizedTermFreq() * 1000)).append(";");
-            /*
             builder.append('[');
             List<Integer> pos = entrance.getPositions();
             for(int i = 0; i < pos.size(); i++){
@@ -84,7 +79,6 @@ public class PostingRow implements Serializable {
                     builder.append(";");
             }
             builder.append(']');
-            */
             if(j < entranceRows.size() - 1)
                 builder.append('&');
         }

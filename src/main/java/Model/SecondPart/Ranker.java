@@ -29,6 +29,7 @@ public class Ranker {
         initRank();
         //double bm25;
         double distanceWordsWeight;
+        double maxBM25 = 0;
 
         for(SubQuery subQuery : myQuery.getSubQueries()) {
             //List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
@@ -63,6 +64,11 @@ public class Ranker {
         }
 
         for(DocRank docRank : allRankedDocs){
+            if(docRank.currBM25 > maxBM25)
+                maxBM25 = docRank.currBM25;
+        }
+        for(DocRank docRank : allRankedDocs){
+            docRank.normalizeBM25(maxBM25);
             docRank.calculatePositions();
             docRank.calculateScore();
         }
@@ -215,6 +221,10 @@ public class Ranker {
             sum /= positions.size();
 
             posScore = sum;
+        }
+
+        public void normalizeBM25(double maxBM25) {
+            currBM25 /= maxBM25;
         }
     }
 }
