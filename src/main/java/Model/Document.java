@@ -1,6 +1,8 @@
 package Model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A class that represents a Document
@@ -11,7 +13,7 @@ public class Document {
      */
     private String DOCNO;
 
-    private String city;
+    private List<String> cities;
 
     private CityInfo cityInfo;
 
@@ -37,7 +39,7 @@ public class Document {
         this.DATE1 = null;
         this.TI = null;
         this.TEXT = null;
-        this.city = null;
+        this.cities = new ArrayList<>();
         this.cityInfo = null;
     }
 
@@ -48,13 +50,13 @@ public class Document {
      * @param TI - The headline of the Document
      * @param TEXT - The content of the Document
      */
-    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT, String filename, String city) {
+    public Document(String DOCNO, LocalDate DATE1, String TI, String TEXT, String filename, List<String> cities) {
         this.DOCNO = DOCNO;
         this.DATE1 = DATE1;
         this.TI = TI;
         this.TEXT = TEXT;
         this.filename = filename;
-        this.city = city;
+        this.cities = cities;
         this.cityInfo = null;
     }
 
@@ -116,12 +118,12 @@ public class Document {
         this.TEXT = TEXT;
     }
 
-    public String getCity() {
-        return city;
+    public List<String> getCity() {
+        return cities;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setCity(List<String> cities) {
+        this.cities = cities;
     }
 
     public CityInfo getCityInfo() {

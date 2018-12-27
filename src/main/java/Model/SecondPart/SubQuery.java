@@ -35,6 +35,10 @@ public class SubQuery {
         terms.add(term);
     }
 
+    public void addTerms(List<Term> terms){
+        this.terms.addAll(terms);
+    }
+
     public void setTerms(List<Term> terms) {
         this.terms = terms;
     }

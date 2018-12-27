@@ -8,16 +8,17 @@ import java.util.List;
 
 public class MyQuery {
     private Document document;
-    private String[] citiesRelevant;
+    private List<String> citiesRelevant;
     private String id;
     private List<SubQuery> subQueries;
     private int nextSubQueryNum;
     private List<DocumentsDictionaryEntrance> retrievedDocuments;
 
-    public MyQuery(String text, String id){
+    public MyQuery(String text, List<String> citiesRelevant, String id){
         this.document = new Document();
         document.setTEXT(text);
-        citiesRelevant = null;
+        this.citiesRelevant = citiesRelevant;
+        document.setCity(this.citiesRelevant);
         this.id = id;
         subQueries = new ArrayList<>();
         nextSubQueryNum = 0;
@@ -31,12 +32,13 @@ public class MyQuery {
         this.document.setTEXT(text);
     }
 
-    public String[] getCitiesRelevant() {
+    public List<String> getCitiesRelevant() {
         return citiesRelevant;
     }
 
-    public void setCitiesRelevant(String[] citiesRelevant) {
+    public void setCitiesRelevant(List<String> citiesRelevant) {
         this.citiesRelevant = citiesRelevant;
+        document.setCity(this.citiesRelevant);
     }
 
     public String getId() {

@@ -15,6 +15,7 @@ public class Term {
     private boolean endedWithHyphen;
     private TypeOfTerm type;
     private int position;
+    private boolean semanticTerm;
 
     /** Constructor
      * @param value - The value of the term
@@ -25,6 +26,7 @@ public class Term {
         this.endedWithHyphen = false;
         this.type = type;
         this.position = 0;
+        semanticTerm = false;
     }
 
     public Term(String value, int position, TypeOfTerm type) {
@@ -33,6 +35,7 @@ public class Term {
         this.endedWithHyphen = false;
         this.type = type;
         this.position = position;
+        semanticTerm = false;
     }
 
     public Term(String value, TypeOfTerm type, int numOfTokensParsed){
@@ -41,6 +44,7 @@ public class Term {
         this.endedWithHyphen = false;
         this.type = type;
         this.position = 0;
+        semanticTerm = false;
     }
 
     public Term(String value, TypeOfTerm type, int numOfTokensParsed, boolean endedWithHyphen){
@@ -49,6 +53,7 @@ public class Term {
         this.endedWithHyphen = endedWithHyphen;
         this.type = type;
         this.position = 0;
+        semanticTerm = false;
     }
 
     /** Gets the value of the term
@@ -95,6 +100,14 @@ public class Term {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public boolean isSemanticTerm() {
+        return semanticTerm;
+    }
+
+    public void setSemanticTerm(boolean semanticTerm) {
+        this.semanticTerm = semanticTerm;
     }
 
     @Override

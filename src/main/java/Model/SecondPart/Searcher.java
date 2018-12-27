@@ -12,6 +12,9 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Searcher {
     private IParse parser;
@@ -61,7 +64,8 @@ public class Searcher {
 
             if (useSemantic) {
                 List<Term> parsedWithoutStemming = parser.Parse(query.getDocument(), stopWords, false);
-                List<List<Term>> similarTerms = new ArrayList<>();
+                SubQuery subQuery = new SubQuery(query.getId());
+                //List<List<Term>> similarTerms = new ArrayList<>();
                 for (Term term : parsedWithoutStemming) {
                     List<Term> currentSimilarTerms = SemanticSearcher(term);
                     if(toStem){
@@ -77,25 +81,42 @@ public class Searcher {
                             }
                         }
                     }
-                    similarTerms.add(currentSimilarTerms);
+                    subQuery.addTerms(currentSimilarTerms);
+                    //similarTerms.add(currentSimilarTerms);
                 }
 
-                GeneratePermutations(similarTerms, subQueries, 0, new SubQuery(query.getId()), subQueryIndex);
+                //GeneratePermutations(similarTerms, subQueries, 0, new SubQuery(query.getId()), subQueryIndex);
 
+                subQueries.add(subQuery);
+
+                querysTerms.addAll(subQuery.getQueryTerms());
+                /*
                 for (SubQuery subQuery : subQueries) {
                     querysTerms.addAll(subQuery.getQueryTerms());
                 }
+                */
             } else {
                 List<Term> terms = parser.Parse(query.getDocument(), stopWords, toStem);
                 SubQuery curr = new SubQuery(query.getId());
                 curr.setSubQueryNum(subQueryIndex.getValue());
+
                 for (Term term : terms) {
                     curr.addTerm(term);
+                    if(term.getType() == TypeOfTerm.SmallLetters){
+                        Term big = new Term(term.getValue().toUpperCase(),term.getPosition(), TypeOfTerm.BigLetters);
+                        curr.addTerm(big);
+                    }
+                    else if(term.getType() == TypeOfTerm.BigLetters){
+                        Term small = new Term(term.getValue().toLowerCase(),term.getPosition(), TypeOfTerm.SmallLetters);
+                        curr.addTerm(small);
+                    }
                 }
+
                 subQueries.add(curr);
                 querysTerms.addAll(curr.getQueryTerms());
             }
         }
+        System.out.println("done generating queries terms");
 
         // split the terms to their different lists
         List<List<QuerysTerm>> smallLetterTerms = new ArrayList<>(26);
@@ -142,9 +163,43 @@ public class Searcher {
             }
         }
 
+        System.out.println("starting to check posting");
+        boolean checkCities = false;
+        List<String> relevantCities = queries.get(0).getCitiesRelevant();
+        if(relevantCities.size() > 0)
+            checkCities = true;
         //now search in every dictionary if the terms exist in it
         //merge all the data to a single list (so the read of the posting file will be with only one pass over it
+        ExecutorService threadPool = Executors.newFixedThreadPool(26*2 + 6);
         List<DocumentAndTermDataForRanking> totalData = new ArrayList<>();
+        Object lock = new Object();
+        for(int i = 0; i < 26; i++) {
+            threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i), checkCities, relevantCities));
+            threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i), checkCities, relevantCities));
+        }
+
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Number), totalDictionaryController.getPosting(TypeOfTerm.Number), numbersTerms, checkCities, relevantCities));
+
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.RangeOrPhrase), totalDictionaryController.getPosting(TypeOfTerm.RangeOrPhrase), rangeOrPhraseTerms, checkCities, relevantCities));
+
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.City), totalDictionaryController.getPosting(TypeOfTerm.City), cityTerms, checkCities, relevantCities));
+
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Price), totalDictionaryController.getPosting(TypeOfTerm.Price), priceTerms, checkCities, relevantCities));
+
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Percentage), totalDictionaryController.getPosting(TypeOfTerm.Percentage), percentageTerms, checkCities, relevantCities));
+
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms, checkCities, relevantCities));
+
+        threadPool.shutdown();
+        try {
+            boolean done = false;
+            while (!done)
+                done = threadPool.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("done reading from posting files");
+        /*
         for(int i = 0; i < 26; i++) {
             totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i)));
             totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i)));
@@ -162,6 +217,7 @@ public class Searcher {
         System.out.println("done percentage");
         totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms));
         System.out.println("done date");
+        */
         //split the data to the given queries
         for(DocumentAndTermDataForRanking data : totalData){
             MyQuery query = findQuery(queries, data.getQueryID());
@@ -196,10 +252,10 @@ public class Searcher {
                 for (int i = 0; i < length; i++) {
                     JSONObject current = (JSONObject) array.get(i);
                     String currTerm = (String) current.get("word");
-                    Term t;
                     String[] split = currTerm.split(" "); //check if is a phrase
                     if(split.length > 1){
                         //its a phrase...
+                        Term t;
                         StringBuilder phrase = new StringBuilder();
                         for (int j = 0; j < split.length; j++) {
                             if(split[j].equals(""))
@@ -209,11 +265,21 @@ public class Searcher {
                         String p = phrase.toString();
                         p = p.substring(0, p.length() - 1); // remove the last "-"
                         t = new Term(p, term.getPosition(), TypeOfTerm.RangeOrPhrase);
+
+                        t.setSemanticTerm(true);
+
+                        terms.add(t);
                     }
                     else{
-                        t = new Term(currTerm, term.getPosition(), TypeOfTerm.SmallLetters); // it is the most possible option...(to be a small term)
+                        Term tSmall = new Term(currTerm, term.getPosition(), TypeOfTerm.SmallLetters);
+                        Term tBig = new Term(currTerm.toUpperCase(), term.getPosition(), TypeOfTerm.BigLetters);
+
+                        tSmall.setSemanticTerm(true);
+                        tBig.setSemanticTerm(true);
+
+                        terms.add(tSmall);
+                        terms.add(tBig);
                     }
-                    terms.add(t);
                 }
             }
             catch (Exception e){
@@ -232,9 +298,38 @@ public class Searcher {
         return null;
     }
 
-    private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms){
-        if(terms.size() == 0)
-            return new ArrayList<DocumentAndTermDataForRanking>();
+    private class PostingSearcher implements Runnable{
+
+        private List<DocumentAndTermDataForRanking> totalData;
+        private Object lock;
+        private Map<String, ADictionaryEntrance> dictionary;
+        private File postingFile;
+        private List<QuerysTerm> terms;
+        private boolean checkCities;
+        private List<String> cities;
+
+        public PostingSearcher(List<DocumentAndTermDataForRanking> totalData, Object lock, Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms, boolean checkCities, List<String> citiesRelevant) {
+            this.totalData = totalData;
+            this.lock = lock;
+            this.dictionary = dictionary;
+            this.postingFile = postingFile;
+            this.terms = terms;
+            this.checkCities = checkCities;
+            this.cities = citiesRelevant;
+        }
+
+        @Override
+        public void run() {
+            if(terms.size() == 0)
+                return;
+            List<DocumentAndTermDataForRanking> postingResult = searchInDictionary(dictionary,postingFile,terms, checkCities, cities);
+            synchronized (lock){
+                totalData.addAll(postingResult);
+            }
+        }
+    }
+
+    private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms, boolean checkCities, List<String> citiesRelevant){
         //sort so will be searched in the index only with one pass on it
         terms.sort(new Comparator<QuerysTerm>() {
             @Override
@@ -267,7 +362,16 @@ public class Searcher {
                 ArrayList<EntranceRow> row = postingFileReader.getCurrent().getEntranceRows();
                 visitedList = new ArrayList<>();
                 for(EntranceRow entranceRow : row){
-                    DocumentAndTermDataForRanking data = new DocumentAndTermDataForRanking(totalDictionaryController.getDocumentsDictionaryEntrance(entranceRow.getDocId()),dictionaryEntrance,entranceRow,term.getTerm().getPosition(), term.getQueryID(), term.getSubQueryNum());
+                    DocumentsDictionaryEntrance currDoc = totalDictionaryController.getDocumentsDictionaryEntrance(entranceRow.getDocId());
+
+                    if(checkCities){
+                        if(currDoc.getCity() == null)
+                            continue;
+                        if(!citiesRelevant.contains(currDoc.getCity()))
+                            continue;
+                    }
+
+                    DocumentAndTermDataForRanking data = new DocumentAndTermDataForRanking(currDoc,dictionaryEntrance,entranceRow,term.getTerm().getPosition(), term.getQueryID(), term.getSubQueryNum());
                     //documentAndTermDataForRankings.add(data);
                     visitedList.add(data);
                 }

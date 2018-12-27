@@ -95,7 +95,7 @@ public class Parse implements IParse {
             if(tokens[currentIndex].equals("") || tokens[currentIndex].equals(" "))
                 continue;
 
-            if(tokens[currentIndex].equals(document.getCity())) {
+            if(document.getCity().contains(tokens[currentIndex].toLowerCase())) {
                 //a city term
                 saveCompleteTerm(tokens[currentIndex].toUpperCase(), TypeOfTerm.City);
                 continue;

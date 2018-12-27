@@ -1,6 +1,8 @@
 package Model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A factory class for creating a Document from text
@@ -29,9 +31,12 @@ public class DocumentFactory implements IDocumentFactory {
         //<F P=104> </F>
         String city = FindCityBetweenTags(doc, "<F P=104>", "</F>");
 
+        List<String> cities = new ArrayList<>();
+        if(city != null)
+            cities.add(city.toLowerCase());
 
         //Create the new Document
-        Document document = new Document(DocNo, null, TI, Text, filename, city);
+        Document document = new Document(DocNo, null, TI, Text, filename, cities);
         return document;
     }
 

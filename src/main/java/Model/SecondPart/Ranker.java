@@ -30,11 +30,17 @@ public class Ranker {
         //double bm25;
         double distanceWordsWeight;
         double maxBM25 = 0;
+        int nonSemanticTermsCount = 0;
 
         for(SubQuery subQuery : myQuery.getSubQueries()) {
             //List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
             for(Term term : subQuery.getTerms()){
                 List<DocumentAndTermDataForRanking> data = subQuery.getData().get(term.getValue());
+                if(data == null)
+                    continue;
+
+                if(term.isSemanticTerm())
+                    nonSemanticTermsCount++;
 
                 for(DocumentAndTermDataForRanking doc : data){
                     int MaxTF = doc.getDocumentData().getMaxTf();
@@ -53,6 +59,8 @@ public class Ranker {
                     docScore.currBM25 = bm25;
                     docScore.addToPositions(currPos);
                     docScore.setDocLength(docSize);
+                    if(term.isSemanticTerm())
+                        docScore.addNonSemanticTerm();
                     if (!allRankedDocs.contains(docScore)) {
                         allRankedDocs.add(docScore);
                     } else {
@@ -64,6 +72,7 @@ public class Ranker {
         }
 
         for(DocRank docRank : allRankedDocs){
+            docRank.normalizeAmountOfNonSemanticTerms(nonSemanticTermsCount);
             if(docRank.currBM25 > maxBM25)
                 maxBM25 = docRank.currBM25;
         }
@@ -92,6 +101,7 @@ public class Ranker {
             if(allRankedDocs.get(i).equals(docRank)){
                 allRankedDocs.get(i).addToBM25(docRank.getCurrBM25());
                 allRankedDocs.get(i).addToPositions(pos);
+                allRankedDocs.get(i).addAmountToNonSemanticTermCount(docRank.amountOfNonSemanticTerms);
                 return;
             }
         }
@@ -123,12 +133,14 @@ public class Ranker {
         private List<List<Integer>> positions;
         private double docLength;
         private double score;
+        private double amountOfNonSemanticTerms;
 
         public DocRank(DocumentsDictionaryEntrance documentsDictionaryEntrance) {
             this.documentsDictionaryEntrance = documentsDictionaryEntrance;
             this.score = 0;
             currBM25 = 0;
             posScore = 0;
+            amountOfNonSemanticTerms = 0;
             positions = new ArrayList<>();
         }
 
@@ -162,7 +174,7 @@ public class Ranker {
 
         public void calculateScore(){
             //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
-            score = currBM25 * 0.8 + posScore * 0.2;
+            score = currBM25 * 0.25 + amountOfNonSemanticTerms * 0.7 + posScore * 0.05;
         }
 
         public void addToPositions(List<Integer> pos){
@@ -175,6 +187,18 @@ public class Ranker {
 
         public void setDocLength(double docLength) {
             this.docLength = docLength;
+        }
+
+        public void addNonSemanticTerm(){
+            amountOfNonSemanticTerms++;
+        }
+
+        public void addAmountToNonSemanticTermCount(double amount){
+            amountOfNonSemanticTerms += amount;
+        }
+
+        public void normalizeAmountOfNonSemanticTerms(int amountOfNonSemanticTerms){
+            this.amountOfNonSemanticTerms /= (double)amountOfNonSemanticTerms;
         }
 
         /*

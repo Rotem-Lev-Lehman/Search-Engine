@@ -114,17 +114,20 @@ public class ReadFile implements IReadFile {
         for (int i = 1; i < docs.length; i++) {
             docs[i] = "<DOC>" + docs[i];
             Document document = documentFactory.CreateDocument(docs[i], file.getName());
-            String city = document.getCity();
-            if(city != null && !city.equals("")){
-                //get document's info:
-                CityInfo info = citiesThatWeSaw.get(city);
-                if(info == null){
-                    //we need to get the city from the API
-                    //info = getCityInfoFromAPI(city);
-                    info = getCityInfoFromJsonAPI(city);
-                    citiesThatWeSaw.put(city, info);
+            List<String> cities = document.getCity();
+            if(cities.size() > 0) {
+                String city = cities.get(0);
+                if (city != null && !city.equals("")) {
+                    //get document's info:
+                    CityInfo info = citiesThatWeSaw.get(city);
+                    if (info == null) {
+                        //we need to get the city from the API
+                        //info = getCityInfoFromAPI(city);
+                        info = getCityInfoFromJsonAPI(city);
+                        citiesThatWeSaw.put(city, info);
+                    }
+                    document.setCityInfo(info);
                 }
-                document.setCityInfo(info);
             }
             documents.add(document);
         }
