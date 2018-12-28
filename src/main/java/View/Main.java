@@ -32,12 +32,14 @@ public class Main extends Application {
         File stopWords = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\stop_words.txt");
         File qrels = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\part2\\qrels.txt");
         File queries = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\part2\\queries.txt");
+        File results = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\part2\\results.txt");
         secondPartModel.LoadDictionary(folder,false);
         secondPartModel.LoadStopwords(stopWords);
         secondPartModel.LoadQrels(qrels);
         List<String> citiesRelevant = new ArrayList<>();
 
-        secondPartModel.Search(queries,citiesRelevant,false);
+        List<MyQuery> myQueries = secondPartModel.Search(queries,citiesRelevant,true);
+        secondPartModel.WriteResultsToFile(results, myQueries);
         //citiesRelevant.add("TOKYO");
         /*
         MyQuery query = new MyQuery("Falkland petroleum exploration", citiesRelevant,"351");

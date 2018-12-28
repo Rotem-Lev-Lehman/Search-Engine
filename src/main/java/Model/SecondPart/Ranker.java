@@ -8,7 +8,7 @@ import java.util.*;
 
 public class Ranker {
 
-    private List<DocRank> allRankedDocs;
+    private Map<DocumentsDictionaryEntrance, DocRank> allRankedDocs;
     private List<DocumentsDictionaryEntrance> sortedToReturn;
     private double k;
     private double b;
@@ -16,7 +16,7 @@ public class Ranker {
     public void initRank() {
         k = 1.25;
         b = 0.75;
-        allRankedDocs = new ArrayList<>();
+        allRankedDocs = new HashMap<>();
         sortedToReturn = new ArrayList<>();
     }
 
@@ -61,41 +61,56 @@ public class Ranker {
                     docScore.setDocLength(docSize);
                     if(term.isSemanticTerm())
                         docScore.addNonSemanticTerm();
-                    if (!allRankedDocs.contains(docScore)) {
-                        allRankedDocs.add(docScore);
+                    DocRank search = allRankedDocs.get(doc.getDocumentData());
+                    if (search == null) {
+                        allRankedDocs.put(doc.getDocumentData(), docScore);
                     } else {
-                        addScoreToExistsScore(docScore, currPos);
+                        //addScoreToExistsScore(docScore, currPos);
+                        search.addToBM25(docScore.getCurrBM25());
+                        search.addToPositions(currPos);
+                        search.addAmountToNonSemanticTermCount(docScore.amountOfNonSemanticTerms);
                     }
 
                 }
             }
         }
 
-        for(DocRank docRank : allRankedDocs){
+        //PriorityQueue<DocRank> sortedByRank = new PriorityQueue<>(new toSort());
+
+        for(DocRank docRank : allRankedDocs.values()){
             docRank.normalizeAmountOfNonSemanticTerms(nonSemanticTermsCount);
             if(docRank.currBM25 > maxBM25)
                 maxBM25 = docRank.currBM25;
         }
-        for(DocRank docRank : allRankedDocs){
+        for(DocRank docRank : allRankedDocs.values()){
             docRank.normalizeBM25(maxBM25);
             docRank.calculatePositions();
             docRank.calculateScore();
-        }
 
-        Collections.sort(allRankedDocs, new toSort());
-        int count = Math.min(50, allRankedDocs.size());
+            //start sorting...
+            //sortedByRank.add(docRank);
+        }
+        List<DocRank> sortedByRank = new LinkedList<>(allRankedDocs.values());
+
+        Collections.sort(sortedByRank, new toSort());
+        //int count = Math.min(50, sortedByRank.size());
+        int count = 0;
         //int count = allRankedDocs.size();
         HashSet<String> seenDocs = new HashSet<>();
-        for(int i = 0; i < count; i++) {
-            if(seenDocs.contains(allRankedDocs.get(i).getDocumentsDictionaryEntrance().getDocNo().replace(" ", "")))
+        for(DocRank best : sortedByRank) {
+            if(count >= 50)
+                break;
+            if(seenDocs.contains(best.getDocumentsDictionaryEntrance().getDocNo().replace(" ", "")))
                 continue;
-            seenDocs.add(allRankedDocs.get(i).getDocumentsDictionaryEntrance().getDocNo().replace(" ", ""));
-            sortedToReturn.add(allRankedDocs.get(i).getDocumentsDictionaryEntrance());
+            seenDocs.add(best.getDocumentsDictionaryEntrance().getDocNo().replace(" ", ""));
+            sortedToReturn.add(best.getDocumentsDictionaryEntrance());
+            count++;
         }
 
         myQuery.setRetrievedDocuments(sortedToReturn);
     }
 
+    /*
     private void addScoreToExistsScore(DocRank docRank, List<Integer> pos) {
         for (int i=0 ; i < allRankedDocs.size(); i++){
             if(allRankedDocs.get(i).equals(docRank)){
@@ -106,7 +121,7 @@ public class Ranker {
             }
         }
     }
-
+    */
 
     public class toSort implements Comparator<Object>{
         @Override

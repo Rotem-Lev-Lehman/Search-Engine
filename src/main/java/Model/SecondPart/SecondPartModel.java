@@ -3,10 +3,7 @@ package Model.SecondPart;
 import Model.DocumentsDictionaryEntrance;
 import org.apache.commons.lang3.time.StopWatch;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 
 public class SecondPartModel {
@@ -139,7 +136,7 @@ public class SecondPartModel {
         }
     }
 
-    public List<List<DocumentsDictionaryEntrance>> Search(File queriesFile, List<String> citiesRelevant, boolean useSemantics){
+    public List<MyQuery> Search(File queriesFile, List<String> citiesRelevant, boolean useSemantics){
         List<MyQuery> queries = new ArrayList<>();
         try {
             Scanner scanner = new Scanner(new BufferedReader(new FileReader(queriesFile)));
@@ -183,7 +180,25 @@ public class SecondPartModel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return Search(queries, useSemantics);
+        Search(queries, useSemantics);
+        return queries;
+    }
+
+    public void WriteResultsToFile(File dest, List<MyQuery> queries){
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
+            for(MyQuery query : queries){
+                for(DocumentsDictionaryEntrance doc : query.getRetrievedDocuments()){
+                    //                 query_id,    iter,       docno,       rank,     sim,    run_id
+                    writer.write(query.getId() + " 0 " + doc.getDocNo().replace(" ", "") + " 1" + " 42.38" + " mt");
+                    writer.newLine();
+                }
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
