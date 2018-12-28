@@ -31,16 +31,21 @@ public class Main extends Application {
         File folder = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\totalIndices\\totalIndices");
         File stopWords = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\stop_words.txt");
         File qrels = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\part2\\qrels.txt");
+        File queries = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\part2\\queries.txt");
         secondPartModel.LoadDictionary(folder,false);
         secondPartModel.LoadStopwords(stopWords);
         secondPartModel.LoadQrels(qrels);
         List<String> citiesRelevant = new ArrayList<>();
+
+        secondPartModel.Search(queries,citiesRelevant,false);
         //citiesRelevant.add("TOKYO");
+        /*
         MyQuery query = new MyQuery("Falkland petroleum exploration", citiesRelevant,"351");
         List<DocumentsDictionaryEntrance> data = secondPartModel.Search(query, true);
         for(int i = 0; i < data.size(); i++){
             System.out.println("i = " + i + ", doc = " + data.get(i).getDocNo());
         }
+        */
 
 
         AModel model = new Model();

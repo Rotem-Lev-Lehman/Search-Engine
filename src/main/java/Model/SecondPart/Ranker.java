@@ -174,7 +174,7 @@ public class Ranker {
 
         public void calculateScore(){
             //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
-            score = currBM25 * 0.25 + amountOfNonSemanticTerms * 0.7 + posScore * 0.05;
+            score = currBM25 * 0.55 + amountOfNonSemanticTerms * 0.4 + posScore * 0.05;
         }
 
         public void addToPositions(List<Integer> pos){

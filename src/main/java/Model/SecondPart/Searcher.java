@@ -1,6 +1,7 @@
 package Model.SecondPart;
 
 import Model.*;
+import org.apache.commons.lang3.time.StopWatch;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.tartarus.snowball.SnowballStemmer;
@@ -228,8 +229,12 @@ public class Searcher {
         System.out.println("done putting data to queries");
         //rank the queries
         for(MyQuery query : queries){
+            StopWatch timer = new StopWatch();
+            timer.start();
             Ranker ranker = new Ranker();
             ranker.Rank(query, totalDictionaryController.getAvgDocLength(), totalDictionaryController.getN());
+            timer.stop();
+            System.out.println("time for current query = " + timer.getTime(TimeUnit.MILLISECONDS) + " milliseconds");
         }
         //done
     }
