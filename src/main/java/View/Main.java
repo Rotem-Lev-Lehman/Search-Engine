@@ -1,6 +1,5 @@
 package View;
 
-import AnalizeTools.Analizer;
 import Control.AController;
 import Control.Controller;
 import Model.*;
@@ -26,7 +25,7 @@ public class Main extends Application {
         //Analizer analizer = new Analizer();
         //analizer.AnalizeAmountOfNumbers("C:\\Users\\User\\Desktop\\אחזור מידע\\totalIndex\\totalIndices\\totalIndices\\numbers");
 
-
+/*
         SecondPartModel secondPartModel = new SecondPartModel();
         File folder = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\totalIndices\\totalIndices");
         File stopWords = new File("C:\\Users\\Rotem\\Desktop\\תואר ראשון\\אחזור\\stop_words.txt");
@@ -40,6 +39,7 @@ public class Main extends Application {
 
         List<MyQuery> myQueries = secondPartModel.Search(queries,citiesRelevant,true);
         secondPartModel.WriteResultsToFile(results, myQueries);
+        */
         //citiesRelevant.add("TOKYO");
         /*
         MyQuery query = new MyQuery("Falkland petroleum exploration", citiesRelevant,"351");
@@ -49,19 +49,28 @@ public class Main extends Application {
         }
         */
 
-
         AModel model = new Model();
         AController controller = new Controller();
         controller.setModel(model);
+        SecondPartModel secondPartModel = new SecondPartModel();
+        controller.setSecondPartModel(secondPartModel);
 
         FXMLLoader fxmlLoader = new FXMLLoader();
-        Parent root = fxmlLoader.load(getClass().getResource("/MainPage.fxml").openStream());
+        Parent root = fxmlLoader.load(getClass().getResource("/ShowResultsPage.fxml").openStream());
 
         primaryStage.setTitle("Search Engine");
         primaryStage.setScene(new Scene(root, 773, 605));
         primaryStage.show();
 
         ((AView) fxmlLoader.getController()).setController(controller);
+        IdentityAndScore[] id = new IdentityAndScore[5];
+        for(int i = 0; i < id.length; i++){
+            id[i] = new IdentityAndScore("Hi", 0.5);
+        }
+        QueryResultForView queryResultForView = new QueryResultForView("123", new DocumentsDictionaryEntrance("docNo","file",2,4,"city",id));
+        List<QueryResultForView> results = new ArrayList<QueryResultForView>();
+        results.add(queryResultForView);
+        ((ShowResultsView)fxmlLoader.getController()).setResults(results);
     }
 
 

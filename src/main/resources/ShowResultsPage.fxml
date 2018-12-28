@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="437.0" prefWidth="980.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="View.ShowResultsView">
+   <children>
+      <TableView fx:id="tableViewResults" layoutX="13.0" layoutY="41.0" prefHeight="384.0" prefWidth="941.0">
+        <columns>
+            <TableColumn fx:id="queryId" prefWidth="88.0" text="Query id" />
+            <TableColumn fx:id="documentId" prefWidth="100.0" text="Document id" />
+            <TableColumn fx:id="e1" prefWidth="75.0" text="Entity 1" />
+            <TableColumn fx:id="s1" prefWidth="75.0" text="Score 1" />
+            <TableColumn fx:id="e2" prefWidth="75.0" text="Entity 2" />
+            <TableColumn fx:id="s2" prefWidth="75.0" text="Score 2" />
+            <TableColumn fx:id="e3" prefWidth="75.0" text="Entity 3" />
+            <TableColumn fx:id="s3" prefWidth="75.0" text="Score 3" />
+            <TableColumn fx:id="e4" prefWidth="75.0" text="Entity 4" />
+            <TableColumn fx:id="s4" prefWidth="75.0" text="Score 4" />
+            <TableColumn fx:id="e5" prefWidth="75.0" text="Entity 5" />
+            <TableColumn fx:id="s5" prefWidth="75.0" text="Score 5" />
+        </columns>
+      </TableView>
+      <CheckBox fx:id="checkBoxShowFiveEntities" layoutX="23.0" layoutY="14.0" mnemonicParsing="false" text="Show The entities of each document retrieved" />
+   </children>
+</AnchorPane>

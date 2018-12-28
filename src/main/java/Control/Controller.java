@@ -3,12 +3,12 @@ package Control;
 import AnalizeTools.Analizer;
 import Model.Model;
 import View.DictionaryViewer;
-import View.MainPageView;
+import View.FirstPartView;
+import View.SecondPartView;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import org.apache.commons.lang3.ObjectUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,27 +28,28 @@ public class Controller extends AController {
 
     @Override
     public void update(Observable o, Object arg) {
-        if (o instanceof MainPageView) {
+        if (o instanceof FirstPartView) {
             if (arg instanceof String) {
                 if (arg.equals("Given Source Files")){
                     tmp="SRC";
-                    openDirectoryDialog((MainPageView) o, "SRC");}
+                    openDirectoryDialog((FirstPartView) o, "SRC");
+                }
                 else if(arg.equals("Destination Files")) {
                     tmp="DST";
-                    openDirectoryDialog((MainPageView) o, "DST");
+                    openDirectoryDialog((FirstPartView) o, "DST");
                 }
                 else if(arg.equals("load")){
                     tmp="LOAD";
-                    openDirectoryDialog((MainPageView) o, "LOAD");
+                    openDirectoryDialog((FirstPartView) o, "LOAD");
                 }
                 else if (arg.equals("start")) {
-                    letsStart((MainPageView) o);
+                    letsStart((FirstPartView) o);
                 }
                 else if (arg.equals("reset")){
-                    letsReset((MainPageView) o);
+                    letsReset((FirstPartView) o);
                 }
                 else if(arg.equals("show")){
-                    letsShow((MainPageView) o);
+                    letsShow((FirstPartView) o);
                 }
                 else if(arg.equals("stem")){
                     stem=true;
@@ -59,13 +60,52 @@ public class Controller extends AController {
             }
             else if(arg instanceof File){
                 if(((File)arg).isDirectory()){
-                    openAllFiles((MainPageView)o,(File)arg);}
+                    openAllFiles((FirstPartView)o,(File)arg);}
+            }
+        }
+        else if(o instanceof SecondPartView){
+            if(arg instanceof String){
+                if(arg.equals("Search file")){
+                    searchQueriesFile((SecondPartView)o);
+                }
+                else if(arg.equals("Save results")){
+                    saveQueriesResults((SecondPartView)o);
+                }
+                else if(arg.equals("Browse")){
+                    browseQueriesFile((SecondPartView)o);
+                }
+                else if(arg.equals("Show results")){
+                    showQueriesResults((SecondPartView)o);
+                }
+            }
+            else if(arg instanceof String[] && ((String[])arg).length == 2 && ((String[])arg)[0].equals("Search")){
+                searchQuery((SecondPartView)o, ((String[])arg)[1]);
             }
         }
     }
 
+    private void searchQuery(SecondPartView secondPartView, String queryText) {
+        continue;
+    }
 
-    private void letsReset(MainPageView o) {
+    private void showQueriesResults(SecondPartView secondPartView) {
+        continue;
+    }
+
+    private void browseQueriesFile(SecondPartView secondPartView) {
+        continue;
+    }
+
+    private void saveQueriesResults(SecondPartView secondPartView) {
+        continue;
+    }
+
+    private void searchQueriesFile(SecondPartView secondPartView) {
+        continue;
+    }
+
+
+    private void letsReset(FirstPartView firstPartView) {
         System.gc();
         model=new Model();
         stem = false;
@@ -79,14 +119,14 @@ public class Controller extends AController {
 
 
     /** Open the files in the root Directory given
-     * @param mainPageView - The View in with to say when the process has finished
+     * @param firstPartView - The View in with to say when the process has finished
      * @param file - The root Directory where all the file are in
      */
-    private void openAllFiles(MainPageView mainPageView, File file) {
+    private void openAllFiles(FirstPartView firstPartView, File file) {
 //        System.out.println("Hey");
 
         File[] matchingFiles = file.listFiles();
-        if (tmp == "SRC") {
+        if (tmp.equals("SRC")) {
             if (matchingFiles.length == 2) {
                 if (matchingFiles[0].isFile()) {
                     model.SetStopWords(matchingFiles[0]);
@@ -95,58 +135,58 @@ public class Controller extends AController {
                     model.SetStopWords(matchingFiles[1]);
                     src = matchingFiles[0].getAbsolutePath();
                 }
-                mainPageView.NotifySrcLoaded("srcFiles");
+                firstPartView.NotifySrcLoaded("srcFiles");
             }
             else
             {
-                mainPageView.NotifySrcLoaded("Error");
+                firstPartView.NotifySrcLoaded("Error");
             }
-        } else if (tmp == "DST") {
+        } else if (tmp.equals("DST")) {
             if (matchingFiles.length == 0) {
                 dest = file.getAbsolutePath();
-                mainPageView.NotifySrcLoaded("dstFiles");
+                firstPartView.NotifySrcLoaded("dstFiles");
 
             }
             else{
-                mainPageView.NotifySrcLoaded("Error");
+                firstPartView.NotifySrcLoaded("Error");
             }
-        } else if (tmp=="LOAD"){
+        } else if (tmp.equals("LOAD")){
             loadingSRC = file.getAbsolutePath();
-            letsLoad(mainPageView);
+            letsLoad(firstPartView);
         } else{
-            mainPageView.NotifySrcLoaded("Error");
+            firstPartView.NotifySrcLoaded("Error");
         }
     }
 
 
 
     // DONE STUFF
-    private void letsStart(MainPageView mainPageView) {
-        mainPageView.NotifyDone();
+    private void letsStart(FirstPartView firstPartView) {
+        firstPartView.NotifyDone();
         model.SetDestinationPath(dest);
-        if (stem == true) {
+        if (stem) {
             model.setStem(true);
         } else
             model.setStem(false);
         model.GetAllDocuments(src);
     }
     /** Open a directory dialog to choose the directory with the files to open
-     * @param mainPageView - The View in with to open the directory dialog in
+     * @param firstPartView - The View in with to open the directory dialog in
      */
-    private void openDirectoryDialog(MainPageView mainPageView, String pathType) {
-        mainPageView.ChooseDirectory(pathType);
+    private void openDirectoryDialog(FirstPartView firstPartView, String pathType) {
+        firstPartView.ChooseDirectory(pathType);
     }
 
 
     //***************************************************************
     //FOR ROTEM TO FIX (SHOW DICTIONARY)
-    private void letsLoad(MainPageView o) {
+    private void letsLoad(FirstPartView o) {
         //Save dict
         Analizer analizer = new Analizer();
         termFreqTuples = analizer.AnalizeForZipf(loadingSRC);
     }
 
-    private void letsShow(MainPageView o) {
+    private void letsShow(FirstPartView o) {
         //Show dict
         FXMLLoader fxmlLoader = new FXMLLoader();
         Parent root = null;

@@ -1,6 +1,7 @@
 package Control;
 
 import Model.AModel;
+import Model.SecondPart.SecondPartModel;
 
 import java.util.Observer;
 
@@ -12,6 +13,11 @@ public abstract class AController implements Observer {
      * The model of the application
      */
     protected AModel model;
+
+    /**
+     * The model for the second part of the application
+     */
+    protected SecondPartModel secondPartModel;
 
     /** A getter for the model
      * @return The model of the application
@@ -25,5 +31,19 @@ public abstract class AController implements Observer {
      */
     public void setModel(AModel model) {
         this.model = model;
+    }
+
+    /** A getter for the second part model
+     * @return The second part model of the application
+     */
+    public SecondPartModel getSecondPartModel() {
+        return secondPartModel;
+    }
+
+    /** A setter for the second part model
+     * @param secondPartModel - The second part model of the application
+     */
+    public void setSecondPartModel(SecondPartModel secondPartModel) {
+        this.secondPartModel = secondPartModel;
     }
 }

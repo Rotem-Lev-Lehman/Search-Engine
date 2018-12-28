@@ -16,7 +16,7 @@ import java.util.Scanner;
 /**
  * The main page view controller
  */
-public class MainPageView extends AView {
+public class FirstPartView extends AView {
     /**
      * The label that states we have finished parsing
      */

@@ -42,6 +42,14 @@
             <artifactId>json</artifactId>
             <version>20180813</version>
         </dependency>
+
+        <!-- for checkComboBox controller for picking cities in the GUI -->
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>8.0.6_20</version>
+        </dependency>
+
     </dependencies>
     
 </project>
