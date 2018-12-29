@@ -1,17 +1,13 @@
 package View;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
-import org.controlsfx.control.CheckComboBox;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class SecondPartView extends AView implements Initializable {
@@ -61,5 +57,19 @@ public class SecondPartView extends AView implements Initializable {
     public void LoadStopWordsPressed(ActionEvent actionEvent) {
         setChanged();
         notifyObservers("Load stop words");
+    }
+
+    public File GetIndexDirectory(){
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Choose your total index folder");
+
+        return chooser.showDialog(currStage);
+    }
+
+    public File GetStopWordsFile(){
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose the stop words file");
+
+        return chooser.showOpenDialog(currStage);
     }
 }

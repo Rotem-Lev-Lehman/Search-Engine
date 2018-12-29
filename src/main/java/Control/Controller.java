@@ -4,18 +4,15 @@ import AnalizeTools.Analizer;
 import Model.Model;
 import Model.SecondPart.MyQuery;
 import Model.SecondPart.TotalDictionaryController;
+import Model.DocumentsDictionaryEntrance;
 import View.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Observable;
+import java.io.*;
+import java.util.*;
 
 /**
  * A concrete class representing the controller of the application
@@ -29,8 +26,8 @@ public class Controller extends AController {
     private String tmp;
 
     // second part stuff
-    private TotalDictionaryController totalDictionaryController;
-    private HashSet<String> stopWords;
+    private TotalDictionaryController totalDictionaryController = null;
+    private HashSet<String> stopWords = null;
     private boolean toStem;
     private List<MyQuery> queries;
     private boolean hasResults = false;
@@ -117,51 +114,171 @@ public class Controller extends AController {
                 }
             }
         }
+        else if(o instanceof MainPageView){
+            if(arg instanceof String){
+                if(arg.equals("Create Index")){
+                    MoveToFirstPartPage((MainPageView)o);
+                }
+                else if(arg.equals("Search Queries")){
+                    MoveToSecondPartPage((MainPageView)o);
+                }
+            }
+        }
+    }
+
+    private void MoveToSecondPartPage(MainPageView mainPageView) {
+        mainPageView.ChangeView("SecondPartPage.fxml", "Search Queries Page", 500, 400);
+    }
+
+    private void MoveToFirstPartPage(MainPageView mainPageView) {
+        mainPageView.ChangeView("FirstPartPage.fxml", "Create Index Page", 773, 605);
     }
 
     private void LoadStopWords(SecondPartView secondPartView) {
-        continue;
+        File stopWordsFile = secondPartView.GetStopWordsFile();
+        if(stopWordsFile == null){
+            secondPartView.ShowFailure("You must pick a stop words file");
+            return;
+        }
+
+        if(LoadStopWordsFile(stopWordsFile)){
+            secondPartView.ShowSuccess("Loaded the stop words file successfully!");
+        }
+        else{
+            secondPartView.ShowFailure("There was an error while trying to load the stop words file, please make sure that you have chosen a file with the correct format");
+        }
+    }
+
+    private boolean LoadStopWordsFile(File stopWordsFile){
+        try {
+            stopWords = new HashSet<String>();
+            Scanner scanner = new Scanner(new BufferedReader(new FileReader(stopWordsFile)));
+            while (scanner.hasNext())
+                stopWords.add(scanner.nextLine());
+            scanner.close();
+            return true;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+
+            stopWords = null;
+            return false;
+        }
     }
 
     private void LoadIndex(SecondPartView secondPartView) {
-        continue;
+        File indexFolder = secondPartView.GetIndexDirectory();
+        if (indexFolder == null) {
+            secondPartView.ShowFailure("You must pick an Index folder");
+            return;
+        }
+        try {
+            TotalDictionaryController temp = new TotalDictionaryController(indexFolder);
+
+            this.totalDictionaryController = temp;
+            secondPartView.ShowSuccess("Loaded the index successfully!");
+
+        } catch (Exception e) {
+            secondPartView.ShowFailure("There was an error while trying to load the index, please make sure that you have chosen a folder with the correct format");
+        }
     }
 
     private void MoveToQueriesFileSearch(SecondPartView secondPartView, Boolean stem) {
-        hasResults = false;
-        continue;
+        if(checkMovingToSearchPage(secondPartView, stem))
+            secondPartView.ChangeView("SearchQueryFilePage.fxml", "Search Queries file Page", 600, 400);
     }
 
     private void MoveToRegularSearch(SecondPartView secondPartView, Boolean stem) {
+        if(checkMovingToSearchPage(secondPartView, stem))
+            secondPartView.ChangeView("SearchRegularQueryPage.fxml", "Search Regular Query Page", 600, 400);
+    }
+
+    private boolean checkMovingToSearchPage(SecondPartView secondPartView, Boolean stem){
+        if(totalDictionaryController == null){
+            secondPartView.ShowFailure("You need to load the Index before you move to the search page");
+            return false;
+        }
+        if(stopWords == null){
+            secondPartView.ShowFailure("You need to load the stop words before you move to the search page");
+            return false;
+        }
+
+        //everything is ready for moving
         hasResults = false;
-        continue;
+        queries = null;
+        toStem = stem;
+
+        secondPartModel.LoadDictionary(totalDictionaryController, toStem);
+        secondPartModel.LoadStopWords(stopWords);
+
+        return true;
     }
 
     private void SearchQueriesFile(SearchQueryFileView searchQueryFileView, List<String> citiesRelevant, Boolean useSemantics) {
-        continue;
+        if(queries == null){
+            searchQueryFileView.ShowFailure("Please browse a Queries file before searching");
+            return;
+        }
+
+        //update the relevant cities for each query
+        for(MyQuery query : queries){
+            query.setCitiesRelevant(citiesRelevant);
+        }
+
+        secondPartModel.Search(queries, useSemantics);
+        hasResults = true;
+
+        searchQueryFileView.ShowSuccess("Done searching, now you can view the results and save them if you wish so");
     }
 
     private void searchRegularQuery(SearchRegularQueryView searchRegularQueryView, String queryText, List<String> citiesRelevant, Boolean useSemantics) {
-        continue;
-    }
+        if(queryText == null || queryText.equals("")) {
+            searchRegularQueryView.ShowFailure("Please enter a Query before searching");
+            return;
+        }
 
-    private void searchQuery(SecondPartView secondPartView, String queryText) {
-        MyQuery query = new MyQuery(queryText)
-        secondPartModel.Search()
+        MyQuery query = new MyQuery(queryText, citiesRelevant, "007"); //Lets see if you get the reference ;)
+
+        queries = new ArrayList<MyQuery>(1);
+        queries.add(query);
+
+        secondPartModel.Search(queries, useSemantics);
+        hasResults = true;
+
+        searchRegularQueryView.ShowSuccess("Done searching, now you can view the results and save them if you wish so");
     }
 
     private void showQueriesResults(ASearcherView aSearcherView) {
-        continue;
+        if(hasResults){
+            List<QueryResultForView> resultsList = getResultsForViewList();
+            aSearcherView.MoveToShowResults(resultsList);
+        }
+        else{
+            aSearcherView.ShowFailure("You must search before you can view the results");
+        }
+    }
+
+    private List<QueryResultForView> getResultsForViewList() {
+        List<QueryResultForView> resultsList = new ArrayList<>();
+        for (MyQuery query : queries) {
+            int rank = 1;
+            for (DocumentsDictionaryEntrance entrance : query.getRetrievedDocuments()) {
+                resultsList.add(new QueryResultForView(query.getId(), rank, entrance));
+                rank++;
+            }
+        }
+        return resultsList;
     }
 
     private void browseQueriesFile(SearchQueryFileView searchQueryFileView) {
         File queriesFile = searchQueryFileView.GetQueriesFile();
-        if (queriesFile == null)
-            searchQueryFileView.ShowFailure("You must peak a Queries file");
+        if (queriesFile == null) {
+            searchQueryFileView.ShowFailure("You must pick a Queries file");
+            return;
+        }
 
         List<MyQuery> browseQueries = secondPartModel.ReadQueriesFile(queriesFile);
         if (browseQueries == null) {
-            searchQueryFileView.ShowFailure("You must peak a Queries file with the correct format, see the example Queries file from the Moodle to understand the correct format");
+            searchQueryFileView.ShowFailure("You must pick a Queries file with the correct format, see the example Queries file from the Moodle to understand the correct format");
             return;
         }
 

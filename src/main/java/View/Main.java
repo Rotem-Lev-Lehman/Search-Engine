@@ -49,20 +49,25 @@ public class Main extends Application {
         }
         */
 
-        AModel model = new Model();
         AController controller = new Controller();
+
+        AModel model = new Model();
         controller.setModel(model);
+
         SecondPartModel secondPartModel = new SecondPartModel();
         controller.setSecondPartModel(secondPartModel);
 
         FXMLLoader fxmlLoader = new FXMLLoader();
-        Parent root = fxmlLoader.load(getClass().getResource("/ShowResultsPage.fxml").openStream());
+        Parent root = fxmlLoader.load(getClass().getResource("/MainPage.fxml").openStream());
 
-        primaryStage.setTitle("Search Engine");
-        primaryStage.setScene(new Scene(root, 773, 605));
+        primaryStage.setTitle("Rotem & Ofir's Search Engine");
+        primaryStage.setScene(new Scene(root, 500, 400));
         primaryStage.show();
 
-        ((AView) fxmlLoader.getController()).setController(controller);
+        AView view = (AView) fxmlLoader.getController();
+        view.setController(controller);
+        view.setCurrStage(primaryStage);
+        /*
         IdentityAndScore[] id = new IdentityAndScore[5];
         for(int i = 0; i < id.length; i++){
             id[i] = new IdentityAndScore("Hi", 0.5);
@@ -71,6 +76,7 @@ public class Main extends Application {
         List<QueryResultForView> results = new ArrayList<QueryResultForView>();
         results.add(queryResultForView);
         ((ShowResultsView)fxmlLoader.getController()).setResults(results);
+        */
     }
 
 

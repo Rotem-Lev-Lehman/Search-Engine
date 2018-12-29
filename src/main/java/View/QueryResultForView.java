@@ -5,6 +5,7 @@ import Model.IdentityAndScore;
 
 public class QueryResultForView{
     private String queryID;
+    private Integer rank;
     private String documentID;
 
     private String e1;
@@ -18,11 +19,12 @@ public class QueryResultForView{
     private String e5;
     private Double s5;
 
-    public QueryResultForView(String queryID, DocumentsDictionaryEntrance document){
+    public QueryResultForView(String queryID, Integer rank, DocumentsDictionaryEntrance document){
         this.queryID = queryID;
+        this.rank = rank;
         this.documentID = document.getDocNo();
 
-        String dontExist = "-";
+        String dontExist = "---------";
 
         IdentityAndScore[] identityAndScores = document.getTopFiveBigWords();
 
@@ -63,6 +65,14 @@ public class QueryResultForView{
 
     public void setQueryID(String queryID) {
         this.queryID = queryID;
+    }
+
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 
     public String getDocumentID() {

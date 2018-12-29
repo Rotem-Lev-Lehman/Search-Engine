@@ -15,7 +15,7 @@ public class TotalDictionaryController {
     private Map<TypeOfTerm, File[]> lettersPostingFiles;
     private DocumentsDictionaryController documentsDictionaryController;
 
-    public TotalDictionaryController(File indicesFolder){
+    public TotalDictionaryController(File indicesFolder) throws Exception{
 
         totalDictionary = new EnumMap<>(TypeOfTerm.class);
         lettersDictionary = new EnumMap<>(TypeOfTerm.class);
@@ -79,7 +79,7 @@ public class TotalDictionaryController {
 
     }
 
-    private void createDictionary(Map<String, ADictionaryEntrance> dictionary, String folderPath, TypeOfTerm type, int index){
+    private void createDictionary(Map<String, ADictionaryEntrance> dictionary, String folderPath, TypeOfTerm type, int index) throws Exception {
         String postingFile = folderPath + "\\post.data";
         String dictionaryFile = folderPath + "\\dic.data";
         Scanner scanner;
@@ -100,8 +100,9 @@ public class TotalDictionaryController {
             }
 
             scanner.close();
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
 
         if(type == TypeOfTerm.SmallLetters || type == TypeOfTerm.BigLetters){

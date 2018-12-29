@@ -61,12 +61,12 @@ public abstract class AView extends Observable {
         alert.showAndWait();
     }
 
-    protected AView ChangeView(String viewName, String title, int width, int height){
+    public AView ChangeView(String viewName, String title, int width, int height){
         AView next = null;
 
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
-            Parent root = fxmlLoader.load(getClass().getResource("/ShowResultsPage.fxml").openStream());
+            Parent root = fxmlLoader.load(getClass().getResource("/" + viewName).openStream());
 
             currStage.setTitle(title);
             currStage.setScene(new Scene(root, width, height));
@@ -74,6 +74,7 @@ public abstract class AView extends Observable {
 
             next = (AView) fxmlLoader.getController();
             next.setController(controller);
+            next.setCurrStage(currStage);
         } catch (IOException e) {
             e.printStackTrace();
         }

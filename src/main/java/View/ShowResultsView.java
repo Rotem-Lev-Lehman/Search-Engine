@@ -2,10 +2,8 @@ package View;
 
 import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableListValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
@@ -20,6 +18,7 @@ public class ShowResultsView extends AView implements Initializable {
     public TableView<QueryResultForView> tableViewResults;
 
     public TableColumn<QueryResultForView,String> queryId;
+    public TableColumn<QueryResultForView,Integer> rank;
     public TableColumn<QueryResultForView,String> documentId;
 
     public TableColumn<QueryResultForView,String> e1;
@@ -39,45 +38,48 @@ public class ShowResultsView extends AView implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         queryId.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("queryID")
+                new PropertyValueFactory<QueryResultForView, String>("queryID")
+        );
+        rank.setCellValueFactory(
+                new PropertyValueFactory<QueryResultForView, Integer>("rank")
         );
         documentId.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("documentID")
+                new PropertyValueFactory<QueryResultForView, String>("documentID")
         );
 
         e1.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("e1")
+                new PropertyValueFactory<QueryResultForView, String>("e1")
         );
         s1.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,Double>("s1")
+                new PropertyValueFactory<QueryResultForView, Double>("s1")
         );
 
         e2.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("e2")
+                new PropertyValueFactory<QueryResultForView, String>("e2")
         );
         s2.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,Double>("s2")
+                new PropertyValueFactory<QueryResultForView, Double>("s2")
         );
 
         e3.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("e3")
+                new PropertyValueFactory<QueryResultForView, String>("e3")
         );
         s3.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,Double>("s3")
+                new PropertyValueFactory<QueryResultForView, Double>("s3")
         );
 
         e4.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("e4")
+                new PropertyValueFactory<QueryResultForView, String>("e4")
         );
         s4.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,Double>("s4")
+                new PropertyValueFactory<QueryResultForView, Double>("s4")
         );
 
         e5.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,String>("e5")
+                new PropertyValueFactory<QueryResultForView, String>("e5")
         );
         s5.setCellValueFactory(
-                new PropertyValueFactory<QueryResultForView,Double>("s5")
+                new PropertyValueFactory<QueryResultForView, Double>("s5")
         );
 
 

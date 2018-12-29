@@ -7,9 +7,10 @@
 
 <AnchorPane prefHeight="437.0" prefWidth="980.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="View.ShowResultsView">
    <children>
-      <TableView fx:id="tableViewResults" layoutX="13.0" layoutY="41.0" prefHeight="384.0" prefWidth="941.0">
+      <TableView fx:id="tableViewResults" layoutX="13.0" layoutY="41.0" prefHeight="400.0" prefWidth="1500.0">
         <columns>
             <TableColumn fx:id="queryId" prefWidth="88.0" text="Query id" />
+            <TableColumn fx:id="rank" prefWidth="88.0" text="Rank" />
             <TableColumn fx:id="documentId" prefWidth="100.0" text="Document id" />
             <TableColumn fx:id="e1" prefWidth="75.0" text="Entity 1" />
             <TableColumn fx:id="s1" prefWidth="75.0" text="Score 1" />

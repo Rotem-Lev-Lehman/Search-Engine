@@ -12,26 +12,16 @@ public class SecondPartModel {
     private boolean toStem;
     HashMap<String, List<String>> qrels;
 
-    public void LoadDictionary(File totalIndicesFolder, boolean isStemmed){
-        totalDictionaryController = new TotalDictionaryController(totalIndicesFolder);
+    public void LoadDictionary(TotalDictionaryController totalDictionaryController, boolean isStemmed){
+        this.totalDictionaryController = totalDictionaryController;
         this.toStem = isStemmed;
     }
 
-    public boolean LoadStopWords(File stopWordsFile){
-        try {
-            stopWords = new HashSet<String>();
-            Scanner scanner = new Scanner(new BufferedReader(new FileReader(stopWordsFile)));
-            while (scanner.hasNext())
-                stopWords.add(scanner.nextLine());
-            scanner.close();
-            return true;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public void LoadStopWords(HashSet<String> stopWords){
+        this.stopWords = stopWords;
     }
 
-    public List<List<DocumentsDictionaryEntrance>> Search(List<MyQuery> queries, boolean useSemantics){
+    public void Search(List<MyQuery> queries, boolean useSemantics){
         StopWatch stopWatch = new StopWatch();
         System.out.println("Starting to search in a bunch of Queries");
         stopWatch.start();
@@ -44,15 +34,15 @@ public class SecondPartModel {
         long time = stopWatch.getTime();
         System.out.println("Total time = " + time + " milliseconds");
 
-
+        /*
         List<List<DocumentsDictionaryEntrance>> data = new ArrayList<>();
         for(MyQuery query : queries){
             data.add(query.getRetrievedDocuments());
         }
+        */
+        //CountRelevantDocuments(queries);
 
-        CountRelevantDocuments(queries);
-
-        return data;
+        //return data;
     }
 
     public List<DocumentsDictionaryEntrance> Search(MyQuery query, boolean useSemantics){
@@ -70,7 +60,7 @@ public class SecondPartModel {
         long time = stopWatch.getTime();
         System.out.println("Total time = " + time + " milliseconds");
 
-        CountRelevantDocuments(query.getRetrievedDocuments(),query.getId());
+        //CountRelevantDocuments(query.getRetrievedDocuments(),query.getId());
         return query.getRetrievedDocuments();
     }
 
