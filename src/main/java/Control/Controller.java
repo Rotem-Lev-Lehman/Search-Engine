@@ -3,10 +3,8 @@ package Control;
 import AnalizeTools.Analizer;
 import Model.Model;
 import Model.SecondPart.MyQuery;
-import View.DictionaryViewer;
-import View.FirstPartView;
-import View.SearchRegularQueryView;
-import View.SecondPartView;
+import Model.SecondPart.TotalDictionaryController;
+import View.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -14,6 +12,8 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 
@@ -27,6 +27,13 @@ public class Controller extends AController {
     private boolean stem = false;
     private Map<String,String> termFreqTuples;
     private String tmp;
+
+    // second part stuff
+    private TotalDictionaryController totalDictionaryController;
+    private HashSet<String> stopWords;
+    private boolean toStem;
+    private List<MyQuery> queries;
+    private boolean hasResults = false;
 
     @Override
     public void update(Observable o, Object arg) {
@@ -65,22 +72,77 @@ public class Controller extends AController {
                     openAllFiles((FirstPartView)o,(File)arg);}
             }
         }
-        else if(o instanceof SearchRegularQueryView){
-            if(arg instanceof String){
-                if(arg.equals("Search file")){
-                    searchRegularQuery((SearchRegularQueryView)o);
-                }
-                else if(arg.equals("Save results")){
-                    saveQueriesResults((SearchRegularQueryView)o);
-                }
-                else if(arg.equals("Show results")){
-                    showQueriesResults((SearchRegularQueryView)o);
+        else if(o instanceof ASearcherView) {
+            //check generic stuff
+            if (arg instanceof String) {
+                if (arg.equals("Save results")) {
+                    saveQueriesResults((ASearcherView) o);
+                    return;
+                } else if (arg.equals("Show results")) {
+                    showQueriesResults((ASearcherView) o);
+                    return;
                 }
             }
-            else if(arg instanceof String[] && ((String[])arg).length == 2 && ((String[])arg)[0].equals("Search")){
-                searchQuery((SecondPartView)o, ((String[])arg)[1]);
+
+            //check instances
+            if(o instanceof SearchRegularQueryView) {
+                if(arg instanceof Object[] && ((Object[])arg).length == 3 && ((Object[])arg)[0] instanceof String && ((Object[])arg)[1] instanceof List && ((Object[])arg)[2] instanceof Boolean){
+                    searchRegularQuery((SearchRegularQueryView)o, (String)((Object[])arg)[0], (List<String>)((Object[])arg)[1], (Boolean)((Object[])arg)[2]);
+                }
+            }
+            else if(o instanceof SearchQueryFileView){
+                if(arg instanceof String && arg.equals("Browse")){
+                    browseQueriesFile((SearchQueryFileView)o);
+                }
+                else if(arg instanceof Object[] && ((Object[])arg).length == 2 && ((Object[])arg)[0] instanceof List && ((Object[])arg)[1] instanceof Boolean){
+                    SearchQueriesFile((SearchQueryFileView)o, (List<String>)((Object[])arg)[0], (Boolean)((Object[])arg)[1]);
+                }
             }
         }
+        else if(o instanceof SecondPartView){
+            if(arg instanceof Object[] && ((Object[])arg).length == 2 && ((Object[])arg)[0] instanceof String && ((Object[])arg)[1] instanceof Boolean){
+                if(((Object[])arg)[0].equals("Regular search")){
+                    MoveToRegularSearch((SecondPartView)o, (Boolean)((Object[])arg)[1]);
+                }
+                else if(((Object[])arg)[0].equals("Queries file search")){
+                    MoveToQueriesFileSearch((SecondPartView)o, (Boolean)((Object[])arg)[1]);
+                }
+            }
+            else if(arg instanceof String){
+                if(arg.equals("Load index")){
+                    LoadIndex((SecondPartView)o);
+                }
+                else if(arg.equals("Load stop words")){
+                    LoadStopWords((SecondPartView)o);
+                }
+            }
+        }
+    }
+
+    private void LoadStopWords(SecondPartView secondPartView) {
+        continue;
+    }
+
+    private void LoadIndex(SecondPartView secondPartView) {
+        continue;
+    }
+
+    private void MoveToQueriesFileSearch(SecondPartView secondPartView, Boolean stem) {
+        hasResults = false;
+        continue;
+    }
+
+    private void MoveToRegularSearch(SecondPartView secondPartView, Boolean stem) {
+        hasResults = false;
+        continue;
+    }
+
+    private void SearchQueriesFile(SearchQueryFileView searchQueryFileView, List<String> citiesRelevant, Boolean useSemantics) {
+        continue;
+    }
+
+    private void searchRegularQuery(SearchRegularQueryView searchRegularQueryView, String queryText, List<String> citiesRelevant, Boolean useSemantics) {
+        continue;
     }
 
     private void searchQuery(SecondPartView secondPartView, String queryText) {
@@ -88,21 +150,47 @@ public class Controller extends AController {
         secondPartModel.Search()
     }
 
-    private void showQueriesResults(SecondPartView secondPartView) {
+    private void showQueriesResults(ASearcherView aSearcherView) {
         continue;
     }
 
-    private void browseQueriesFile(SecondPartView secondPartView) {
-        continue;
+    private void browseQueriesFile(SearchQueryFileView searchQueryFileView) {
+        File queriesFile = searchQueryFileView.GetQueriesFile();
+        if (queriesFile == null)
+            searchQueryFileView.ShowFailure("You must peak a Queries file");
+
+        List<MyQuery> browseQueries = secondPartModel.ReadQueriesFile(queriesFile);
+        if (browseQueries == null) {
+            searchQueryFileView.ShowFailure("You must peak a Queries file with the correct format, see the example Queries file from the Moodle to understand the correct format");
+            return;
+        }
+
+        queries = browseQueries;
+        hasResults = false;
+        searchQueryFileView.ShowSuccess("We have successfully read the queries file, now ready to search!");
     }
 
-    private void saveQueriesResults(SecondPartView secondPartView) {
-        continue;
+    private void saveQueriesResults(ASearcherView aSearcherView) {
+        if(hasResults){
+            File destFolder = aSearcherView.GetResultsFolder();
+            if(destFolder == null) {
+                aSearcherView.ShowFailure("You have to choose a folder to save the results to");
+                return;
+            }
+
+            File destFile = new File(destFolder.getAbsolutePath() + "//results.txt");
+            boolean success = secondPartModel.WriteResultsToFile(destFile, queries);
+
+            if(success)
+                aSearcherView.ShowSuccess("The results file has been saved successfully");
+            else
+                aSearcherView.ShowFailure("There was an error while saving the results file");
+        }
+        else{
+            aSearcherView.ShowFailure("You must search before you can save the results");
+        }
     }
 
-    private void searchQueriesFile(SecondPartView secondPartView) {
-        continue;
-    }
 
 
     private void letsReset(FirstPartView firstPartView) {

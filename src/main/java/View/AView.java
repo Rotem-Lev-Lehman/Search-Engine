@@ -22,7 +22,7 @@ public abstract class AView extends Observable {
     /**
      * The current stage
      */
-    private Stage currStage;
+    protected Stage currStage;
 
     /** A getter for the controller of the application
      * @return The controller of the application

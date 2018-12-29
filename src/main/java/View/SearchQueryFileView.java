@@ -2,16 +2,15 @@ package View;
 
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 import org.controlsfx.control.CheckComboBox;
 
-import java.util.List;
+import java.io.File;
+import java.util.ArrayList;
 
 public class SearchQueryFileView extends ASearcherView {
-    public TextField textFieldQuery;
-    public CheckComboBox checkComboBoxCitiesRelevant;
+    public CheckComboBox<String> checkComboBoxCitiesRelevant;
     public CheckBox useSemantics;
-
 
     public void BrowsePressed(ActionEvent actionEvent) {
         setChanged();
@@ -20,6 +19,18 @@ public class SearchQueryFileView extends ASearcherView {
 
     @Override
     public void SearchPressed(ActionEvent actionEvent) {
+        Object[] send = new Object[2];
+        send[0] = new ArrayList<String>(checkComboBoxCitiesRelevant.getItems());
+        send[1] = (Boolean)useSemantics.isSelected();
 
+        setChanged();
+        notifyObservers(send);
+    }
+
+    public File GetQueriesFile(){
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose your Queries file");
+
+        return chooser.showOpenDialog(currStage);
     }
 }

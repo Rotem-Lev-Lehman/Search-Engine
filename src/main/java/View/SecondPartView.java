@@ -16,10 +16,7 @@ import java.util.ResourceBundle;
 
 public class SecondPartView extends AView implements Initializable {
 
-    public TextField textFieldQuery;
-    public CheckComboBox<String> checkComboBoxCitiesRelevant;
-    public CheckBox useSemantics;
-
+    public CheckBox useStem;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -38,40 +35,31 @@ public class SecondPartView extends AView implements Initializable {
         */
     }
 
-    public void SearchPressed(ActionEvent actionEvent) {
-        String text = textFieldQuery.getText();
-        boolean semanticSearch = useSemantics.isSelected();
-        List<String> cities = new ArrayList<>(checkComboBoxCitiesRelevant.getItems());
+    public void RegularSearchPressed(ActionEvent actionEvent) {
+        Object[] send = new Object[2];
+        send[0] = "Regular search";
+        send[1] = (Boolean)useStem.isSelected();
 
-        Object[] send;
-
-        if (text.equals("")) {
-            send = new Object[2];
-            send[0] = "Search file";
-            send[1] = cities;
-        } else {
-            send = new Object[2];
-            send[0] = "Search";
-            send[1] = text;
-        }
         setChanged();
         notifyObservers(send);
     }
 
-    public void SaveResultsPressed(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("Save results");
-    }
-
-    public void BrowsePressed(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("Browse");
-    }
-
-
-    public void RegularSearchPressed(ActionEvent actionEvent) {
-    }
-
     public void QueriesFileSearchPressed(ActionEvent actionEvent) {
+        Object[] send = new Object[2];
+        send[0] = "Queries file search";
+        send[1] = (Boolean)useStem.isSelected();
+
+        setChanged();
+        notifyObservers(send);
+    }
+
+    public void LoadIndexPressed(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("Load index");
+    }
+
+    public void LoadStopWordsPressed(ActionEvent actionEvent) {
+        setChanged();
+        notifyObservers("Load stop words");
     }
 }

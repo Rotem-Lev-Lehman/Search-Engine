@@ -17,14 +17,17 @@ public class SecondPartModel {
         this.toStem = isStemmed;
     }
 
-    public void LoadStopwords(File stopWordsFile){
+    public boolean LoadStopWords(File stopWordsFile){
         try {
             stopWords = new HashSet<String>();
             Scanner scanner = new Scanner(new BufferedReader(new FileReader(stopWordsFile)));
             while (scanner.hasNext())
                 stopWords.add(scanner.nextLine());
+            scanner.close();
+            return true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -136,9 +139,9 @@ public class SecondPartModel {
         }
     }
 
-    public List<MyQuery> Search(File queriesFile, List<String> citiesRelevant, boolean useSemantics){
-        List<MyQuery> queries = new ArrayList<>();
+    public List<MyQuery> ReadQueriesFile(File queriesFile) {
         try {
+            List<MyQuery> queries = new ArrayList<>();
             Scanner scanner = new Scanner(new BufferedReader(new FileReader(queriesFile)));
             String text = "";
             while (scanner.hasNext()){
@@ -146,6 +149,8 @@ public class SecondPartModel {
                 text += line;
                 text += "\n";
             }
+            scanner.close();
+
             String[] differentQueriesTexts = text.split("<top>");
             for (String queryText : differentQueriesTexts){
                 if(queryText.equals(""))
@@ -174,17 +179,18 @@ public class SecondPartModel {
                         queryBuilder.append(" ");
                 }
                 String txt = queryBuilder.toString();
-                queries.add(new MyQuery(txt, citiesRelevant, queryID));
+                queries.add(new MyQuery(txt, new ArrayList<>(), queryID));
             }
+
+            return queries;
 
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        Search(queries, useSemantics);
-        return queries;
     }
 
-    public void WriteResultsToFile(File dest, List<MyQuery> queries){
+    public boolean WriteResultsToFile(File dest, List<MyQuery> queries){
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
             for(MyQuery query : queries){
@@ -196,8 +202,12 @@ public class SecondPartModel {
             }
             writer.flush();
             writer.close();
+
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+
+            return false;
         }
     }
 
