@@ -5,10 +5,12 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import org.controlsfx.control.CheckComboBox;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -16,6 +18,7 @@ public class SecondPartView extends AView implements Initializable {
 
     public TextField textFieldQuery;
     public CheckComboBox<String> checkComboBoxCitiesRelevant;
+    public CheckBox useSemantics;
 
 
     @Override
@@ -37,17 +40,22 @@ public class SecondPartView extends AView implements Initializable {
 
     public void SearchPressed(ActionEvent actionEvent) {
         String text = textFieldQuery.getText();
+        boolean semanticSearch = useSemantics.isSelected();
+        List<String> cities = new ArrayList<>(checkComboBoxCitiesRelevant.getItems());
+
+        Object[] send;
 
         if (text.equals("")) {
-            setChanged();
-            notifyObservers("Search file");
+            send = new Object[2];
+            send[0] = "Search file";
+            send[1] = cities;
         } else {
-            String[] send = new String[2];
+            send = new Object[2];
             send[0] = "Search";
             send[1] = text;
-            setChanged();
-            notifyObservers(send);
         }
+        setChanged();
+        notifyObservers(send);
     }
 
     public void SaveResultsPressed(ActionEvent actionEvent) {
@@ -60,12 +68,10 @@ public class SecondPartView extends AView implements Initializable {
         notifyObservers("Browse");
     }
 
-    public void ShowResultsPressed(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("Show results");
+
+    public void RegularSearchPressed(ActionEvent actionEvent) {
     }
 
-    public void MoveToShowResults(List<QueryResultForView> results){
-
+    public void QueriesFileSearchPressed(ActionEvent actionEvent) {
     }
 }

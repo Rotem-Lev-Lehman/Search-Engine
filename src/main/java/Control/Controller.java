@@ -2,8 +2,10 @@ package Control;
 
 import AnalizeTools.Analizer;
 import Model.Model;
+import Model.SecondPart.MyQuery;
 import View.DictionaryViewer;
 import View.FirstPartView;
+import View.SearchRegularQueryView;
 import View.SecondPartView;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -63,19 +65,16 @@ public class Controller extends AController {
                     openAllFiles((FirstPartView)o,(File)arg);}
             }
         }
-        else if(o instanceof SecondPartView){
+        else if(o instanceof SearchRegularQueryView){
             if(arg instanceof String){
                 if(arg.equals("Search file")){
-                    searchQueriesFile((SecondPartView)o);
+                    searchRegularQuery((SearchRegularQueryView)o);
                 }
                 else if(arg.equals("Save results")){
-                    saveQueriesResults((SecondPartView)o);
-                }
-                else if(arg.equals("Browse")){
-                    browseQueriesFile((SecondPartView)o);
+                    saveQueriesResults((SearchRegularQueryView)o);
                 }
                 else if(arg.equals("Show results")){
-                    showQueriesResults((SecondPartView)o);
+                    showQueriesResults((SearchRegularQueryView)o);
                 }
             }
             else if(arg instanceof String[] && ((String[])arg).length == 2 && ((String[])arg)[0].equals("Search")){
@@ -85,7 +84,8 @@ public class Controller extends AController {
     }
 
     private void searchQuery(SecondPartView secondPartView, String queryText) {
-        continue;
+        MyQuery query = new MyQuery(queryText)
+        secondPartModel.Search()
     }
 
     private void showQueriesResults(SecondPartView secondPartView) {
