@@ -38,7 +38,6 @@ public class Ranker {
                 List<DocumentAndTermDataForRanking> data = subQuery.getData().get(term.getValue());
                 if(data == null)
                     continue;
-
                 if(term.isSemanticTerm())
                     nonSemanticTermsCount++;
 

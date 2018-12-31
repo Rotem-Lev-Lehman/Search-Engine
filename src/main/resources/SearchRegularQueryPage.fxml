@@ -3,12 +3,11 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-<?import org.controlsfx.control.CheckComboBox?>
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="View.SearchRegularQueryView">
     <children>
@@ -17,19 +16,33 @@
                 <Font name="Comic Sans MS" size="16.0" />
             </font></Label>
         <TextField fx:id="textFieldQuery" layoutX="117.0" layoutY="90.0" prefHeight="31.0" prefWidth="367.0" promptText="Enter your query here" />
-        <CheckComboBox fx:id="checkComboBoxCitiesRelevant" accessibleText="Cities filter = " layoutX="53.0" layoutY="162.0" />
-        <Button layoutX="364.0" layoutY="201.0" mnemonicParsing="false" onAction="#SearchPressed" text="Search!" />
-        <Button layoutX="364.0" layoutY="309.0" mnemonicParsing="false" onAction="#SaveResultsPressed" text="Save results to file" />
-        <Label layoutX="53.0" layoutY="141.0" text="Filter by cities:" />
+        <Button layoutX="434.0" layoutY="185.0" mnemonicParsing="false" onAction="#SearchPressed" text="Search!" />
+        <Button layoutX="433.0" layoutY="320.0" mnemonicParsing="false" onAction="#SaveResultsPressed" text="Save results to file" />
         <Label layoutX="117.0" layoutY="69.0" text="Search whatever you want in this field:" />
-        <Button layoutX="364.0" layoutY="244.0" mnemonicParsing="false" onAction="#ShowResultsPressed" text="Show results" />
-        <CheckBox fx:id="useSemantics" layoutX="364.0" layoutY="170.0" mnemonicParsing="false" text="Use Semantics" />
-        <MenuButton layoutX="140.0" layoutY="165.0" mnemonicParsing="false" text="MenuButton">
-            <items>
-                <MenuItem mnemonicParsing="false" text="Action 1" />
-                <MenuItem mnemonicParsing="false" text="Action 2" />
-            </items>
-        </MenuButton>
+        <Button layoutX="432.0" layoutY="260.0" mnemonicParsing="false" onAction="#ShowResultsPressed" text="Show results" />
+        <CheckBox fx:id="useSemantics" layoutX="433.0" layoutY="158.0" mnemonicParsing="false" text="Use Semantics" />
+      <TitledPane animated="false" layoutX="16.0" layoutY="138.0" prefHeight="259.0" prefWidth="407.0" text="Cities filter">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="211.0" prefWidth="390.0">
+               <children>
+                  <ListView fx:id="listFilterByCities" layoutX="1.0" layoutY="30.0" prefHeight="176.0" prefWidth="170.0" />
+                  <ListView fx:id="listAvailableCities" layoutX="231.0" layoutY="30.0" prefHeight="175.0" prefWidth="170.0" />
+                  <Label layoutX="14.0" layoutY="4.0" text="Filter by:">
+                     <font>
+                        <Font name="Comic Sans MS" size="15.0" />
+                     </font></Label>
+                  <Label layoutX="242.0" layoutY="5.0" text="Available to filter by:">
+                     <font>
+                        <Font name="Comic Sans MS" size="15.0" />
+                     </font></Label>
+                  <Label layoutX="41.0" layoutY="205.0" text="(Click on a city to move it to the other list)">
+                     <font>
+                        <Font name="Comic Sans MS" size="14.0" />
+                     </font>
+                  </Label>
+               </children></AnchorPane>
+        </content>
+      </TitledPane>
     </children>
 
 </AnchorPane>

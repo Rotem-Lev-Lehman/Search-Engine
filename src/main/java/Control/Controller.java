@@ -2,6 +2,7 @@ package Control;
 
 import AnalizeTools.Analizer;
 import Model.Model;
+import Model.TypeOfTerm;
 import Model.SecondPart.MyQuery;
 import Model.SecondPart.TotalDictionaryController;
 import Model.DocumentsDictionaryEntrance;
@@ -32,6 +33,7 @@ public class Controller extends AController {
     private boolean toStem;
     private List<MyQuery> queries;
     private boolean hasResults = false;
+    private List<String> allCities = null;
 
     @Override
     public void update(Observable o, Object arg) {
@@ -176,6 +178,8 @@ public class Controller extends AController {
             TotalDictionaryController temp = new TotalDictionaryController(indexFolder);
 
             this.totalDictionaryController = temp;
+            allCities = new ArrayList<>(totalDictionaryController.getDictionary(TypeOfTerm.City).keySet());
+            Collections.sort(allCities);
             secondPartView.ShowSuccess("Loaded the index successfully!");
 
         } catch (Exception e) {
@@ -184,13 +188,17 @@ public class Controller extends AController {
     }
 
     private void MoveToQueriesFileSearch(SecondPartView secondPartView, Boolean stem) {
-        if(checkMovingToSearchPage(secondPartView, stem))
-            secondPartView.ChangeView("SearchQueryFilePage.fxml", "Search Queries file Page", 600, 400);
+        if (checkMovingToSearchPage(secondPartView, stem)) {
+            AView queriesFile = secondPartView.ChangeView("SearchQueryFilePage.fxml", "Search Queries file Page", 600, 400);
+            ((ASearcherView)queriesFile).setAllCities(allCities);
+        }
     }
 
     private void MoveToRegularSearch(SecondPartView secondPartView, Boolean stem) {
-        if(checkMovingToSearchPage(secondPartView, stem))
-            secondPartView.ChangeView("SearchRegularQueryPage.fxml", "Search Regular Query Page", 600, 400);
+        if (checkMovingToSearchPage(secondPartView, stem)) {
+            AView regular = secondPartView.ChangeView("SearchRegularQueryPage.fxml", "Search Regular Query Page", 600, 400);
+            ((ASearcherView)regular).setAllCities(allCities);
+        }
     }
 
     private boolean checkMovingToSearchPage(SecondPartView secondPartView, Boolean stem){
