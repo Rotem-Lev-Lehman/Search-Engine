@@ -329,7 +329,6 @@ public class Controller extends AController {
      * @param file - The root Directory where all the file are in
      */
     private void openAllFiles(FirstPartView firstPartView, File file) {
-//        System.out.println("Hey");
 
         File[] matchingFiles = file.listFiles();
         if (tmp.equals("SRC")) {
@@ -384,8 +383,6 @@ public class Controller extends AController {
     }
 
 
-    //***************************************************************
-    //FOR ROTEM TO FIX (SHOW DICTIONARY)
     private void letsLoad(FirstPartView o) {
         //Save dict
         Analizer analizer = new Analizer();
