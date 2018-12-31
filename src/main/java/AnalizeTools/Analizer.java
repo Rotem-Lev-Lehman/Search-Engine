@@ -89,6 +89,7 @@ public class Analizer {
                 TermFreqTuple termFreqTuple = TermFreqTuple.CreateTermFreqTuple(dictionaryEntrance);
                 termFreqTuples.add(termFreqTuple);
             }
+            scanner.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
