@@ -33,4 +33,5 @@ public class SearchQueryFileView extends ASearcherView {
 
         return chooser.showOpenDialog(currStage);
     }
+
 }

@@ -9,6 +9,7 @@ import View.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -397,19 +398,19 @@ public class Controller extends AController {
         Parent root = null;
         try {
             root = fxmlLoader.load(getClass().getResource("/dictionaryViewer.fxml").openStream());
-            if (termFreqTuples!=null) {
+            if (termFreqTuples != null) {
                 ((DictionaryViewer) fxmlLoader.getController()).setTermFreqTuples(termFreqTuples);
-            }
-            else {
+            } else {
                 return;
             }
+
+            Stage dictionary = new Stage();
+            dictionary.setTitle("Dictionary viewer");
+            dictionary.setScene(new Scene(root, 773, 605));
+            dictionary.initModality(Modality.APPLICATION_MODAL);
+            dictionary.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        Stage dictionary = new Stage();
-        dictionary.setTitle("Dictionary viewer");
-        dictionary.setScene(new Scene(root, 773, 605));
-        dictionary.show();
     }
 }

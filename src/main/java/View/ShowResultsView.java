@@ -4,6 +4,7 @@ import com.sun.javafx.collections.ObservableListWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
@@ -116,4 +117,5 @@ public class ShowResultsView extends AView implements Initializable {
         e5.setVisible(newValue);
         s5.setVisible(newValue);
     }
+
 }

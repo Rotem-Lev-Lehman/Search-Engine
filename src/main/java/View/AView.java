@@ -1,11 +1,15 @@
 package View;
 
 import Control.AController;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.util.Observable;
@@ -61,16 +65,18 @@ public abstract class AView extends Observable {
         alert.showAndWait();
     }
 
-    public AView ChangeView(String viewName, String title, int width, int height){
+    public AView ChangeView(String viewName, String title, int width, int height) {
         AView next = null;
 
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
             Parent root = fxmlLoader.load(getClass().getResource("/" + viewName).openStream());
 
-            currStage.setTitle(title);
-            currStage.setScene(new Scene(root, width, height));
-            currStage.show();
+            Stage newStage = new Stage();
+            newStage.setTitle(title);
+            newStage.setScene(new Scene(root, width, height));
+            newStage.initModality(Modality.APPLICATION_MODAL);
+            newStage.show();
 
             next = (AView) fxmlLoader.getController();
             next.setController(controller);

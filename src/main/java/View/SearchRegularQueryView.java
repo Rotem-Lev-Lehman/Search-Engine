@@ -23,4 +23,5 @@ public class SearchRegularQueryView extends ASearcherView {
         setChanged();
         notifyObservers(send);
     }
+
 }

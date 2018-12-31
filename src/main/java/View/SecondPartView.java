@@ -72,4 +72,5 @@ public class SecondPartView extends AView implements Initializable {
 
         return chooser.showOpenDialog(currStage);
     }
+
 }
