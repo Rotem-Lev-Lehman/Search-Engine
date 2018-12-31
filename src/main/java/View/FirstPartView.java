@@ -109,12 +109,21 @@ public class FirstPartView extends AView {
     public void NotifySrcLoaded(String str){
         if(str == "srcFiles") {
             srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
+            ShowSuccess("Curpos succesfully loaded");
         }
         else if (str=="dstFiles"){
             destinationPath.setTextFill(Paint.valueOf("#11ff00"));
+            ShowSuccess("Destination file succesfully loaded");
+        }
+        else if (str=="loadedDone"){
+            ShowSuccess("Dictionary succesfully loaded");
+        }
+        else if (str=="ShowError"){
+            ShowFailure("You have to load the Dictionary first!");
         }
         else if (str=="Error"){
-            System.out.println("Input error, Please read the README file again and start over the program.");
+            //System.out.println("Input error, Please read the README file again and start over the program.");
+            ShowFailure("Input error, Please read the README file again");
         }
     }
 

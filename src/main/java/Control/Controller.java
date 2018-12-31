@@ -387,6 +387,8 @@ public class Controller extends AController {
         //Save dict
         Analizer analizer = new Analizer();
         termFreqTuples = analizer.AnalizeForZipf(loadingSRC);
+        o.NotifySrcLoaded("LoadedDone");
+
     }
 
     private void letsShow(FirstPartView o) {
@@ -407,6 +409,7 @@ public class Controller extends AController {
             dictionary.initModality(Modality.APPLICATION_MODAL);
             dictionary.show();
         } catch (IOException e) {
+            o.NotifySrcLoaded("ShowError");
             e.printStackTrace();
         }
     }

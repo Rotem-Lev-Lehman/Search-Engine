@@ -60,7 +60,9 @@ public class Document {
         this.cityInfo = null;
     }
 
-    public String getFilename(){return filename;}
+    public String getFilename(){
+        return filename;
+    }
 
     /** A getter for the DOCNO
      * @return The Document's DOCNO
@@ -120,6 +122,12 @@ public class Document {
 
     public List<String> getCity() {
         return cities;
+    }
+
+    public String getOnlyCity(){
+        if(cities.size() == 0)
+            return null;
+        return cities.get(0);
     }
 
     public void setCity(List<String> cities) {

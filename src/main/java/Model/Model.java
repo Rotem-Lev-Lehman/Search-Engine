@@ -830,7 +830,7 @@ public class Model extends AModel {
         }
         //System.out.println("17");
 
-        docIndex.setValue(documentsDictionary.insert(new DocumentsDictionaryEntrance(document.getDOCNO(),document.getFilename(),uniqueTermsNum.getValue(),tf.getValue(),document.getCity().get(0))));
+        docIndex.setValue(documentsDictionary.insert(new DocumentsDictionaryEntrance(document.getDOCNO(),document.getFilename(),uniqueTermsNum.getValue(),tf.getValue(),document.getOnlyCity())));
 
         //System.out.println("18");
         //tell all of the threads that they may continue, because that all of them has gotten to this point:
