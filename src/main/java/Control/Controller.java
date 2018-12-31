@@ -320,6 +320,8 @@ public class Controller extends AController {
         loadingSRC="";
         termFreqTuples= null;
         tmp="";
+        firstPartView.NotifySrcLoaded("todoReset");
+
     }
 
 
@@ -374,6 +376,8 @@ public class Controller extends AController {
         } else
             model.setStem(false);
         model.GetAllDocuments(src);
+        firstPartView.NotifySrcLoaded("FinishedFirstPart");
+
     }
     /** Open a directory dialog to choose the directory with the files to open
      * @param firstPartView - The View in with to open the directory dialog in
@@ -400,6 +404,7 @@ public class Controller extends AController {
             if (termFreqTuples != null) {
                 ((DictionaryViewer) fxmlLoader.getController()).setTermFreqTuples(termFreqTuples);
             } else {
+                o.NotifySrcLoaded("ShowError");
                 return;
             }
 
@@ -408,8 +413,8 @@ public class Controller extends AController {
             dictionary.setScene(new Scene(root, 773, 605));
             dictionary.initModality(Modality.APPLICATION_MODAL);
             dictionary.show();
+
         } catch (IOException e) {
-            o.NotifySrcLoaded("ShowError");
             e.printStackTrace();
         }
     }

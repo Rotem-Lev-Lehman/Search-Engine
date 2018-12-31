@@ -77,11 +77,21 @@ public class FirstPartView extends AView {
         else if(pathType=="LOAD") {
             Stage currentStage = (Stage) loadBTN.getScene().getWindow();
             File selectedDirectory = chooser.showDialog(currentStage);
-            if (selectedDirectory == null)
+            if (selectedDirectory == null) {
+                ShowFailure("Empty Directory..");
                 return;
+            }
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
                 notifyObservers(selectedDirectory);
+                if (!(selectedDirectory.getName().equals("totalIndices")))
+                {
+                    ShowFailure("Was expecting a different file (click the destination file and choose the totalIndices file");
+                }
+                else
+                {
+                    ShowSuccess("Successfully loaded");
+                }
             }
         }
     }
@@ -109,17 +119,23 @@ public class FirstPartView extends AView {
     public void NotifySrcLoaded(String str){
         if(str == "srcFiles") {
             srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
-            ShowSuccess("Curpos succesfully loaded");
+            ShowSuccess("Corpus successfully loaded");
         }
         else if (str=="dstFiles"){
             destinationPath.setTextFill(Paint.valueOf("#11ff00"));
-            ShowSuccess("Destination file succesfully loaded");
+            ShowSuccess("Destination file successfully loaded");
+        }
+        else if (str=="FinishedFirstPart"){
+            ShowSuccess("Successfully built the index");
         }
         else if (str=="loadedDone"){
-            ShowSuccess("Dictionary succesfully loaded");
+            ShowSuccess("Dictionary successfully loaded");
         }
         else if (str=="ShowError"){
             ShowFailure("You have to load the Dictionary first!");
+        }
+        else if (str=="todoReset"){
+            ShowSuccess("Successfully reset the search engine");
         }
         else if (str=="Error"){
             //System.out.println("Input error, Please read the README file again and start over the program.");
@@ -206,7 +222,7 @@ public class FirstPartView extends AView {
             setChanged();
             notifyObservers("start");
         } else {
-            JOptionPane.showMessageDialog(null, "Re-enter SRC and DST path's");
+            ShowFailure("Couldn't start, No input..");
         }
     }
 
