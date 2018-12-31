@@ -8,7 +8,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.stage.FileChooser;
-import org.controlsfx.control.CheckComboBox;
 
 import java.io.File;
 import java.net.URL;
