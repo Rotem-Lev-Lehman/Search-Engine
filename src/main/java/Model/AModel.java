@@ -85,7 +85,7 @@ public abstract class AModel {
         StopWatch stopWatchForSavingFiveBigWordsForEachDocument = new StopWatch();
         stopWatchForSavingFiveBigWordsForEachDocument.start();
 
-        saveFiveBigWordsForEachDocument();
+        saveFiveBigWordsForEachDocumentAndMakeTheCossimCalculation();
 
         stopWatchForSavingFiveBigWordsForEachDocument.stop();
         System.out.println("Finished saving for each document it's five big words");
@@ -95,7 +95,7 @@ public abstract class AModel {
 
     }
 
-    protected abstract void saveFiveBigWordsForEachDocument();
+    protected abstract void saveFiveBigWordsForEachDocumentAndMakeTheCossimCalculation();
 
     public void SetDestinationPath(String destPath) {
         destPathForTempIndices = destPath + '\\' + "tempIndices";

@@ -1,6 +1,7 @@
 package Model;
 
-import Model.SecondPart.DocumentsFiveBigWordsConstructor;
+import Model.SecondPart.DocumentsCossimAdder;
+import Model.SecondPart.DocumentsFiveBigWordsAndCossimConstructor;
 
 import java.io.*;
 import java.util.*;
@@ -26,19 +27,81 @@ public class Model extends AModel {
     }
 
     @Override
-    protected void saveFiveBigWordsForEachDocument() {
+    protected void saveFiveBigWordsForEachDocumentAndMakeTheCossimCalculation() {
+        String smallPath = destPathForTotalIndices + "\\smallLetters";
         String bigPath = destPathForTotalIndices + "\\bigLetters";
+        String cityPath = destPathForTotalIndices + "\\cities";
+        String numPath = destPathForTotalIndices + "\\numbers";
+        String rangeOrPhrasePath = destPathForTotalIndices + "\\rangeOrPhrase";
+        String percentagePath = destPathForTotalIndices + "\\percentage";
+        String pricePath = destPathForTotalIndices + "\\price";
+        String datePath = destPathForTotalIndices + "\\date";
+
+        File[] smallLettersDir = new File[26];
         File[] bigLettersDir = new File[26];
         for(int i = 0; i < bigLettersDir.length; i++){
             char currLetter = (char)('a' + i);
 
+            smallLettersDir[i] = new File(smallPath + "\\" + currLetter);
             bigLettersDir[i] = new File(bigPath + "\\" + currLetter);
         }
         String documentsPath = destPathForTotalIndices + "\\documents";
         File documentsDir = new File(documentsPath);
 
-        DocumentsFiveBigWordsConstructor constractor = new DocumentsFiveBigWordsConstructor(documentsDir, bigLettersDir);
-        constractor.construct();
+        DocumentsDictionaryController documentsDictionaryController = new DocumentsDictionaryController(documentsDir);
+        documentsDictionaryController.ReadAllDictionary(false);
+
+        DocumentsCossimAdder[] adders = new DocumentsCossimAdder[26 + 6];
+        int curr = 0;
+        Thread[] threads = new Thread[adders.length];
+
+        for(int i = 0; i < smallLettersDir.length; i++){
+            adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, smallLettersDir[i].getAbsolutePath(), TypeOfTerm.SmallLetters);
+            curr++;
+        }
+        adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, cityPath, TypeOfTerm.City);
+        curr++;
+        adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, numPath, TypeOfTerm.Number);
+        curr++;
+        adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, rangeOrPhrasePath, TypeOfTerm.RangeOrPhrase);
+        curr++;
+        adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, percentagePath, TypeOfTerm.Percentage);
+        curr++;
+        adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, pricePath, TypeOfTerm.Price);
+        curr++;
+        adders[curr] = new DocumentsCossimAdder(documentsDictionaryController, datePath, TypeOfTerm.Date);
+
+        for(int i = 0; i < adders.length; i++)
+        {
+            AdderCossimThread adderCossimThread = new AdderCossimThread(adders[i]);
+            threads[i] = new Thread(adderCossimThread);
+            threads[i].start();
+        }
+
+        DocumentsFiveBigWordsAndCossimConstructor constructor = new DocumentsFiveBigWordsAndCossimConstructor(documentsDictionaryController, bigLettersDir);
+        constructor.construct();
+
+        for(int i = 0; i < threads.length; i++) {
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        documentsDictionaryController.WriteTheDictionaryToDisk();
+    }
+
+    private class AdderCossimThread implements Runnable{
+        private DocumentsCossimAdder adder;
+        public AdderCossimThread(DocumentsCossimAdder adder){
+            this.adder = adder;
+        }
+
+        @Override
+        public void run() {
+            adder.AddForAll();
+        }
     }
 
     @Override

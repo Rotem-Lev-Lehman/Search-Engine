@@ -148,6 +148,7 @@ public class Ranker {
         private double docLength;
         private double score;
         private double amountOfNonSemanticTerms;
+        private double cosSimTop;
 
         public DocRank(DocumentsDictionaryEntrance documentsDictionaryEntrance) {
             this.documentsDictionaryEntrance = documentsDictionaryEntrance;
@@ -156,6 +157,7 @@ public class Ranker {
             posScore = 0;
             amountOfNonSemanticTerms = 0;
             positions = new ArrayList<>();
+            cosSimTop = 0;
         }
 
         public DocumentsDictionaryEntrance getDocumentsDictionaryEntrance() {
@@ -188,11 +190,23 @@ public class Ranker {
 
         public void calculateScore(){
             //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
-            score = currBM25 * 0.55 + amountOfNonSemanticTerms * 0.4 + posScore * 0.05;
+            score = currBM25 * 0.75 + amountOfNonSemanticTerms * 0.2 + posScore * 0.05;
         }
 
         public void addToPositions(List<Integer> pos){
             positions.add(pos);
+        }
+
+        public double getCosSimTop() {
+            return cosSimTop;
+        }
+
+        public void addToCosSim(double cosSimTop) {
+            this.cosSimTop += cosSimTop;
+        }
+
+        public void setCosSimTop(double cosSimTop) {
+            this.cosSimTop = cosSimTop;
         }
 
         public double getDocLength() {

@@ -70,11 +70,25 @@ public class DocumentsDictionaryController {
         return avgDocLength;
     }
 
-    public void insertIfBetter(String term, EntranceRow entrance, int df){
+    public void addToCossimCalculation(EntranceRow entrance, int df){
         int index = entrance.getDocId();
         DocumentsDictionaryEntrance dictionaryEntrance = dictionary.get(index);
 
         double score = calculateScore(entrance.getNormalizedTermFreq(), df);
+        synchronized (dictionaryEntrance.lockSumOfLeftSide) {
+            dictionaryEntrance.AddToSumOfCossim(score);
+        }
+    }
+
+    public void insertIfBetterAndAddToCossimCalculation(String term, EntranceRow entrance, int df){
+        int index = entrance.getDocId();
+        DocumentsDictionaryEntrance dictionaryEntrance = dictionary.get(index);
+
+        double score = calculateScore(entrance.getNormalizedTermFreq(), df);
+        synchronized (dictionaryEntrance.lockSumOfLeftSide) {
+            dictionaryEntrance.AddToSumOfCossim(score);
+        }
+
         IdentityAndScore[] topFive = dictionaryEntrance.getTopFiveBigWords();
         for(int i = 0; i < topFive.length; i++) {
             try {

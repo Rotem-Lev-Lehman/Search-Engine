@@ -7,17 +7,16 @@ import Model.TermsIndexFileController;
 import java.io.File;
 import java.util.ArrayList;
 
-public class DocumentsFiveBigWordsConstructor {
+public class DocumentsFiveBigWordsAndCossimConstructor {
     private DocumentsDictionaryController documentsDictionaryController;
     private File[] files;
 
-    public DocumentsFiveBigWordsConstructor(File documentsDir, File[] bigLettersDir){
-        documentsDictionaryController = new DocumentsDictionaryController(documentsDir);
+    public DocumentsFiveBigWordsAndCossimConstructor(DocumentsDictionaryController documentsDictionaryController, File[] bigLettersDir){
+        this.documentsDictionaryController = documentsDictionaryController;
         files = bigLettersDir;
     }
 
     public void construct(){
-        documentsDictionaryController.ReadAllDictionary(false);
         Thread[] threads = new Thread[files.length];
         for(int i = 0; i < files.length; i++) {
             threads[i] = new Thread(new constructingThread(files[i]));
@@ -30,7 +29,6 @@ public class DocumentsFiveBigWordsConstructor {
                 e.printStackTrace();
             }
         }
-        documentsDictionaryController.WriteTheDictionaryToDisk();
     }
 
     private class constructingThread implements Runnable{
@@ -48,7 +46,7 @@ public class DocumentsFiveBigWordsConstructor {
                 currentFileController.getNextRow();
                 ArrayList<EntranceRow> row = currentFileController.getPostingRow().getEntranceRows();
                 for (EntranceRow entrance : row) {
-                    documentsDictionaryController.insertIfBetter(currentFileController.getTerm(), entrance, currentFileController.getDocFreq());
+                    documentsDictionaryController.insertIfBetterAndAddToCossimCalculation(currentFileController.getTerm(), entrance, currentFileController.getDocFreq());
                 }
             }
         }
