@@ -32,8 +32,10 @@ public class Ranker {
         double maxBM25 = 0;
         int nonSemanticTermsCount = 0;
 
+        double sqrtOfSizeOfQuery = 1;
         for(SubQuery subQuery : myQuery.getSubQueries()) {
             //List<DocumentAndTermDataForRanking> data = myQuery.getSubQueries().get(0).getData();
+            sqrtOfSizeOfQuery = Math.sqrt(subQuery.getTerms().size());
             for(Term term : subQuery.getTerms()){
                 List<DocumentAndTermDataForRanking> data = subQuery.getData().get(term.getValue());
                 if(data == null)
@@ -54,12 +56,17 @@ public class Ranker {
 
                     List<Integer> currPos = doc.getTermInDocumentData().getPositions();
 
+                    double tfIdf = doc.getTermInDocumentData().getNormalizedTermFreq() * IDF * 1;
+
                     DocRank docScore = new DocRank(doc.getDocumentData());
                     docScore.currBM25 = bm25;
                     docScore.addToPositions(currPos);
                     docScore.setDocLength(docSize);
+                    docScore.setCosSimTop(tfIdf);
+
                     if(term.isSemanticTerm())
                         docScore.addNonSemanticTerm();
+
                     DocRank search = allRankedDocs.get(doc.getDocumentData());
                     if (search == null) {
                         allRankedDocs.put(doc.getDocumentData(), docScore);
@@ -68,6 +75,7 @@ public class Ranker {
                         search.addToBM25(docScore.getCurrBM25());
                         search.addToPositions(currPos);
                         search.addAmountToNonSemanticTermCount(docScore.amountOfNonSemanticTerms);
+                        search.addToCosSim(docScore.getCosSimTop());
                     }
 
                 }
@@ -76,8 +84,10 @@ public class Ranker {
 
         //PriorityQueue<DocRank> sortedByRank = new PriorityQueue<>(new toSort());
 
+
         for(DocRank docRank : allRankedDocs.values()){
             docRank.normalizeAmountOfNonSemanticTerms(nonSemanticTermsCount);
+            docRank.normalizeCosSim(sqrtOfSizeOfQuery);
             if(docRank.currBM25 > maxBM25)
                 maxBM25 = docRank.currBM25;
         }
@@ -190,7 +200,7 @@ public class Ranker {
 
         public void calculateScore(){
             //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
-            score = currBM25 * 0.75 + amountOfNonSemanticTerms * 0.2 + posScore * 0.05;
+            score = currBM25 * 0.375 + cosSimTop * 0.375 + amountOfNonSemanticTerms * 0.2 + posScore * 0.05;
         }
 
         public void addToPositions(List<Integer> pos){
@@ -207,6 +217,10 @@ public class Ranker {
 
         public void setCosSimTop(double cosSimTop) {
             this.cosSimTop = cosSimTop;
+        }
+
+        public void normalizeCosSim(double sqrtOfSizeOfQuery){
+            cosSimTop /= (documentsDictionaryEntrance.getSumOfLeftSideOfCosSim() * sqrtOfSizeOfQuery);
         }
 
         public double getDocLength() {
