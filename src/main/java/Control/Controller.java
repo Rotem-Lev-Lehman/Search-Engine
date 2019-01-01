@@ -130,7 +130,7 @@ public class Controller extends AController {
     }
 
     private void MoveToSecondPartPage(MainPageView mainPageView) {
-        mainPageView.ChangeView("SecondPartPage.fxml", "Search Queries Page", 500, 400);
+        mainPageView.ChangeView("SecondPartPage.fxml", "Search Queries Page", 640, 400);
     }
 
     private void MoveToFirstPartPage(MainPageView mainPageView) {
@@ -189,14 +189,14 @@ public class Controller extends AController {
 
     private void MoveToQueriesFileSearch(SecondPartView secondPartView, Boolean stem) {
         if (checkMovingToSearchPage(secondPartView, stem)) {
-            AView queriesFile = secondPartView.ChangeView("SearchQueryFilePage.fxml", "Search Queries file Page", 600, 400);
+            AView queriesFile = secondPartView.ChangeView("SearchQueryFilePage.fxml", "Search Queries file Page", 640, 420);
             ((ASearcherView)queriesFile).setAllCities(allCities);
         }
     }
 
     private void MoveToRegularSearch(SecondPartView secondPartView, Boolean stem) {
         if (checkMovingToSearchPage(secondPartView, stem)) {
-            AView regular = secondPartView.ChangeView("SearchRegularQueryPage.fxml", "Search Regular Query Page", 600, 400);
+            AView regular = secondPartView.ChangeView("SearchRegularQueryPage.fxml", "Search Regular Query Page", 620, 420);
             ((ASearcherView)regular).setAllCities(allCities);
         }
     }
@@ -320,7 +320,12 @@ public class Controller extends AController {
 
 
     private void letsReset(FirstPartView firstPartView) {
-        System.gc();
+        if(dest == null) {
+            firstPartView.ShowFailure("Must load or create an index to reset one");
+            return;
+        }
+
+        firstPartView.activateReset(dest);
         model=new Model();
         stem = false;
         src="";
@@ -328,6 +333,7 @@ public class Controller extends AController {
         loadingSRC="";
         termFreqTuples= null;
         tmp="";
+        System.gc();
         firstPartView.NotifySrcLoaded("todoReset");
 
     }
@@ -398,8 +404,15 @@ public class Controller extends AController {
     private void letsLoad(FirstPartView o) {
         //Save dict
         Analizer analizer = new Analizer();
-        termFreqTuples = analizer.AnalizeForZipf(loadingSRC);
-        o.NotifySrcLoaded("LoadedDone");
+        try {
+            termFreqTuples = analizer.AnalizeForZipf(loadingSRC);
+
+            dest = loadingSRC;
+            o.NotifySrcLoaded("loadedDone");
+        }
+        catch (Exception e){
+            o.ShowFailure("You need to choose an Index file that is in the correct format that we have made. try to index again and then choose the 'totalIndices' folder");
+        }
 
     }
 

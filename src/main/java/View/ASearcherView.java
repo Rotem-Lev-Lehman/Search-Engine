@@ -50,7 +50,7 @@ public abstract class ASearcherView extends AView {
     }
 
     public void MoveToShowResults(List<QueryResultForView> results){
-        AView view = ChangeView("ShowResultsPage.fxml", "Results", 700, 500);
+        AView view = ChangeView("ShowResultsPage.fxml", "Results", 1700, 500);
         ((ShowResultsView)view).setResults(results);
     }
 }

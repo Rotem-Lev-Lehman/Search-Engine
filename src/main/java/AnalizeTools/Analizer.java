@@ -29,7 +29,7 @@ public class Analizer {
         System.out.println("amount of different numbers = " + count);
     }
 
-    public Map<String, String> AnalizeForZipf(String path){
+    public Map<String, String> AnalizeForZipf(String path) throws Exception{
         File mainDir = new File(path);
         File[] files = mainDir.listFiles();
         for(int i = 0; i < files.length; i++){
@@ -75,7 +75,7 @@ public class Analizer {
         }
     }
 
-    private void readFileAndSaveTermFreqTuples(File dictionary, TypeOfTerm type) {
+    private void readFileAndSaveTermFreqTuples(File dictionary, TypeOfTerm type) throws Exception {
         ADictionaryEntrance dictionaryEntrance;
         try {
             Scanner scanner = new Scanner(new BufferedReader(new FileReader(dictionary)));
@@ -90,8 +90,9 @@ public class Analizer {
                 termFreqTuples.add(termFreqTuple);
             }
             scanner.close();
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
     }
 }

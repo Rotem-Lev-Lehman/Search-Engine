@@ -84,14 +84,6 @@ public class FirstPartView extends AView {
             if (selectedDirectory != null && selectedDirectory.isDirectory()) {
                 setChanged();
                 notifyObservers(selectedDirectory);
-                if (!(selectedDirectory.getName().equals("totalIndices")))
-                {
-                    ShowFailure("Was expecting a different file (click the destination file and choose the totalIndices file");
-                }
-                else
-                {
-                    ShowSuccess("Successfully loaded");
-                }
             }
         }
     }
@@ -117,33 +109,34 @@ public class FirstPartView extends AView {
      * Notify the user that the parsing operation was finished
      */
     public void NotifySrcLoaded(String str){
-        if(str == "srcFiles") {
+        if(str.equals("srcFiles")) {
             srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#11ff00"));
             ShowSuccess("Corpus successfully loaded");
         }
-        else if (str=="dstFiles"){
+        else if (str.equals("dstFiles")){
             destinationPath.setTextFill(Paint.valueOf("#11ff00"));
             ShowSuccess("Destination file successfully loaded");
         }
-        else if (str=="FinishedFirstPart"){
+        else if (str.equals("FinishedFirstPart")){
             ShowSuccess("Successfully built the index");
         }
-        else if (str=="loadedDone"){
+        else if (str.equals("loadedDone")){
             ShowSuccess("Dictionary successfully loaded");
         }
-        else if (str=="ShowError"){
+        else if (str.equals("ShowError")){
             ShowFailure("You have to load the Dictionary first!");
         }
-        else if (str=="todoReset"){
+        else if (str.equals("todoReset")){
             ShowSuccess("Successfully reset the search engine");
         }
-        else if (str=="Error"){
+        else if (str.equals("Error")){
             //System.out.println("Input error, Please read the README file again and start over the program.");
             ShowFailure("Input error, Please read the README file again");
         }
     }
 
 
+    /*
 
     public void deleteDirectory(File directoryToBDeleted){
         File[] Files = directoryToBDeleted.listFiles();
@@ -153,6 +146,7 @@ public class FirstPartView extends AView {
             }
         }
     }
+    */
     public void deleteDirectoryInside(File DirectoryInsideToBeDeleted){
         File[] Files = DirectoryInsideToBeDeleted.listFiles();
         if(Files != null) {
@@ -164,17 +158,20 @@ public class FirstPartView extends AView {
     }
 
     public void resetProg(ActionEvent actionEvent) {
-        File root = new File(DSTPath.getText());
-        deleteDirectory(root);
+        setChanged();
+        notifyObservers("reset");
+
+    }
+
+    public void activateReset(String toReset){
+        File root = new File(toReset);
+        deleteDirectoryInside(root);
         DSTPath.setText("");
         SRCPath.setText("");
         srcPathOfStopWordsAndCorpus.setTextFill(Paint.valueOf("#333333ff"));
         destinationPath.setTextFill(Paint.valueOf("#333333ff"));
         languagesChoiceBox.getItems().removeAll(languagesChoiceBox.getItems());
         stemming.setSelected(false);
-        setChanged();
-        notifyObservers("reset");
-
     }
 
     public void show(ActionEvent actionEvent) {

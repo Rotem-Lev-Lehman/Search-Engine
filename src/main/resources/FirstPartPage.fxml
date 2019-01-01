@@ -27,7 +27,7 @@
                </font></Button>
                 <Label fx:id="labelDone" layoutX="49.0" layoutY="113.0" text="Finished parsing" textFill="#11ff00" visible="false" />
              <Button fx:id="resetBTN" layoutX="586.0" layoutY="427.0" mnemonicParsing="false" onAction="#resetProg" prefWidth="122.0" text="RESET" />
-             <Button fx:id="showBTN" layoutX="586.0" layoutY="474.0" mnemonicParsing="false" onAction="#show" prefWidth="122.0" text="Show dictionary" />
+             <Button fx:id="showBTN" layoutX="586.0" layoutY="474.0" mnemonicParsing="false" onAction="#show" prefHeight="31.0" prefWidth="133.0" text="Show dictionary" />
              <Button fx:id="loadBTN" layoutX="586.0" layoutY="521.0" mnemonicParsing="false" onAction="#load" prefWidth="122.0" text="Load dictionary" />
              <TextArea editable="false" layoutX="37.0" layoutY="14.0" prefHeight="123.0" prefWidth="688.0" text="Welcome to Rotem &amp; Ofir Search Engine&#10;                            Enjoy!!" wrapText="true">
                  <font>
