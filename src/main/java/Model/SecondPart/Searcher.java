@@ -167,6 +167,7 @@ public class Searcher {
         System.out.println("starting to check posting");
         boolean checkCities = false;
         List<String> relevantCities = queries.get(0).getCitiesRelevant();
+        HashSet<String> relevantCitiesHashSet = new HashSet<>(relevantCities);
         if(relevantCities.size() > 0)
             checkCities = true;
         //now search in every dictionary if the terms exist in it
@@ -175,21 +176,21 @@ public class Searcher {
         List<DocumentAndTermDataForRanking> totalData = new ArrayList<>();
         Object lock = new Object();
         for(int i = 0; i < 26; i++) {
-            threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i), checkCities, relevantCities));
-            threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i), checkCities, relevantCities));
+            threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i), checkCities, relevantCitiesHashSet));
+            threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i), checkCities, relevantCitiesHashSet));
         }
 
-        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Number), totalDictionaryController.getPosting(TypeOfTerm.Number), numbersTerms, checkCities, relevantCities));
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Number), totalDictionaryController.getPosting(TypeOfTerm.Number), numbersTerms, checkCities, relevantCitiesHashSet));
 
-        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.RangeOrPhrase), totalDictionaryController.getPosting(TypeOfTerm.RangeOrPhrase), rangeOrPhraseTerms, checkCities, relevantCities));
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.RangeOrPhrase), totalDictionaryController.getPosting(TypeOfTerm.RangeOrPhrase), rangeOrPhraseTerms, checkCities, relevantCitiesHashSet));
 
-        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.City), totalDictionaryController.getPosting(TypeOfTerm.City), cityTerms, checkCities, relevantCities));
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.City), totalDictionaryController.getPosting(TypeOfTerm.City), cityTerms, checkCities, relevantCitiesHashSet));
 
-        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Price), totalDictionaryController.getPosting(TypeOfTerm.Price), priceTerms, checkCities, relevantCities));
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Price), totalDictionaryController.getPosting(TypeOfTerm.Price), priceTerms, checkCities, relevantCitiesHashSet));
 
-        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Percentage), totalDictionaryController.getPosting(TypeOfTerm.Percentage), percentageTerms, checkCities, relevantCities));
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Percentage), totalDictionaryController.getPosting(TypeOfTerm.Percentage), percentageTerms, checkCities, relevantCitiesHashSet));
 
-        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms, checkCities, relevantCities));
+        threadPool.submit(new PostingSearcher(totalData, lock, totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms, checkCities, relevantCitiesHashSet));
 
         threadPool.shutdown();
         try {
@@ -311,9 +312,9 @@ public class Searcher {
         private File postingFile;
         private List<QuerysTerm> terms;
         private boolean checkCities;
-        private List<String> cities;
+        private HashSet<String> cities;
 
-        public PostingSearcher(List<DocumentAndTermDataForRanking> totalData, Object lock, Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms, boolean checkCities, List<String> citiesRelevant) {
+        public PostingSearcher(List<DocumentAndTermDataForRanking> totalData, Object lock, Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms, boolean checkCities, HashSet<String> citiesRelevant) {
             this.totalData = totalData;
             this.lock = lock;
             this.dictionary = dictionary;
@@ -334,7 +335,7 @@ public class Searcher {
         }
     }
 
-    private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms, boolean checkCities, List<String> citiesRelevant){
+    private List<DocumentAndTermDataForRanking> searchInDictionary(Map<String, ADictionaryEntrance> dictionary, File postingFile, List<QuerysTerm> terms, boolean checkCities, HashSet<String> citiesRelevant){
         //sort so will be searched in the index only with one pass on it
         terms.sort(new Comparator<QuerysTerm>() {
             @Override
@@ -372,7 +373,7 @@ public class Searcher {
                     if(checkCities){
                         if(currDoc.getCity() == null)
                             continue;
-                        if(!citiesRelevant.contains(currDoc.getCity()))
+                        if(!citiesRelevant.contains(currDoc.getCity().toUpperCase()))
                             continue;
                     }
 
