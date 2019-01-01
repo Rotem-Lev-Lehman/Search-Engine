@@ -40,7 +40,7 @@ public class Ranker {
                 List<DocumentAndTermDataForRanking> data = subQuery.getData().get(term.getValue());
                 if(data == null)
                     continue;
-                if(term.isSemanticTerm())
+                if(!term.isSemanticTerm())
                     nonSemanticTermsCount++;
 
                 for(DocumentAndTermDataForRanking doc : data){
@@ -64,7 +64,7 @@ public class Ranker {
                     docScore.setDocLength(docSize);
                     docScore.setCosSimTop(tfIdf);
 
-                    if(term.isSemanticTerm())
+                    if(!term.isSemanticTerm())
                         docScore.addNonSemanticTerm();
 
                     DocRank search = allRankedDocs.get(doc.getDocumentData());
@@ -200,7 +200,7 @@ public class Ranker {
 
         public void calculateScore(){
             //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
-            score = currBM25 * 0.375 + cosSimTop * 0.375 + amountOfNonSemanticTerms * 0.2 + posScore * 0.05;
+            score = currBM25 * 0.15 + cosSimTop * 0.05 + amountOfNonSemanticTerms * 0.8 /*+ posScore * 0.05*/;
         }
 
         public void addToPositions(List<Integer> pos){
@@ -240,7 +240,10 @@ public class Ranker {
         }
 
         public void normalizeAmountOfNonSemanticTerms(int amountOfNonSemanticTerms){
-            this.amountOfNonSemanticTerms /= (double)amountOfNonSemanticTerms;
+            if(amountOfNonSemanticTerms == 0)
+                this.amountOfNonSemanticTerms = 0;
+            else
+                this.amountOfNonSemanticTerms /= (double)amountOfNonSemanticTerms;
         }
 
         /*
