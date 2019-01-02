@@ -76,6 +76,7 @@ public class SecondPartModel {
                     queryBuilder.append(" ");
                 }
                 String[] description = descriptionSplit[1].split("<narr>")[0].replace("\n"," ").replace("\r"," ").split(" ");
+                /*
                 for(int i = 0; i < description.length; i++){
                     if(description[i].equals(""))
                         continue;
@@ -83,6 +84,7 @@ public class SecondPartModel {
                     if(i < description.length - 1)
                         queryBuilder.append(" ");
                 }
+                */
                 String txt = queryBuilder.toString();
                 queries.add(new MyQuery(txt, new ArrayList<>(), queryID));
             }

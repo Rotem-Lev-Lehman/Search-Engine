@@ -49,7 +49,11 @@ public class Model extends AModel {
         File documentsDir = new File(documentsPath);
 
         DocumentsDictionaryController documentsDictionaryController = new DocumentsDictionaryController(documentsDir);
-        documentsDictionaryController.ReadAllDictionary(false);
+        try {
+            documentsDictionaryController.ReadAllDictionary(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         DocumentsCossimAdder[] adders = new DocumentsCossimAdder[26 + 6];
         int curr = 0;

@@ -13,7 +13,7 @@ public class DocumentsDictionaryController {
         this.dictionaryFile = new File(directory.getAbsoluteFile() + "\\dic.data");
     }
 
-    public void ReadAllDictionary(boolean usePreviousData) {
+    public void ReadAllDictionary(boolean usePreviousData) throws Exception {
         dictionary = new ArrayList<DocumentsDictionaryEntrance>();
         Scanner scanner;
         try {
@@ -28,8 +28,9 @@ public class DocumentsDictionaryController {
             scanner.close();
             N = dictionary.size();
             avgDocLength = (avgDocLength / (double)N);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
     }
 
