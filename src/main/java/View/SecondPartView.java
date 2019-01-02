@@ -1,35 +1,15 @@
 package View;
 
 import javafx.event.ActionEvent;
-import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.net.URL;
-import java.util.ResourceBundle;
 
-public class SecondPartView extends AView implements Initializable {
+public class SecondPartView extends AView {
 
     public CheckBox useStem;
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        //ObservableList<String> strings = FXCollections.observableArrayList();
-
-        /*
-        ObservableList<String> strings = checkComboBoxCitiesRelevant.getItems();
-        for (int i = 0; i <= 100; i++) {
-            strings.add("Item " + i);
-        }
-        checkComboBoxCitiesRelevant.getCheckModel().getCheckedItems().addListener(new ListChangeListener<String>() {
-            public void onChanged(ListChangeListener.Change<? extends String> c) {
-                System.out.println(checkComboBoxCitiesRelevant.getCheckModel().getSelectedItems());
-            }
-        });
-        */
-    }
 
     public void RegularSearchPressed(ActionEvent actionEvent) {
         Object[] send = new Object[2];
@@ -52,11 +32,6 @@ public class SecondPartView extends AView implements Initializable {
     public void LoadIndexPressed(ActionEvent actionEvent) {
         setChanged();
         notifyObservers("Load index");
-    }
-
-    public void LoadStopWordsPressed(ActionEvent actionEvent) {
-        setChanged();
-        notifyObservers("Load stop words");
     }
 
     public File GetIndexDirectory(){

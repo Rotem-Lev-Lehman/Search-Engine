@@ -16,6 +16,5 @@
       <Button layoutX="333.0" layoutY="94.0" mnemonicParsing="false" onAction="#QueriesFileSearchPressed" text="Browse a Queries file" />
       <CheckBox fx:id="useStem" layoutX="311.0" layoutY="170.0" mnemonicParsing="false" text="The dictionary is stemmed?" />
       <Button layoutX="123.0" layoutY="163.0" mnemonicParsing="false" onAction="#LoadIndexPressed" text="Load your Index" />
-      <Button layoutX="123.0" layoutY="216.0" mnemonicParsing="false" onAction="#LoadStopWordsPressed" text="Load stop words" />
    </children>
 </AnchorPane>

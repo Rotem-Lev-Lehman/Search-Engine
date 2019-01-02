@@ -112,9 +112,6 @@ public class Controller extends AController {
                 if(arg.equals("Load index")){
                     LoadIndex((SecondPartView)o);
                 }
-                else if(arg.equals("Load stop words")){
-                    LoadStopWords((SecondPartView)o);
-                }
             }
         }
         else if(o instanceof MainPageView){
@@ -135,37 +132,6 @@ public class Controller extends AController {
 
     private void MoveToFirstPartPage(MainPageView mainPageView) {
         mainPageView.ChangeView("FirstPartPage.fxml", "Create Index Page", 773, 605);
-    }
-
-    private void LoadStopWords(SecondPartView secondPartView) {
-        File stopWordsFile = secondPartView.GetStopWordsFile();
-        if(stopWordsFile == null){
-            secondPartView.ShowFailure("You must pick a stop words file");
-            return;
-        }
-
-        if(LoadStopWordsFile(stopWordsFile)){
-            secondPartView.ShowSuccess("Loaded the stop words file successfully!");
-        }
-        else{
-            secondPartView.ShowFailure("There was an error while trying to load the stop words file, please make sure that you have chosen a file with the correct format");
-        }
-    }
-
-    private boolean LoadStopWordsFile(File stopWordsFile){
-        try {
-            stopWords = new HashSet<String>();
-            Scanner scanner = new Scanner(new BufferedReader(new FileReader(stopWordsFile)));
-            while (scanner.hasNext())
-                stopWords.add(scanner.nextLine());
-            scanner.close();
-            return true;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-
-            stopWords = null;
-            return false;
-        }
     }
 
     private void LoadIndex(SecondPartView secondPartView) {
@@ -206,10 +172,6 @@ public class Controller extends AController {
             secondPartView.ShowFailure("You need to load the Index before you move to the search page");
             return false;
         }
-        if(stopWords == null){
-            secondPartView.ShowFailure("You need to load the stop words before you move to the search page");
-            return false;
-        }
 
         //everything is ready for moving
         hasResults = false;
@@ -217,7 +179,7 @@ public class Controller extends AController {
         toStem = stem;
 
         secondPartModel.LoadDictionary(totalDictionaryController, toStem);
-        secondPartModel.LoadStopWords(stopWords);
+        secondPartModel.LoadStopWords(new HashSet<>());
 
         return true;
     }
