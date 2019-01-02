@@ -35,26 +35,6 @@ public class Searcher {
         this.stemmer = new porterStemmer();
     }
 
-    private void GeneratePermutations(List<List<Term>> Lists, List<SubQuery> result, int depth, SubQuery current, MyInteger nextIndex)
-    {
-        if(depth == Lists.size())
-        {
-            current.setSubQueryNum(nextIndex.getValue());
-            nextIndex.add(1);
-
-            result.add(current);
-            return;
-        }
-
-        for(int i = 0; i < Lists.get(depth).size(); i++)
-        {
-            SubQuery curr = new SubQuery(current);
-            curr.addTerm(Lists.get(depth).get(i));
-
-            GeneratePermutations(Lists, result, depth + 1, curr, nextIndex);
-        }
-    }
-
     public void SearchForRelevantDocuments(List<MyQuery> queries) {
         //create all of the queries data
         List<QuerysTerm> querysTerms = new ArrayList<>();
@@ -86,16 +66,10 @@ public class Searcher {
                     //similarTerms.add(currentSimilarTerms);
                 }
 
-                //GeneratePermutations(similarTerms, subQueries, 0, new SubQuery(query.getId()), subQueryIndex);
 
                 subQueries.add(subQuery);
 
                 querysTerms.addAll(subQuery.getQueryTerms());
-                /*
-                for (SubQuery subQuery : subQueries) {
-                    querysTerms.addAll(subQuery.getQueryTerms());
-                }
-                */
             } else {
                 List<Term> terms = parser.Parse(query.getDocument(), stopWords, toStem);
                 SubQuery curr = new SubQuery(query.getId());
@@ -201,25 +175,7 @@ public class Searcher {
             e.printStackTrace();
         }
         System.out.println("done reading from posting files");
-        /*
-        for(int i = 0; i < 26; i++) {
-            totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.SmallLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.SmallLetters, i), smallLetterTerms.get(i)));
-            totalData.addAll(searchInDictionary(totalDictionaryController.getDictionaryFromLetters(TypeOfTerm.BigLetters, i), totalDictionaryController.getPostingFromLetters(TypeOfTerm.BigLetters, i), bigLetterTerms.get(i)));
-        }
-        System.out.println("done letters");
-        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Number), totalDictionaryController.getPosting(TypeOfTerm.Number), numbersTerms));
-        System.out.println("done Numbers");
-        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.RangeOrPhrase), totalDictionaryController.getPosting(TypeOfTerm.RangeOrPhrase), rangeOrPhraseTerms));
-        System.out.println("done range-phrase");
-        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.City), totalDictionaryController.getPosting(TypeOfTerm.City), cityTerms));
-        System.out.println("done city");
-        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Price), totalDictionaryController.getPosting(TypeOfTerm.Price), priceTerms));
-        System.out.println("done price");
-        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Percentage), totalDictionaryController.getPosting(TypeOfTerm.Percentage), percentageTerms));
-        System.out.println("done percentage");
-        totalData.addAll(searchInDictionary(totalDictionaryController.getDictionary(TypeOfTerm.Date), totalDictionaryController.getPosting(TypeOfTerm.Date), dateTerms));
-        System.out.println("done date");
-        */
+
         //split the data to the given queries
         for(DocumentAndTermDataForRanking data : totalData){
             MyQuery query = findQuery(queries, data.getQueryID());
