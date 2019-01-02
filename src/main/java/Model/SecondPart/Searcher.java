@@ -24,7 +24,7 @@ public class Searcher {
     private TotalDictionaryController totalDictionaryController;
     private SnowballStemmer stemmer;
     private boolean useSemantic;
-    private int maxAmountOfSimilarWords = 5;
+    private int maxAmountOfSimilarWords = 1;
 
     public Searcher(HashSet<String> stopWords, boolean toStem, TotalDictionaryController totalDictionaryController, boolean useSemantic){
         this.stopWords = stopWords;
@@ -189,7 +189,7 @@ public class Searcher {
             StopWatch timer = new StopWatch();
             timer.start();
             Ranker ranker = new Ranker();
-            ranker.Rank(query, totalDictionaryController.getAvgDocLength(), totalDictionaryController.getN());
+            ranker.Rank(query, totalDictionaryController.getAvgDocLength(), totalDictionaryController.getN(),useSemantic);
             timer.stop();
             System.out.println("time for current query = " + timer.getTime(TimeUnit.MILLISECONDS) + " milliseconds");
         }

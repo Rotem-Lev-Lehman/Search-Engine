@@ -53,6 +53,8 @@ public class SecondPartModel {
                 String[] numSplit = queryText.split("<num>");
                 String[] titleSplit = numSplit[1].split("<title>");
                 String[] number = numSplit[1].split("\n")[0].split(" ");
+                String[] descriptionSplit = titleSplit[1].split("<desc> Description:");
+
                 int count = 0;
                 String queryID = "";
                 for(String str : number){
@@ -70,7 +72,15 @@ public class SecondPartModel {
                     if(title[i].equals(""))
                         continue;
                     queryBuilder.append(title[i]);
-                    if(i < title.length - 1)
+                    //if(i < title.length - 1)
+                    queryBuilder.append(" ");
+                }
+                String[] description = descriptionSplit[1].split("<narr>")[0].replace("\n"," ").replace("\r"," ").split(" ");
+                for(int i = 0; i < description.length; i++){
+                    if(description[i].equals(""))
+                        continue;
+                    queryBuilder.append(description[i]);
+                    if(i < description.length - 1)
                         queryBuilder.append(" ");
                 }
                 String txt = queryBuilder.toString();

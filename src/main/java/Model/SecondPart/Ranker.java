@@ -3,7 +3,6 @@ package Model.SecondPart;
 import Model.DocumentsDictionaryEntrance;
 import Model.Term;
 
-import javax.print.Doc;
 import java.util.*;
 
 public class Ranker {
@@ -25,10 +24,8 @@ public class Ranker {
         return IDF;
     }
 
-    public void Rank(MyQuery myQuery, double avgDl, int TotalNumOfDocs) {
+    public void Rank(MyQuery myQuery, double avgDl, int TotalNumOfDocs, boolean useSemantic) {
         initRank();
-        //double bm25;
-        double distanceWordsWeight;
         double maxBM25 = 0;
         int nonSemanticTermsCount = 0;
 
@@ -94,7 +91,7 @@ public class Ranker {
         for(DocRank docRank : allRankedDocs.values()){
             docRank.normalizeBM25(maxBM25);
             docRank.calculatePositions();
-            docRank.calculateScore();
+            docRank.calculateScore(useSemantic);
 
             //start sorting...
             //sortedByRank.add(docRank);
@@ -118,19 +115,6 @@ public class Ranker {
 
         myQuery.setRetrievedDocuments(sortedToReturn);
     }
-
-    /*
-    private void addScoreToExistsScore(DocRank docRank, List<Integer> pos) {
-        for (int i=0 ; i < allRankedDocs.size(); i++){
-            if(allRankedDocs.get(i).equals(docRank)){
-                allRankedDocs.get(i).addToBM25(docRank.getCurrBM25());
-                allRankedDocs.get(i).addToPositions(pos);
-                allRankedDocs.get(i).addAmountToNonSemanticTermCount(docRank.amountOfNonSemanticTerms);
-                return;
-            }
-        }
-    }
-    */
 
     public class toSort implements Comparator<Object>{
         @Override
@@ -198,9 +182,13 @@ public class Ranker {
             currBM25 += bm25;
         }
 
-        public void calculateScore(){
+        public void calculateScore(boolean useSemantics){
             //System.out.println("bm25 = " + currBM25 + ", pos score = " + posScore);
-            score = currBM25 * 0.15 + cosSimTop * 0.05 + amountOfNonSemanticTerms * 0.8 /*+ posScore * 0.05*/;
+            if(!useSemantics) {
+                amountOfNonSemanticTerms = 0; //so the semantics will not ruin our results
+            }
+
+            score = currBM25 * 0.299997 + cosSimTop * 0.099999 + amountOfNonSemanticTerms * 0.599994 + posScore * 0.00001;
         }
 
         public void addToPositions(List<Integer> pos){
@@ -273,6 +261,25 @@ public class Ranker {
         }
 
         public void calculatePositions() {
+            /*
+            double sum = 0;
+            for(int i = 0; i < positions.size(); i++) {
+                int min = Integer.MAX_VALUE;
+                for (int posI : positions.get(i)) {
+                    int curr = posI;
+                    if (curr < min)
+                        min = curr;
+                }
+                if(positions.get(i).size() == 0)
+                    min = 0;
+
+                sum += min / docLength;
+
+            }
+            sum /= positions.size();
+            posScore = sum;
+            */
+
             double sum = 0;
             for(int i = 0; i < positions.size() - 1; i++){
                 for(int j = i + 1; j < positions.size(); j++){
@@ -288,8 +295,8 @@ public class Ranker {
                 }
             }
             sum /= positions.size();
-
             posScore = sum;
+
         }
 
         public void normalizeBM25(double maxBM25) {
